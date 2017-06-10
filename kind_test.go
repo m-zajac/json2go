@@ -2,59 +2,79 @@ package jsontogo
 
 import "testing"
 
-func TestKindExpand(t *testing.T) {
+func TestTypeExpand(t *testing.T) {
 	testCases := []struct {
-		name           string
-		inputs         []interface{}
-		resultKindName kindName
+		name         string
+		inputs       []interface{}
+		resultTypeID fieldTypeID
 	}{
-		// base kinds
+		// base types
 		{
-			name:           "input to bool",
-			inputs:         []interface{}{true},
-			resultKindName: kindNameBool,
+			name:         "input to bool",
+			inputs:       []interface{}{true},
+			resultTypeID: fieldTypeBool,
 		},
 		{
-			name:           "input to int",
-			inputs:         []interface{}{1},
-			resultKindName: kindNameInt,
+			name:         "input to int",
+			inputs:       []interface{}{1},
+			resultTypeID: fieldTypeInt,
 		},
 		{
-			name:           "input to float",
-			inputs:         []interface{}{1.1},
-			resultKindName: kindNameFloat,
+			name:         "input to float",
+			inputs:       []interface{}{1.1},
+			resultTypeID: fieldTypeFloat,
 		},
 		{
-			name:           "input to string",
-			inputs:         []interface{}{"123"},
-			resultKindName: kindNameString,
+			name:         "input to string",
+			inputs:       []interface{}{"123"},
+			resultTypeID: fieldTypeString,
+		},
+		{
+			name: "input to object",
+			inputs: []interface{}{
+				map[string]interface{}{
+					"key": "value",
+				},
+			},
+			resultTypeID: fieldTypeObject,
 		},
 
 		// mixed types
 		{
-			name:           "input to interface #1",
-			inputs:         []interface{}{"123", 123},
-			resultKindName: kindNameInterface,
+			name:         "input to interface #1",
+			inputs:       []interface{}{"123", 123},
+			resultTypeID: fieldTypeInterface,
 		},
 		{
-			name:           "input to interface #2",
-			inputs:         []interface{}{123, "123"},
-			resultKindName: kindNameInterface,
+			name:         "input to interface #2",
+			inputs:       []interface{}{123, "123"},
+			resultTypeID: fieldTypeInterface,
 		},
 		{
-			name:           "input to interface #3",
-			inputs:         []interface{}{"123", 123.4},
-			resultKindName: kindNameInterface,
+			name:         "input to interface #3",
+			inputs:       []interface{}{"123", 123.4},
+			resultTypeID: fieldTypeInterface,
 		},
 		{
-			name:           "input to interface #4",
-			inputs:         []interface{}{123, true},
-			resultKindName: kindNameInterface,
+			name:         "input to interface #4",
+			inputs:       []interface{}{123, true},
+			resultTypeID: fieldTypeInterface,
 		},
 		{
-			name:           "input to interface #5",
-			inputs:         []interface{}{true, 123},
-			resultKindName: kindNameInterface,
+			name:         "input to interface #5",
+			inputs:       []interface{}{true, 123},
+			resultTypeID: fieldTypeInterface,
+		},
+		{
+			name: "input to interface #6",
+			inputs: []interface{}{
+				map[string]interface{}{
+					"k": 1,
+				},
+				true,
+				123,
+			},
+			resultTypeID: fieldTypeInterface,
 		},
 		{
 			name: "input to interface - bool + []bool",
@@ -62,7 +82,7 @@ func TestKindExpand(t *testing.T) {
 				true,
 				[]interface{}{true},
 			},
-			resultKindName: kindNameInterface,
+			resultTypeID: fieldTypeInterface,
 		},
 		{
 			name: "input to interface - []bool + bool",
@@ -70,7 +90,7 @@ func TestKindExpand(t *testing.T) {
 				[]interface{}{true},
 				true,
 			},
-			resultKindName: kindNameInterface,
+			resultTypeID: fieldTypeInterface,
 		},
 		{
 			name: "input to interface - int + []int",
@@ -78,7 +98,7 @@ func TestKindExpand(t *testing.T) {
 				1,
 				[]interface{}{1},
 			},
-			resultKindName: kindNameInterface,
+			resultTypeID: fieldTypeInterface,
 		},
 		{
 			name: "input to interface - []int + int",
@@ -86,7 +106,7 @@ func TestKindExpand(t *testing.T) {
 				[]interface{}{1},
 				1,
 			},
-			resultKindName: kindNameInterface,
+			resultTypeID: fieldTypeInterface,
 		},
 		{
 			name: "input to interface - float + []float",
@@ -94,7 +114,7 @@ func TestKindExpand(t *testing.T) {
 				1.1,
 				[]interface{}{1.1},
 			},
-			resultKindName: kindNameInterface,
+			resultTypeID: fieldTypeInterface,
 		},
 		{
 			name: "input to interface - []float + float",
@@ -102,7 +122,7 @@ func TestKindExpand(t *testing.T) {
 				[]interface{}{1.1},
 				1.1,
 			},
-			resultKindName: kindNameInterface,
+			resultTypeID: fieldTypeInterface,
 		},
 		{
 			name: "input to interface - string + []string",
@@ -110,7 +130,7 @@ func TestKindExpand(t *testing.T) {
 				"1.1",
 				[]interface{}{"1.1"},
 			},
-			resultKindName: kindNameInterface,
+			resultTypeID: fieldTypeInterface,
 		},
 		{
 			name: "input to interface - []string + string",
@@ -118,7 +138,7 @@ func TestKindExpand(t *testing.T) {
 				[]interface{}{"1.1"},
 				"1.1",
 			},
-			resultKindName: kindNameInterface,
+			resultTypeID: fieldTypeInterface,
 		},
 
 		// arrays
@@ -127,49 +147,49 @@ func TestKindExpand(t *testing.T) {
 			inputs: []interface{}{
 				[]interface{}{true, false},
 			},
-			resultKindName: kindNameArrayBool,
+			resultTypeID: fieldTypeArrayBool,
 		},
 		{
 			name: "input to []int",
 			inputs: []interface{}{
 				[]interface{}{1, 2},
 			},
-			resultKindName: kindNameArrayInt,
+			resultTypeID: fieldTypeArrayInt,
 		},
 		{
 			name: "input to []float",
 			inputs: []interface{}{
 				[]interface{}{1.1, 2.2},
 			},
-			resultKindName: kindNameArrayFloat,
+			resultTypeID: fieldTypeArrayFloat,
 		},
 		{
 			name: "input to []float #2",
 			inputs: []interface{}{
 				[]interface{}{1, 2.2},
 			},
-			resultKindName: kindNameArrayFloat,
+			resultTypeID: fieldTypeArrayFloat,
 		},
 		{
 			name: "input to []float #3",
 			inputs: []interface{}{
 				[]interface{}{1.1, 2},
 			},
-			resultKindName: kindNameArrayFloat,
+			resultTypeID: fieldTypeArrayFloat,
 		},
 		{
 			name: "input to []string",
 			inputs: []interface{}{
 				[]interface{}{"xxx", "yyy"},
 			},
-			resultKindName: kindNameArrayString,
+			resultTypeID: fieldTypeArrayString,
 		},
 		{
 			name: "input to []interface{}",
 			inputs: []interface{}{
 				[]interface{}{true, 1},
 			},
-			resultKindName: kindNameArrayInterface,
+			resultTypeID: fieldTypeArrayInterface,
 		},
 		{
 			name: "input to []interface{} #2",
@@ -177,7 +197,7 @@ func TestKindExpand(t *testing.T) {
 				[]interface{}{true, 1},
 				[]interface{}{false, 2},
 			},
-			resultKindName: kindNameArrayInterface,
+			resultTypeID: fieldTypeArrayInterface,
 		},
 		{
 			name: "input to []interface{} #3",
@@ -185,7 +205,7 @@ func TestKindExpand(t *testing.T) {
 				[]interface{}{true, 1},
 				[]interface{}{2, false},
 			},
-			resultKindName: kindNameArrayInterface,
+			resultTypeID: fieldTypeArrayInterface,
 		},
 		{
 			name: "input to {}interface{} - []bool + []int",
@@ -193,19 +213,19 @@ func TestKindExpand(t *testing.T) {
 				[]interface{}{true, false},
 				[]interface{}{1, 2},
 			},
-			resultKindName: kindNameArrayInterface,
+			resultTypeID: fieldTypeArrayInterface,
 		},
 	}
 
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			k := newStartingKind()
+			k := newInitType()
 			for _, in := range tc.inputs {
 				k = k.grow(in)
 			}
-			if k.name != tc.resultKindName {
-				t.Errorf("invalid bool kind expand type for bool input, want %s, got %s", tc.resultKindName, k.name)
+			if k.name != tc.resultTypeID {
+				t.Errorf("invalid result type, want %s, got %s", tc.resultTypeID, k.name)
 			}
 		})
 	}

@@ -9,7 +9,7 @@ func NewParser() *Parser {
 		field: field{
 			name: "root",
 			root: true,
-			kind: newStartingKind(),
+			t:    newInitType(),
 		},
 	}
 }

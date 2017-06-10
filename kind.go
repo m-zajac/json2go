@@ -1,47 +1,49 @@
 package jsontogo
 
-type kindName string
+type fieldTypeID string
 
 const (
-	kindNameBool      kindName = "bool"
-	kindNameInt       kindName = "int"
-	kindNameFloat     kindName = "float"
-	kindNameString    kindName = "string"
-	kindNameInterface kindName = "interface"
+	fieldTypeBool      fieldTypeID = "bool"
+	fieldTypeInt       fieldTypeID = "int"
+	fieldTypeFloat     fieldTypeID = "float"
+	fieldTypeString    fieldTypeID = "string"
+	fieldTypeInterface fieldTypeID = "interface"
 
-	kindNameArrayUnknown   kindName = "aunknown"
-	kindNameArrayBool      kindName = "abool"
-	kindNameArrayInt       kindName = "aint"
-	kindNameArrayFloat     kindName = "afloat"
-	kindNameArrayString    kindName = "astring"
-	kindNameArrayInterface kindName = "ainterface"
+	fieldTypeArrayUnknown   fieldTypeID = "[]unknown"
+	fieldTypeArrayBool      fieldTypeID = "[]bool"
+	fieldTypeArrayInt       fieldTypeID = "[]int"
+	fieldTypeArrayFloat     fieldTypeID = "[]float"
+	fieldTypeArrayString    fieldTypeID = "[]string"
+	fieldTypeArrayInterface fieldTypeID = "[]interface"
+
+	fieldTypeObject fieldTypeID = "object"
 )
 
-type kind struct {
-	name      kindName
-	fitFunc   func(kind, interface{}) kind
-	arrayFunc func() kind
+type fieldType struct {
+	name      fieldTypeID
+	fitFunc   func(fieldType, interface{}) fieldType
+	arrayFunc func() fieldType
 	reprFunc  func() string
 
-	expandsKinds []kind
+	expandsTypes []fieldType
 	grown        bool
 }
 
-func (k kind) grow(value interface{}) kind {
+func (k fieldType) grow(value interface{}) fieldType {
 	new := k.fit(value)
 	if k.grown && !new.expands(k) {
-		return newInterfaceKind()
+		return newInterfaceType()
 	}
 	new.grown = true
 
 	return new
 }
 
-func (k kind) fit(value interface{}) kind {
+func (k fieldType) fit(value interface{}) fieldType {
 	switch typedValue := value.(type) {
 	case []interface{}:
 		if k.arrayFunc != nil { // k is base type
-			return newArrayKindFromValues(typedValue)
+			return newArrayFieldTypeFromValues(typedValue)
 		}
 		res := k.fitFunc(k, value)
 		return res
@@ -51,49 +53,49 @@ func (k kind) fit(value interface{}) kind {
 	}
 }
 
-func (k kind) expands(k2 kind) bool {
+func (k fieldType) expands(k2 fieldType) bool {
 	if k.name == k2.name {
 		return true
 	}
 
-	for _, smallerKind := range k.expandsKinds {
-		if k2.name == smallerKind.name {
-			return smallerKind.expands(k2)
+	for _, smallerType := range k.expandsTypes {
+		if k2.name == smallerType.name {
+			return smallerType.expands(k2)
 		}
 	}
 
 	return false
 }
 
-func (k kind) arrayKind() kind {
+func (k fieldType) arrayType() fieldType {
 	if k.arrayFunc == nil {
-		return newUnknownArrayKind()
+		return newUnknownArrayType()
 	}
 	return k.arrayFunc()
 }
 
-func (k kind) repr() string {
+func (k fieldType) repr() string {
 	return k.reprFunc()
 }
 
-func newStartingKind() kind {
-	return newBoolKind()
+func newInitType() fieldType {
+	return newBoolType()
 }
 
-func newBoolKind() kind {
-	return kind{
-		name: kindNameBool,
-		fitFunc: func(k kind, value interface{}) kind {
+func newBoolType() fieldType {
+	return fieldType{
+		name: fieldTypeBool,
+		fitFunc: func(k fieldType, value interface{}) fieldType {
 			switch value.(type) {
 			case bool:
 				return k
 			default:
-				k = newIntKind()
+				k = newIntType()
 				return k.fit(value)
 			}
 		},
-		arrayFunc: func() kind {
-			return newBoolArrayKind()
+		arrayFunc: func() fieldType {
+			return newBoolArrayType()
 		},
 		reprFunc: func() string {
 			return "bool"
@@ -101,20 +103,20 @@ func newBoolKind() kind {
 	}
 }
 
-func newIntKind() kind {
-	return kind{
-		name: kindNameInt,
-		fitFunc: func(k kind, value interface{}) kind {
+func newIntType() fieldType {
+	return fieldType{
+		name: fieldTypeInt,
+		fitFunc: func(k fieldType, value interface{}) fieldType {
 			switch value.(type) {
 			case int, int8, int16, int32, int64:
 				return k
 			default:
-				k = newFloatKind()
+				k = newFloatType()
 				return k.fit(value)
 			}
 		},
-		arrayFunc: func() kind {
-			return newIntArrayKind()
+		arrayFunc: func() fieldType {
+			return newIntArrayType()
 		},
 		reprFunc: func() string {
 			return "int"
@@ -122,23 +124,23 @@ func newIntKind() kind {
 	}
 }
 
-func newFloatKind() kind {
-	return kind{
-		name: kindNameFloat,
-		expandsKinds: []kind{
-			newIntKind(),
+func newFloatType() fieldType {
+	return fieldType{
+		name: fieldTypeFloat,
+		expandsTypes: []fieldType{
+			newIntType(),
 		},
-		fitFunc: func(k kind, value interface{}) kind {
+		fitFunc: func(k fieldType, value interface{}) fieldType {
 			switch value.(type) {
 			case float32, float64:
 				return k
 			default:
-				k = newStringKind()
+				k = newStringType()
 				return k.fit(value)
 			}
 		},
-		arrayFunc: func() kind {
-			return newFloatArrayKind()
+		arrayFunc: func() fieldType {
+			return newFloatArrayType()
 		},
 		reprFunc: func() string {
 			return "float64"
@@ -146,20 +148,20 @@ func newFloatKind() kind {
 	}
 }
 
-func newStringKind() kind {
-	return kind{
-		name: kindNameString,
-		fitFunc: func(k kind, value interface{}) kind {
+func newStringType() fieldType {
+	return fieldType{
+		name: fieldTypeString,
+		fitFunc: func(k fieldType, value interface{}) fieldType {
 			switch value.(type) {
 			case string:
 				return k
 			default:
-				k = newInterfaceKind()
+				k = newObjectType()
 				return k.fit(value)
 			}
 		},
-		arrayFunc: func() kind {
-			return newStringArrayKind()
+		arrayFunc: func() fieldType {
+			return newStringArrayType()
 		},
 		reprFunc: func() string {
 			return "string"
@@ -167,10 +169,28 @@ func newStringKind() kind {
 	}
 }
 
-func newInterfaceKind() kind {
-	return kind{
-		name: kindNameInterface,
-		fitFunc: func(k kind, value interface{}) kind {
+func newObjectType() fieldType {
+	return fieldType{
+		name: fieldTypeObject,
+		fitFunc: func(k fieldType, value interface{}) fieldType {
+			switch value.(type) {
+			case map[string]interface{}:
+				return k
+			default:
+				k = newInterfaceType()
+				return k.fit(value)
+			}
+		},
+		reprFunc: func() string {
+			return "struct"
+		},
+	}
+}
+
+func newInterfaceType() fieldType {
+	return fieldType{
+		name: fieldTypeInterface,
+		fitFunc: func(k fieldType, value interface{}) fieldType {
 			return k
 		},
 		reprFunc: func() string {
@@ -179,15 +199,15 @@ func newInterfaceKind() kind {
 	}
 }
 
-func newUnknownArrayKind() kind {
-	return kind{
-		name: kindNameArrayUnknown,
-		fitFunc: func(k kind, value interface{}) kind {
+func newUnknownArrayType() fieldType {
+	return fieldType{
+		name: fieldTypeArrayUnknown,
+		fitFunc: func(k fieldType, value interface{}) fieldType {
 			switch typedValue := value.(type) {
 			case []interface{}:
-				return newArrayKindFromValues(typedValue)
+				return newArrayFieldTypeFromValues(typedValue)
 			default:
-				return newInterfaceKind()
+				return newInterfaceType()
 			}
 		},
 		reprFunc: func() string {
@@ -196,9 +216,9 @@ func newUnknownArrayKind() kind {
 	}
 }
 
-func newBoolArrayKind() kind {
-	return kind{
-		name:    kindNameArrayBool,
+func newBoolArrayType() fieldType {
+	return fieldType{
+		name:    fieldTypeArrayBool,
 		fitFunc: fitArray,
 		reprFunc: func() string {
 			return "[]bool"
@@ -206,9 +226,9 @@ func newBoolArrayKind() kind {
 	}
 }
 
-func newIntArrayKind() kind {
-	return kind{
-		name:    kindNameArrayInt,
+func newIntArrayType() fieldType {
+	return fieldType{
+		name:    fieldTypeArrayInt,
 		fitFunc: fitArray,
 		reprFunc: func() string {
 			return "[]int"
@@ -216,9 +236,9 @@ func newIntArrayKind() kind {
 	}
 }
 
-func newFloatArrayKind() kind {
-	return kind{
-		name:    kindNameArrayFloat,
+func newFloatArrayType() fieldType {
+	return fieldType{
+		name:    fieldTypeArrayFloat,
 		fitFunc: fitArray,
 		reprFunc: func() string {
 			return "[]float64"
@@ -226,9 +246,9 @@ func newFloatArrayKind() kind {
 	}
 }
 
-func newStringArrayKind() kind {
-	return kind{
-		name:    kindNameArrayString,
+func newStringArrayType() fieldType {
+	return fieldType{
+		name:    fieldTypeArrayString,
 		fitFunc: fitArray,
 		reprFunc: func() string {
 			return "[]string"
@@ -236,14 +256,14 @@ func newStringArrayKind() kind {
 	}
 }
 
-func newInterfaceArrayKind() kind {
-	return kind{
-		name: kindNameArrayInterface,
-		expandsKinds: []kind{
-			newBoolArrayKind(),
-			newIntArrayKind(),
-			newFloatArrayKind(),
-			newStringArrayKind(),
+func newInterfaceArrayType() fieldType {
+	return fieldType{
+		name: fieldTypeArrayInterface,
+		expandsTypes: []fieldType{
+			newBoolArrayType(),
+			newIntArrayType(),
+			newFloatArrayType(),
+			newStringArrayType(),
 		},
 		fitFunc: fitArray,
 		reprFunc: func() string {
@@ -252,42 +272,42 @@ func newInterfaceArrayKind() kind {
 	}
 }
 
-func newArrayKindFromValues(values []interface{}) kind {
+func newArrayFieldTypeFromValues(values []interface{}) fieldType {
 	if values == nil || len(values) == 0 {
-		return newUnknownArrayKind()
+		return newUnknownArrayType()
 	}
 
-	var valuesKinds []kind
+	var valuesTypes []fieldType
 	for _, v := range values {
-		valuesKinds = append(valuesKinds, newStartingKind().fit(v))
+		valuesTypes = append(valuesTypes, newInitType().fit(v))
 	}
 
-	selectedKind := valuesKinds[0]
+	selectedType := valuesTypes[0]
 
 loop:
-	for _, k := range valuesKinds {
-		if k.name == selectedKind.name {
+	for _, k := range valuesTypes {
+		if k.name == selectedType.name {
 			continue
 		}
 
-		if k.expands(selectedKind) {
-			selectedKind = k
+		if k.expands(selectedType) {
+			selectedType = k
 			continue loop
 		}
-		if selectedKind.expands(k) {
+		if selectedType.expands(k) {
 			continue loop
 		}
 
-		return newInterfaceArrayKind()
+		return newInterfaceArrayType()
 	}
 
-	return selectedKind.arrayKind()
+	return selectedType.arrayType()
 }
 
-func fitArray(k kind, value interface{}) kind {
+func fitArray(k fieldType, value interface{}) fieldType {
 	switch typedValue := value.(type) {
 	case []interface{}:
-		ak := newArrayKindFromValues(typedValue)
+		ak := newArrayFieldTypeFromValues(typedValue)
 		if k.expands(ak) {
 			return k
 		}
@@ -295,8 +315,8 @@ func fitArray(k kind, value interface{}) kind {
 			return ak
 		}
 
-		return newInterfaceArrayKind()
+		return newInterfaceArrayType()
 	}
 
-	return newInterfaceKind()
+	return newInterfaceType()
 }

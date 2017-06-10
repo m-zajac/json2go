@@ -10,14 +10,14 @@ const baseTypeName = "Object"
 type field struct {
 	root   bool
 	name   string
-	kind   kind
+	t      fieldType
 	fields map[string]*field
 }
 
 func newField(name string) *field {
 	return &field{
 		name:   name,
-		kind:   newStartingKind(),
+		t:      newInitType(),
 		fields: make(map[string]*field),
 	}
 }
@@ -32,16 +32,16 @@ func (f *field) grow(input interface{}) {
 			f.fields[k].grow(v)
 		}
 	default:
-		f.kind = f.kind.grow(input)
+		f.t = f.t.grow(input)
 	}
 }
 
 func (f *field) repr() string {
 	if len(f.fields) == 0 {
 		if f.root {
-			return fmt.Sprintf("type %s %s", baseTypeName, f.kind.repr())
+			return fmt.Sprintf("type %s %s", baseTypeName, f.t.repr())
 		}
-		return fmt.Sprintf("%s %s", strings.Title(f.name), f.kind.repr())
+		return fmt.Sprintf("%s %s", strings.Title(f.name), f.t.repr())
 	}
 
 	return ""
