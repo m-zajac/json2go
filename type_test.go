@@ -1,4 +1,4 @@
-package jsontogo
+package json2go
 
 import "testing"
 
@@ -153,6 +153,15 @@ func TestTypeExpand(t *testing.T) {
 			name: "input to []int",
 			inputs: []interface{}{
 				[]interface{}{1, 2},
+				[]interface{}{4, 5, 6},
+			},
+			resultTypeID: fieldTypeArrayInt,
+		},
+		{
+			name: "input to []int with float types",
+			inputs: []interface{}{
+				[]interface{}{1.0, 2.0},
+				[]interface{}{4.0, 5.0, 6.0},
 			},
 			resultTypeID: fieldTypeArrayInt,
 		},
@@ -224,8 +233,8 @@ func TestTypeExpand(t *testing.T) {
 			for _, in := range tc.inputs {
 				k = k.grow(in)
 			}
-			if k.name != tc.resultTypeID {
-				t.Errorf("invalid result type, want %s, got %s", tc.resultTypeID, k.name)
+			if k.id != tc.resultTypeID {
+				t.Errorf("invalid result type, want %s, got %s", tc.resultTypeID, k.id)
 			}
 		})
 	}

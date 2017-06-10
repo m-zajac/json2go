@@ -1,26 +1,29 @@
-package jsontogo
+package json2go
 
 type fieldTypeID string
 
 const (
-	fieldTypeBool      fieldTypeID = "bool"
-	fieldTypeInt       fieldTypeID = "int"
-	fieldTypeFloat     fieldTypeID = "float"
-	fieldTypeString    fieldTypeID = "string"
-	fieldTypeInterface fieldTypeID = "interface"
+	fieldTypeInit fieldTypeID = "init"
 
-	fieldTypeArrayUnknown   fieldTypeID = "[]unknown"
+	fieldTypeBool          fieldTypeID = "bool"
+	fieldTypeInt           fieldTypeID = "int"
+	fieldTypeFloat         fieldTypeID = "float"
+	fieldTypeString        fieldTypeID = "string"
+	fieldTypeUnknownObject fieldTypeID = "object?"
+	fieldTypeObject        fieldTypeID = "object"
+	fieldTypeInterface     fieldTypeID = "interface"
+
+	fieldTypeArrayUnknown   fieldTypeID = "[]?"
 	fieldTypeArrayBool      fieldTypeID = "[]bool"
 	fieldTypeArrayInt       fieldTypeID = "[]int"
 	fieldTypeArrayFloat     fieldTypeID = "[]float"
 	fieldTypeArrayString    fieldTypeID = "[]string"
+	fieldTypeArrayObject    fieldTypeID = "[]object"
 	fieldTypeArrayInterface fieldTypeID = "[]interface"
-
-	fieldTypeObject fieldTypeID = "object"
 )
 
 type fieldType struct {
-	name      fieldTypeID
+	id        fieldTypeID
 	fitFunc   func(fieldType, interface{}) fieldType
 	arrayFunc func() fieldType
 	reprFunc  func() string
@@ -30,6 +33,10 @@ type fieldType struct {
 }
 
 func (k fieldType) grow(value interface{}) fieldType {
+	if value == nil {
+		return k
+	}
+
 	new := k.fit(value)
 	if k.grown && !new.expands(k) {
 		return newInterfaceType()
@@ -45,21 +52,18 @@ func (k fieldType) fit(value interface{}) fieldType {
 		if k.arrayFunc != nil { // k is base type
 			return newArrayFieldTypeFromValues(typedValue)
 		}
-		res := k.fitFunc(k, value)
-		return res
-	default:
-		res := k.fitFunc(k, value)
-		return res
 	}
+
+	return k.fitFunc(k, value)
 }
 
 func (k fieldType) expands(k2 fieldType) bool {
-	if k.name == k2.name {
+	if k.id == k2.id {
 		return true
 	}
 
 	for _, smallerType := range k.expandsTypes {
-		if k2.name == smallerType.name {
+		if k2.id == smallerType.id {
 			return smallerType.expands(k2)
 		}
 	}
@@ -79,20 +83,30 @@ func (k fieldType) repr() string {
 }
 
 func newInitType() fieldType {
-	return newBoolType()
+	return fieldType{
+		id: fieldTypeInit,
+		fitFunc: func(k fieldType, value interface{}) fieldType {
+			return newBoolType().fit(value)
+		},
+		arrayFunc: func() fieldType {
+			return newUnknownArrayType()
+		},
+		reprFunc: func() string {
+			return "interface{}"
+		},
+	}
 }
 
 func newBoolType() fieldType {
 	return fieldType{
-		name: fieldTypeBool,
+		id: fieldTypeBool,
 		fitFunc: func(k fieldType, value interface{}) fieldType {
 			switch value.(type) {
 			case bool:
 				return k
-			default:
-				k = newIntType()
-				return k.fit(value)
 			}
+
+			return newIntType().fit(value)
 		},
 		arrayFunc: func() fieldType {
 			return newBoolArrayType()
@@ -105,15 +119,22 @@ func newBoolType() fieldType {
 
 func newIntType() fieldType {
 	return fieldType{
-		name: fieldTypeInt,
+		id: fieldTypeInt,
 		fitFunc: func(k fieldType, value interface{}) fieldType {
-			switch value.(type) {
+			switch typedValue := value.(type) {
 			case int, int8, int16, int32, int64:
 				return k
-			default:
-				k = newFloatType()
-				return k.fit(value)
+			case float32:
+				if typedValue == float32(int(typedValue)) {
+					return k
+				}
+			case float64:
+				if typedValue == float64(int(typedValue)) {
+					return k
+				}
 			}
+			k = newFloatType()
+			return k.fit(value)
 		},
 		arrayFunc: func() fieldType {
 			return newIntArrayType()
@@ -126,7 +147,7 @@ func newIntType() fieldType {
 
 func newFloatType() fieldType {
 	return fieldType{
-		name: fieldTypeFloat,
+		id: fieldTypeFloat,
 		expandsTypes: []fieldType{
 			newIntType(),
 		},
@@ -134,10 +155,9 @@ func newFloatType() fieldType {
 			switch value.(type) {
 			case float32, float64:
 				return k
-			default:
-				k = newStringType()
-				return k.fit(value)
 			}
+
+			return newStringType().fit(value)
 		},
 		arrayFunc: func() fieldType {
 			return newFloatArrayType()
@@ -150,15 +170,14 @@ func newFloatType() fieldType {
 
 func newStringType() fieldType {
 	return fieldType{
-		name: fieldTypeString,
+		id: fieldTypeString,
 		fitFunc: func(k fieldType, value interface{}) fieldType {
 			switch value.(type) {
 			case string:
 				return k
-			default:
-				k = newObjectType()
-				return k.fit(value)
 			}
+
+			return newUnknownObjectType().fit(value)
 		},
 		arrayFunc: func() fieldType {
 			return newStringArrayType()
@@ -169,17 +188,44 @@ func newStringType() fieldType {
 	}
 }
 
+func newUnknownObjectType() fieldType {
+	return fieldType{
+		id: fieldTypeUnknownObject,
+		fitFunc: func(k fieldType, value interface{}) fieldType {
+			switch typedValue := value.(type) {
+			case map[string]interface{}:
+				if len(typedValue) == 0 {
+					return k
+				}
+			}
+
+			return newObjectType().fit(value)
+		},
+		arrayFunc: func() fieldType {
+			return newInterfaceArrayType()
+		},
+		reprFunc: func() string {
+			return "interface{}"
+		},
+	}
+}
+
 func newObjectType() fieldType {
 	return fieldType{
-		name: fieldTypeObject,
+		id: fieldTypeObject,
+		expandsTypes: []fieldType{
+			newUnknownObjectType(),
+		},
 		fitFunc: func(k fieldType, value interface{}) fieldType {
 			switch value.(type) {
 			case map[string]interface{}:
 				return k
-			default:
-				k = newInterfaceType()
-				return k.fit(value)
 			}
+
+			return newInterfaceType().fit(value)
+		},
+		arrayFunc: func() fieldType {
+			return newObjectArrayType()
 		},
 		reprFunc: func() string {
 			return "struct"
@@ -189,7 +235,7 @@ func newObjectType() fieldType {
 
 func newInterfaceType() fieldType {
 	return fieldType{
-		name: fieldTypeInterface,
+		id: fieldTypeInterface,
 		fitFunc: func(k fieldType, value interface{}) fieldType {
 			return k
 		},
@@ -201,14 +247,14 @@ func newInterfaceType() fieldType {
 
 func newUnknownArrayType() fieldType {
 	return fieldType{
-		name: fieldTypeArrayUnknown,
+		id: fieldTypeArrayUnknown,
 		fitFunc: func(k fieldType, value interface{}) fieldType {
 			switch typedValue := value.(type) {
 			case []interface{}:
 				return newArrayFieldTypeFromValues(typedValue)
-			default:
-				return newInterfaceType()
 			}
+
+			return newInterfaceType()
 		},
 		reprFunc: func() string {
 			return "[]interface{}"
@@ -218,7 +264,7 @@ func newUnknownArrayType() fieldType {
 
 func newBoolArrayType() fieldType {
 	return fieldType{
-		name:    fieldTypeArrayBool,
+		id:      fieldTypeArrayBool,
 		fitFunc: fitArray,
 		reprFunc: func() string {
 			return "[]bool"
@@ -228,7 +274,7 @@ func newBoolArrayType() fieldType {
 
 func newIntArrayType() fieldType {
 	return fieldType{
-		name:    fieldTypeArrayInt,
+		id:      fieldTypeArrayInt,
 		fitFunc: fitArray,
 		reprFunc: func() string {
 			return "[]int"
@@ -238,7 +284,7 @@ func newIntArrayType() fieldType {
 
 func newFloatArrayType() fieldType {
 	return fieldType{
-		name:    fieldTypeArrayFloat,
+		id:      fieldTypeArrayFloat,
 		fitFunc: fitArray,
 		reprFunc: func() string {
 			return "[]float64"
@@ -248,7 +294,7 @@ func newFloatArrayType() fieldType {
 
 func newStringArrayType() fieldType {
 	return fieldType{
-		name:    fieldTypeArrayString,
+		id:      fieldTypeArrayString,
 		fitFunc: fitArray,
 		reprFunc: func() string {
 			return "[]string"
@@ -256,14 +302,25 @@ func newStringArrayType() fieldType {
 	}
 }
 
+func newObjectArrayType() fieldType {
+	return fieldType{
+		id:      fieldTypeArrayObject,
+		fitFunc: fitArray,
+		reprFunc: func() string {
+			return "[]struct"
+		},
+	}
+}
+
 func newInterfaceArrayType() fieldType {
 	return fieldType{
-		name: fieldTypeArrayInterface,
+		id: fieldTypeArrayInterface,
 		expandsTypes: []fieldType{
 			newBoolArrayType(),
 			newIntArrayType(),
 			newFloatArrayType(),
 			newStringArrayType(),
+			newObjectArrayType(),
 		},
 		fitFunc: fitArray,
 		reprFunc: func() string {
@@ -286,7 +343,7 @@ func newArrayFieldTypeFromValues(values []interface{}) fieldType {
 
 loop:
 	for _, k := range valuesTypes {
-		if k.name == selectedType.name {
+		if k.id == selectedType.id {
 			continue
 		}
 
@@ -305,18 +362,18 @@ loop:
 }
 
 func fitArray(k fieldType, value interface{}) fieldType {
-	switch typedValue := value.(type) {
-	case []interface{}:
-		ak := newArrayFieldTypeFromValues(typedValue)
-		if k.expands(ak) {
-			return k
-		}
-		if ak.expands(k) {
-			return ak
-		}
-
-		return newInterfaceArrayType()
+	sliceValue, ok := value.([]interface{})
+	if !ok {
+		return newInterfaceType()
 	}
 
-	return newInterfaceType()
+	ak := newArrayFieldTypeFromValues(sliceValue)
+	if k.expands(ak) {
+		return k
+	}
+	if ak.expands(k) {
+		return ak
+	}
+
+	return newInterfaceArrayType()
 }
