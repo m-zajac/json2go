@@ -2,6 +2,7 @@ package json2go
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/parser"
 	"go/printer"
@@ -76,7 +77,7 @@ func (f *field) repr() (string, error) {
 	fset := token.NewFileSet()
 	astf, err := parser.ParseFile(fset, "", b.String(), 0)
 	if err != nil {
-		return b.String(), fmt.Errorf("invalid type def, parser error: %v", err)
+		return b.String(), errors.New("invalid type definition")
 	}
 
 	b.Reset()
@@ -94,15 +95,19 @@ func (f *field) reprToBuffer(b *bytes.Buffer) {
 	if f.root {
 		b.WriteString(fmt.Sprintf("type %s ", baseTypeName))
 	} else {
-		name := strings.Title(f.name)
-		b.WriteString(fmt.Sprintf("%s ", name))
+		b.WriteString(fmt.Sprintf("%s ", attrName(f.name)))
 	}
 	b.WriteString(f.t.repr())
 
-	if len(f.fields) > 0 && (f.t.id == fieldTypeObject || f.t.id == fieldTypeArrayObject) {
+	isObject := false
+	if f.t.id == fieldTypeObject || f.t.id == fieldTypeArrayObject {
+		isObject = true
+
 		b.WriteString(" {")
 		defer b.WriteString("}")
+	}
 
+	if isObject && len(f.fields) > 0 {
 		// sort subfields by name
 		type fieldWithName struct {
 			name  string
