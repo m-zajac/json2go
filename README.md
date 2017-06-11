@@ -63,7 +63,7 @@ inputs = []string{
 	`{"a": 123, "x": 12.3, "y": true}`,
 }
 
-parser := NewParser()
+parser := json2go.NewParser()
 for _, in := range inputs {
 	parser.FeedBytes([]byte(in))
 }
