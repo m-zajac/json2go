@@ -6,6 +6,7 @@ import (
 	"io"
 )
 
+// Decode reads json data from input reader and writes go type definition to given writer
 func Decode(r io.Reader, w io.Writer) error {
 	var data interface{}
 

@@ -16,7 +16,7 @@ func NewParser() *Parser {
 	}
 }
 
-// Feed consumes json input as bytes. If input is invalid, json unmarshalling error is returnd
+// Feed consumes json input as bytes. If input is invalid, json unmarshalling error is returned
 func (p *Parser) Feed(input []byte) error {
 	var v interface{}
 	if err := json.Unmarshal(input, &v); err != nil {
