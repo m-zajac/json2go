@@ -16,8 +16,8 @@ func NewParser() *Parser {
 	}
 }
 
-// Feed consumes json input as bytes. If input is invalid, json unmarshalling error is returned
-func (p *Parser) Feed(input []byte) error {
+// FeedBytes consumes json input as bytes. If input is invalid, json unmarshalling error is returned
+func (p *Parser) FeedBytes(input []byte) error {
 	var v interface{}
 	if err := json.Unmarshal(input, &v); err != nil {
 		return err
@@ -26,6 +26,25 @@ func (p *Parser) Feed(input []byte) error {
 	p.field.grow(v)
 
 	return nil
+}
+
+// FeedObject consumes any value coming from interface value.
+// If input can be one of:
+//
+//	* simple type (int, float, string, etc.)
+//	* []interface{} - each value must meet these requirements
+//	* map[string]interface{}  - each value must meet these requirements
+//
+// json.Unmarshal to empty interface value provides perfect input.
+//
+// Example:
+// 	var v interface{}
+// 	if err := json.Unmarshal(input, &v); err != nil {
+// 		return err
+// 	}
+// 	parser.FeedObject(v)
+func (p *Parser) FeedObject(input interface{}) {
+	p.field.grow(input)
 }
 
 // Result returns string representation of go struct fitting parsed json values

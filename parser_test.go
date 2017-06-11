@@ -53,7 +53,7 @@ type %s struct {
 		t.Run(tc.name, func(t *testing.T) {
 			p := NewParser()
 			for _, v := range tc.inputs {
-				if err := p.Feed([]byte(v)); err != nil {
+				if err := p.FeedBytes([]byte(v)); err != nil {
 					t.Fatalf("feed error: %v", err)
 				}
 			}
