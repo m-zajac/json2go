@@ -79,3 +79,4 @@ fmt.Println(res)
 ## TODO
 
 - extract common structures
+- generate ast straight from decoded types
