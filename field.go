@@ -71,13 +71,15 @@ func (f *field) repr() (string, error) {
 	b.WriteString(fileHeader)
 
 	// write struct representation
-	f.reprToBuffer(&b)
+	if !f.reprToBuffer(&b) {
+		return "", errors.New("cannot produce valid type definition")
+	}
 
 	// parse and print formatted
 	fset := token.NewFileSet()
 	astf, err := parser.ParseFile(fset, "", b.String(), 0)
 	if err != nil {
-		return b.String(), errors.New("invalid type definition")
+		return b.String(), errors.New("cannot produce valid type definition")
 	}
 
 	b.Reset()
@@ -91,11 +93,15 @@ func (f *field) repr() (string, error) {
 	return repr, nil
 }
 
-func (f *field) reprToBuffer(b *bytes.Buffer) {
+func (f *field) reprToBuffer(b *bytes.Buffer) bool {
 	if f.root {
 		b.WriteString(fmt.Sprintf("type %s ", baseTypeName))
 	} else {
-		b.WriteString(fmt.Sprintf("%s ", attrName(f.name)))
+		name := attrName(f.name)
+		if name == "" {
+			return false
+		}
+		b.WriteString(fmt.Sprintf("%s ", name))
 	}
 	b.WriteString(f.t.repr())
 
@@ -129,11 +135,15 @@ func (f *field) reprToBuffer(b *bytes.Buffer) {
 			b.WriteString("\n")
 
 			// repr subfield
-			subField.field.reprToBuffer(b)
+			if !subField.field.reprToBuffer(b) {
+				continue
+			}
 
 			// add json tag
 			b.WriteString(fmt.Sprintf(" `json:\"%s\"`", subField.name))
 		}
 		b.WriteString("\n")
 	}
+
+	return true
 }

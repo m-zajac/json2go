@@ -74,3 +74,8 @@ if err != nil {
 }
 fmt.Println(res)
 ```
+
+
+## TODO
+
+- extract common structures

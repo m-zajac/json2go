@@ -10,16 +10,48 @@ func attrName(fieldName string) string {
 	var b bytes.Buffer
 
 	words := strings.Split(fieldName, "_")
-	for _, w := range words {
-		if u := strings.ToUpper(w); commonInitialisms[u] {
+	for i, word := range words {
+		if u := strings.ToUpper(word); commonInitialisms[u] {
 			b.WriteString(u)
 			continue
 		}
 
-		b.WriteString(strings.Title(w))
+		word = removeInvalidChars(word, i == 0) // on 0 remove first digits
+		if len(word) == 0 {
+			continue
+		}
+
+		out := strings.ToUpper(string(word[0]))
+		if len(word) > 1 {
+			out += strings.ToLower(word[1:])
+		}
+		b.WriteString(out)
 	}
 
 	return b.String()
+}
+
+func removeInvalidChars(s string, removeFirstDigit bool) string {
+	var buf bytes.Buffer
+
+	for _, b := range []byte(s) {
+		if b >= 97 && b <= 122 { // a-z
+			buf.WriteByte(b)
+			continue
+		}
+		if b >= 65 && b <= 90 { // A-Z
+			buf.WriteByte(b)
+			continue
+		}
+		if b >= 48 && b <= 57 { // 0-9
+			if !removeFirstDigit || buf.Len() > 0 {
+				buf.WriteByte(b)
+				continue
+			}
+		}
+	}
+
+	return buf.String()
 }
 
 // commonInitialisms is a set of common initialisms.
