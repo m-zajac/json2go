@@ -4,15 +4,15 @@ import "encoding/json"
 
 // Parser parses successive json inputs and returns go representation as string
 type Parser struct {
-	field *field
+	rootNode *node
 }
 
 // NewParser creates new Parser
 func NewParser() *Parser {
-	rootField := newField("root")
-	rootField.root = true
+	rootNode := newNode("root")
+	rootNode.root = true
 	return &Parser{
-		field: rootField,
+		rootNode: rootNode,
 	}
 }
 
@@ -23,12 +23,12 @@ func (p *Parser) FeedBytes(input []byte) error {
 		return err
 	}
 
-	p.field.grow(v)
+	p.rootNode.grow(v)
 
 	return nil
 }
 
-// FeedObject consumes any value coming from interface value.
+// FeedValue consumes any value coming from interface value.
 // If input can be one of:
 //
 //	* simple type (int, float, string, etc.)
@@ -42,18 +42,12 @@ func (p *Parser) FeedBytes(input []byte) error {
 // 	if err := json.Unmarshal(input, &v); err != nil {
 // 		return err
 // 	}
-// 	parser.FeedObject(v)
-func (p *Parser) FeedObject(input interface{}) {
-	p.field.grow(input)
+// 	parser.FeedValue(v)
+func (p *Parser) FeedValue(input interface{}) {
+	p.rootNode.grow(input)
 }
 
-// Result returns string representation of go struct fitting parsed json values
-func (p *Parser) Result() (string, error) {
-	return p.field.repr()
-}
-
-// Strings acts as Result (fmt.Stringer)
-func (p *Parser) String() string {
-	s, _ := p.field.repr()
-	return s
+// String returns string representation of go struct fitting parsed json values
+func (p *Parser) String() (string, error) {
+	return p.rootNode.repr()
 }

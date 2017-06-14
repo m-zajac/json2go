@@ -1,38 +1,38 @@
 package json2go
 
-type fieldTypeID string
+type nodeTypeID string
 
 const (
-	fieldTypeInit fieldTypeID = "init"
+	nodeTypeInit nodeTypeID = "init"
 
-	fieldTypeBool          fieldTypeID = "bool"
-	fieldTypeInt           fieldTypeID = "int"
-	fieldTypeFloat         fieldTypeID = "float"
-	fieldTypeString        fieldTypeID = "string"
-	fieldTypeUnknownObject fieldTypeID = "object?"
-	fieldTypeObject        fieldTypeID = "object"
-	fieldTypeInterface     fieldTypeID = "interface"
+	nodeTypeBool          nodeTypeID = "bool"
+	nodeTypeInt           nodeTypeID = "int"
+	nodeTypeFloat         nodeTypeID = "float"
+	nodeTypeString        nodeTypeID = "string"
+	nodeTypeUnknownObject nodeTypeID = "object?"
+	nodeTypeObject        nodeTypeID = "object"
+	nodeTypeInterface     nodeTypeID = "interface"
 
-	fieldTypeArrayUnknown   fieldTypeID = "[]?"
-	fieldTypeArrayBool      fieldTypeID = "[]bool"
-	fieldTypeArrayInt       fieldTypeID = "[]int"
-	fieldTypeArrayFloat     fieldTypeID = "[]float"
-	fieldTypeArrayString    fieldTypeID = "[]string"
-	fieldTypeArrayObject    fieldTypeID = "[]object"
-	fieldTypeArrayInterface fieldTypeID = "[]interface"
+	nodeTypeArrayUnknown   nodeTypeID = "[]?"
+	nodeTypeArrayBool      nodeTypeID = "[]bool"
+	nodeTypeArrayInt       nodeTypeID = "[]int"
+	nodeTypeArrayFloat     nodeTypeID = "[]float"
+	nodeTypeArrayString    nodeTypeID = "[]string"
+	nodeTypeArrayObject    nodeTypeID = "[]object"
+	nodeTypeArrayInterface nodeTypeID = "[]interface"
 )
 
-type fieldType struct {
-	id        fieldTypeID
-	fitFunc   func(fieldType, interface{}) fieldType
-	arrayFunc func() fieldType
+type nodeType struct {
+	id        nodeTypeID
+	fitFunc   func(nodeType, interface{}) nodeType
+	arrayFunc func() nodeType
 	reprFunc  func() string
 
-	expandsTypes []fieldType
+	expandsTypes []nodeType
 	grown        bool
 }
 
-func (k fieldType) grow(value interface{}) fieldType {
+func (k nodeType) grow(value interface{}) nodeType {
 	if value == nil {
 		return k
 	}
@@ -46,18 +46,18 @@ func (k fieldType) grow(value interface{}) fieldType {
 	return new
 }
 
-func (k fieldType) fit(value interface{}) fieldType {
+func (k nodeType) fit(value interface{}) nodeType {
 	switch typedValue := value.(type) {
 	case []interface{}:
 		if k.arrayFunc != nil { // k is base type
-			return newArrayFieldTypeFromValues(typedValue)
+			return newArrayNodeTypeFromValues(typedValue)
 		}
 	}
 
 	return k.fitFunc(k, value)
 }
 
-func (k fieldType) expands(k2 fieldType) bool {
+func (k nodeType) expands(k2 nodeType) bool {
 	if k.id == k2.id {
 		return true
 	}
@@ -71,24 +71,24 @@ func (k fieldType) expands(k2 fieldType) bool {
 	return false
 }
 
-func (k fieldType) arrayType() fieldType {
+func (k nodeType) arrayType() nodeType {
 	if k.arrayFunc == nil {
 		return newUnknownArrayType()
 	}
 	return k.arrayFunc()
 }
 
-func (k fieldType) repr() string {
+func (k nodeType) repr() string {
 	return k.reprFunc()
 }
 
-func newInitType() fieldType {
-	return fieldType{
-		id: fieldTypeInit,
-		fitFunc: func(k fieldType, value interface{}) fieldType {
+func newInitType() nodeType {
+	return nodeType{
+		id: nodeTypeInit,
+		fitFunc: func(k nodeType, value interface{}) nodeType {
 			return newBoolType().fit(value)
 		},
-		arrayFunc: func() fieldType {
+		arrayFunc: func() nodeType {
 			return newUnknownArrayType()
 		},
 		reprFunc: func() string {
@@ -97,10 +97,10 @@ func newInitType() fieldType {
 	}
 }
 
-func newBoolType() fieldType {
-	return fieldType{
-		id: fieldTypeBool,
-		fitFunc: func(k fieldType, value interface{}) fieldType {
+func newBoolType() nodeType {
+	return nodeType{
+		id: nodeTypeBool,
+		fitFunc: func(k nodeType, value interface{}) nodeType {
 			switch value.(type) {
 			case bool:
 				return k
@@ -108,7 +108,7 @@ func newBoolType() fieldType {
 
 			return newIntType().fit(value)
 		},
-		arrayFunc: func() fieldType {
+		arrayFunc: func() nodeType {
 			return newBoolArrayType()
 		},
 		reprFunc: func() string {
@@ -117,10 +117,10 @@ func newBoolType() fieldType {
 	}
 }
 
-func newIntType() fieldType {
-	return fieldType{
-		id: fieldTypeInt,
-		fitFunc: func(k fieldType, value interface{}) fieldType {
+func newIntType() nodeType {
+	return nodeType{
+		id: nodeTypeInt,
+		fitFunc: func(k nodeType, value interface{}) nodeType {
 			switch typedValue := value.(type) {
 			case int, int8, int16, int32, int64:
 				return k
@@ -136,7 +136,7 @@ func newIntType() fieldType {
 			k = newFloatType()
 			return k.fit(value)
 		},
-		arrayFunc: func() fieldType {
+		arrayFunc: func() nodeType {
 			return newIntArrayType()
 		},
 		reprFunc: func() string {
@@ -145,13 +145,13 @@ func newIntType() fieldType {
 	}
 }
 
-func newFloatType() fieldType {
-	return fieldType{
-		id: fieldTypeFloat,
-		expandsTypes: []fieldType{
+func newFloatType() nodeType {
+	return nodeType{
+		id: nodeTypeFloat,
+		expandsTypes: []nodeType{
 			newIntType(),
 		},
-		fitFunc: func(k fieldType, value interface{}) fieldType {
+		fitFunc: func(k nodeType, value interface{}) nodeType {
 			switch value.(type) {
 			case float32, float64:
 				return k
@@ -159,7 +159,7 @@ func newFloatType() fieldType {
 
 			return newStringType().fit(value)
 		},
-		arrayFunc: func() fieldType {
+		arrayFunc: func() nodeType {
 			return newFloatArrayType()
 		},
 		reprFunc: func() string {
@@ -168,10 +168,10 @@ func newFloatType() fieldType {
 	}
 }
 
-func newStringType() fieldType {
-	return fieldType{
-		id: fieldTypeString,
-		fitFunc: func(k fieldType, value interface{}) fieldType {
+func newStringType() nodeType {
+	return nodeType{
+		id: nodeTypeString,
+		fitFunc: func(k nodeType, value interface{}) nodeType {
 			switch value.(type) {
 			case string:
 				return k
@@ -179,7 +179,7 @@ func newStringType() fieldType {
 
 			return newUnknownObjectType().fit(value)
 		},
-		arrayFunc: func() fieldType {
+		arrayFunc: func() nodeType {
 			return newStringArrayType()
 		},
 		reprFunc: func() string {
@@ -188,10 +188,10 @@ func newStringType() fieldType {
 	}
 }
 
-func newUnknownObjectType() fieldType {
-	return fieldType{
-		id: fieldTypeUnknownObject,
-		fitFunc: func(k fieldType, value interface{}) fieldType {
+func newUnknownObjectType() nodeType {
+	return nodeType{
+		id: nodeTypeUnknownObject,
+		fitFunc: func(k nodeType, value interface{}) nodeType {
 			switch typedValue := value.(type) {
 			case map[string]interface{}:
 				if len(typedValue) == 0 {
@@ -201,7 +201,7 @@ func newUnknownObjectType() fieldType {
 
 			return newObjectType().fit(value)
 		},
-		arrayFunc: func() fieldType {
+		arrayFunc: func() nodeType {
 			return newInterfaceArrayType()
 		},
 		reprFunc: func() string {
@@ -210,13 +210,13 @@ func newUnknownObjectType() fieldType {
 	}
 }
 
-func newObjectType() fieldType {
-	return fieldType{
-		id: fieldTypeObject,
-		expandsTypes: []fieldType{
+func newObjectType() nodeType {
+	return nodeType{
+		id: nodeTypeObject,
+		expandsTypes: []nodeType{
 			newUnknownObjectType(),
 		},
-		fitFunc: func(k fieldType, value interface{}) fieldType {
+		fitFunc: func(k nodeType, value interface{}) nodeType {
 			switch value.(type) {
 			case map[string]interface{}:
 				return k
@@ -224,7 +224,7 @@ func newObjectType() fieldType {
 
 			return newInterfaceType().fit(value)
 		},
-		arrayFunc: func() fieldType {
+		arrayFunc: func() nodeType {
 			return newObjectArrayType()
 		},
 		reprFunc: func() string {
@@ -233,10 +233,10 @@ func newObjectType() fieldType {
 	}
 }
 
-func newInterfaceType() fieldType {
-	return fieldType{
-		id: fieldTypeInterface,
-		fitFunc: func(k fieldType, value interface{}) fieldType {
+func newInterfaceType() nodeType {
+	return nodeType{
+		id: nodeTypeInterface,
+		fitFunc: func(k nodeType, value interface{}) nodeType {
 			return k
 		},
 		reprFunc: func() string {
@@ -245,13 +245,13 @@ func newInterfaceType() fieldType {
 	}
 }
 
-func newUnknownArrayType() fieldType {
-	return fieldType{
-		id: fieldTypeArrayUnknown,
-		fitFunc: func(k fieldType, value interface{}) fieldType {
+func newUnknownArrayType() nodeType {
+	return nodeType{
+		id: nodeTypeArrayUnknown,
+		fitFunc: func(k nodeType, value interface{}) nodeType {
 			switch typedValue := value.(type) {
 			case []interface{}:
-				return newArrayFieldTypeFromValues(typedValue)
+				return newArrayNodeTypeFromValues(typedValue)
 			}
 
 			return newInterfaceType()
@@ -262,9 +262,9 @@ func newUnknownArrayType() fieldType {
 	}
 }
 
-func newBoolArrayType() fieldType {
-	return fieldType{
-		id:      fieldTypeArrayBool,
+func newBoolArrayType() nodeType {
+	return nodeType{
+		id:      nodeTypeArrayBool,
 		fitFunc: fitArray,
 		reprFunc: func() string {
 			return "[]bool"
@@ -272,9 +272,9 @@ func newBoolArrayType() fieldType {
 	}
 }
 
-func newIntArrayType() fieldType {
-	return fieldType{
-		id:      fieldTypeArrayInt,
+func newIntArrayType() nodeType {
+	return nodeType{
+		id:      nodeTypeArrayInt,
 		fitFunc: fitArray,
 		reprFunc: func() string {
 			return "[]int"
@@ -282,9 +282,9 @@ func newIntArrayType() fieldType {
 	}
 }
 
-func newFloatArrayType() fieldType {
-	return fieldType{
-		id:      fieldTypeArrayFloat,
+func newFloatArrayType() nodeType {
+	return nodeType{
+		id:      nodeTypeArrayFloat,
 		fitFunc: fitArray,
 		reprFunc: func() string {
 			return "[]float64"
@@ -292,9 +292,9 @@ func newFloatArrayType() fieldType {
 	}
 }
 
-func newStringArrayType() fieldType {
-	return fieldType{
-		id:      fieldTypeArrayString,
+func newStringArrayType() nodeType {
+	return nodeType{
+		id:      nodeTypeArrayString,
 		fitFunc: fitArray,
 		reprFunc: func() string {
 			return "[]string"
@@ -302,9 +302,9 @@ func newStringArrayType() fieldType {
 	}
 }
 
-func newObjectArrayType() fieldType {
-	return fieldType{
-		id:      fieldTypeArrayObject,
+func newObjectArrayType() nodeType {
+	return nodeType{
+		id:      nodeTypeArrayObject,
 		fitFunc: fitArray,
 		reprFunc: func() string {
 			return "[]struct"
@@ -312,10 +312,10 @@ func newObjectArrayType() fieldType {
 	}
 }
 
-func newInterfaceArrayType() fieldType {
-	return fieldType{
-		id: fieldTypeArrayInterface,
-		expandsTypes: []fieldType{
+func newInterfaceArrayType() nodeType {
+	return nodeType{
+		id: nodeTypeArrayInterface,
+		expandsTypes: []nodeType{
 			newBoolArrayType(),
 			newIntArrayType(),
 			newFloatArrayType(),
@@ -329,12 +329,12 @@ func newInterfaceArrayType() fieldType {
 	}
 }
 
-func newArrayFieldTypeFromValues(values []interface{}) fieldType {
+func newArrayNodeTypeFromValues(values []interface{}) nodeType {
 	if values == nil || len(values) == 0 {
 		return newUnknownArrayType()
 	}
 
-	var valuesTypes []fieldType
+	var valuesTypes []nodeType
 	for _, v := range values {
 		valuesTypes = append(valuesTypes, newInitType().fit(v))
 	}
@@ -361,13 +361,13 @@ loop:
 	return selectedType.arrayType()
 }
 
-func fitArray(k fieldType, value interface{}) fieldType {
+func fitArray(k nodeType, value interface{}) nodeType {
 	sliceValue, ok := value.([]interface{})
 	if !ok {
 		return newInterfaceType()
 	}
 
-	ak := newArrayFieldTypeFromValues(sliceValue)
+	ak := newArrayNodeTypeFromValues(sliceValue)
 	if k.expands(ak) {
 		return k
 	}

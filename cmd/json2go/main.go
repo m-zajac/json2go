@@ -1,14 +1,30 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
+	"log"
 	"os"
 
 	"github.com/m-zajac/json2go"
 )
 
 func main() {
-	if err := json2go.Decode(os.Stdin, os.Stdout); err != nil {
-		fmt.Printf("%v\n", err)
+	var data interface{}
+
+	jd := json.NewDecoder(os.Stdin)
+	if err := jd.Decode(&data); err != nil {
+		log.Fatalf("json decoding error: %v", err)
 	}
+
+	parser := json2go.NewParser()
+	parser.FeedValue(data)
+
+	repr, err := parser.String()
+	if err != nil {
+		log.Fatalf("%v\n", err)
+	}
+
+	os.Stdout.WriteString("\n")
+	os.Stdout.WriteString(repr)
+	os.Stdout.WriteString("\n")
 }

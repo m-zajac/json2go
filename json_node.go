@@ -13,34 +13,34 @@ import (
 
 const baseTypeName = "Object"
 
-type field struct {
-	root   bool
-	name   string
-	t      fieldType
-	fields map[string]*field
+type node struct {
+	root     bool
+	name     string
+	t        nodeType
+	children map[string]*node
 }
 
-func newField(name string) *field {
-	return &field{
-		name:   name,
-		t:      newInitType(),
-		fields: make(map[string]*field),
+func newNode(name string) *node {
+	return &node{
+		name:     name,
+		t:        newInitType(),
+		children: make(map[string]*node),
 	}
 }
 
-func (f *field) grow(input interface{}) {
+func (f *node) grow(input interface{}) {
 	f.t = f.t.grow(input)
 
 	switch typedInput := input.(type) {
 	case map[string]interface{}:
 		for k, v := range typedInput {
-			if _, ok := f.fields[k]; !ok {
-				f.fields[k] = newField(k)
+			if _, ok := f.children[k]; !ok {
+				f.children[k] = newNode(k)
 			}
-			f.fields[k].grow(v)
+			f.children[k].grow(v)
 		}
 	case []interface{}:
-		if f.t.id != fieldTypeArrayObject {
+		if f.t.id != nodeTypeArrayObject {
 			break
 		}
 
@@ -52,10 +52,10 @@ func (f *field) grow(input interface{}) {
 			}
 
 			for k, v := range mv {
-				if _, ok := f.fields[k]; !ok {
-					f.fields[k] = newField(k)
+				if _, ok := f.children[k]; !ok {
+					f.children[k] = newNode(k)
 				}
-				f.fields[k].grow(v)
+				f.children[k].grow(v)
 			}
 
 		}
@@ -63,7 +63,7 @@ func (f *field) grow(input interface{}) {
 	}
 }
 
-func (f *field) repr() (string, error) {
+func (f *node) repr() (string, error) {
 	var b bytes.Buffer
 
 	// write valid go file header
@@ -91,7 +91,7 @@ func (f *field) repr() (string, error) {
 	return repr, nil
 }
 
-func (f *field) reprToBuffer(b *bytes.Buffer) {
+func (f *node) reprToBuffer(b *bytes.Buffer) {
 	if f.root {
 		b.WriteString(fmt.Sprintf("type %s ", baseTypeName))
 	} else {
@@ -100,39 +100,39 @@ func (f *field) reprToBuffer(b *bytes.Buffer) {
 	b.WriteString(f.t.repr())
 
 	isObject := false
-	if f.t.id == fieldTypeObject || f.t.id == fieldTypeArrayObject {
+	if f.t.id == nodeTypeObject || f.t.id == nodeTypeArrayObject {
 		isObject = true
 
 		b.WriteString(" {")
 		defer b.WriteString("}")
 	}
 
-	if isObject && len(f.fields) > 0 {
-		// sort subfields by name
-		type fieldWithName struct {
-			name  string
-			field *field
+	if isObject && len(f.children) > 0 {
+		// sort children by name
+		type nodeWithName struct {
+			name string
+			node *node
 		}
-		var sortedFields []fieldWithName
-		for subName, subField := range f.fields {
-			sortedFields = append(sortedFields, fieldWithName{
-				name:  subName,
-				field: subField,
+		var sortedChildren []nodeWithName
+		for subName, child := range f.children {
+			sortedChildren = append(sortedChildren, nodeWithName{
+				name: subName,
+				node: child,
 			})
 		}
-		sort.Slice(sortedFields, func(i, j int) bool {
-			return sortedFields[i].name < sortedFields[j].name
+		sort.Slice(sortedChildren, func(i, j int) bool {
+			return sortedChildren[i].name < sortedChildren[j].name
 		})
 
-		// repr subfields
-		for _, subField := range sortedFields {
+		// repr children
+		for _, child := range sortedChildren {
 			b.WriteString("\n")
 
-			// repr subfield
-			subField.field.reprToBuffer(b)
+			// repr child
+			child.node.reprToBuffer(b)
 
 			// add json tag
-			b.WriteString(fmt.Sprintf(" `json:\"%s\"`", subField.name))
+			b.WriteString(fmt.Sprintf(" `json:\"%s\"`", child.name))
 		}
 		b.WriteString("\n")
 	}

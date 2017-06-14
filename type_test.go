@@ -6,28 +6,28 @@ func TestTypeExpand(t *testing.T) {
 	testCases := []struct {
 		name         string
 		inputs       []interface{}
-		resultTypeID fieldTypeID
+		resultTypeID nodeTypeID
 	}{
 		// base types
 		{
 			name:         "input to bool",
 			inputs:       []interface{}{true},
-			resultTypeID: fieldTypeBool,
+			resultTypeID: nodeTypeBool,
 		},
 		{
 			name:         "input to int",
 			inputs:       []interface{}{1},
-			resultTypeID: fieldTypeInt,
+			resultTypeID: nodeTypeInt,
 		},
 		{
 			name:         "input to float",
 			inputs:       []interface{}{1.1},
-			resultTypeID: fieldTypeFloat,
+			resultTypeID: nodeTypeFloat,
 		},
 		{
 			name:         "input to string",
 			inputs:       []interface{}{"123"},
-			resultTypeID: fieldTypeString,
+			resultTypeID: nodeTypeString,
 		},
 		{
 			name: "input to object",
@@ -36,34 +36,34 @@ func TestTypeExpand(t *testing.T) {
 					"key": "value",
 				},
 			},
-			resultTypeID: fieldTypeObject,
+			resultTypeID: nodeTypeObject,
 		},
 
 		// mixed types
 		{
 			name:         "input to interface #1",
 			inputs:       []interface{}{"123", 123},
-			resultTypeID: fieldTypeInterface,
+			resultTypeID: nodeTypeInterface,
 		},
 		{
 			name:         "input to interface #2",
 			inputs:       []interface{}{123, "123"},
-			resultTypeID: fieldTypeInterface,
+			resultTypeID: nodeTypeInterface,
 		},
 		{
 			name:         "input to interface #3",
 			inputs:       []interface{}{"123", 123.4},
-			resultTypeID: fieldTypeInterface,
+			resultTypeID: nodeTypeInterface,
 		},
 		{
 			name:         "input to interface #4",
 			inputs:       []interface{}{123, true},
-			resultTypeID: fieldTypeInterface,
+			resultTypeID: nodeTypeInterface,
 		},
 		{
 			name:         "input to interface #5",
 			inputs:       []interface{}{true, 123},
-			resultTypeID: fieldTypeInterface,
+			resultTypeID: nodeTypeInterface,
 		},
 		{
 			name: "input to interface #6",
@@ -74,7 +74,7 @@ func TestTypeExpand(t *testing.T) {
 				true,
 				123,
 			},
-			resultTypeID: fieldTypeInterface,
+			resultTypeID: nodeTypeInterface,
 		},
 		{
 			name: "input to interface - bool + []bool",
@@ -82,7 +82,7 @@ func TestTypeExpand(t *testing.T) {
 				true,
 				[]interface{}{true},
 			},
-			resultTypeID: fieldTypeInterface,
+			resultTypeID: nodeTypeInterface,
 		},
 		{
 			name: "input to interface - []bool + bool",
@@ -90,7 +90,7 @@ func TestTypeExpand(t *testing.T) {
 				[]interface{}{true},
 				true,
 			},
-			resultTypeID: fieldTypeInterface,
+			resultTypeID: nodeTypeInterface,
 		},
 		{
 			name: "input to interface - int + []int",
@@ -98,7 +98,7 @@ func TestTypeExpand(t *testing.T) {
 				1,
 				[]interface{}{1},
 			},
-			resultTypeID: fieldTypeInterface,
+			resultTypeID: nodeTypeInterface,
 		},
 		{
 			name: "input to interface - []int + int",
@@ -106,7 +106,7 @@ func TestTypeExpand(t *testing.T) {
 				[]interface{}{1},
 				1,
 			},
-			resultTypeID: fieldTypeInterface,
+			resultTypeID: nodeTypeInterface,
 		},
 		{
 			name: "input to interface - float + []float",
@@ -114,7 +114,7 @@ func TestTypeExpand(t *testing.T) {
 				1.1,
 				[]interface{}{1.1},
 			},
-			resultTypeID: fieldTypeInterface,
+			resultTypeID: nodeTypeInterface,
 		},
 		{
 			name: "input to interface - []float + float",
@@ -122,7 +122,7 @@ func TestTypeExpand(t *testing.T) {
 				[]interface{}{1.1},
 				1.1,
 			},
-			resultTypeID: fieldTypeInterface,
+			resultTypeID: nodeTypeInterface,
 		},
 		{
 			name: "input to interface - string + []string",
@@ -130,7 +130,7 @@ func TestTypeExpand(t *testing.T) {
 				"1.1",
 				[]interface{}{"1.1"},
 			},
-			resultTypeID: fieldTypeInterface,
+			resultTypeID: nodeTypeInterface,
 		},
 		{
 			name: "input to interface - []string + string",
@@ -138,7 +138,7 @@ func TestTypeExpand(t *testing.T) {
 				[]interface{}{"1.1"},
 				"1.1",
 			},
-			resultTypeID: fieldTypeInterface,
+			resultTypeID: nodeTypeInterface,
 		},
 
 		// arrays
@@ -147,7 +147,7 @@ func TestTypeExpand(t *testing.T) {
 			inputs: []interface{}{
 				[]interface{}{true, false},
 			},
-			resultTypeID: fieldTypeArrayBool,
+			resultTypeID: nodeTypeArrayBool,
 		},
 		{
 			name: "input to []int",
@@ -155,7 +155,7 @@ func TestTypeExpand(t *testing.T) {
 				[]interface{}{1, 2},
 				[]interface{}{4, 5, 6},
 			},
-			resultTypeID: fieldTypeArrayInt,
+			resultTypeID: nodeTypeArrayInt,
 		},
 		{
 			name: "input to []int with float types",
@@ -163,42 +163,42 @@ func TestTypeExpand(t *testing.T) {
 				[]interface{}{1.0, 2.0},
 				[]interface{}{4.0, 5.0, 6.0},
 			},
-			resultTypeID: fieldTypeArrayInt,
+			resultTypeID: nodeTypeArrayInt,
 		},
 		{
 			name: "input to []float",
 			inputs: []interface{}{
 				[]interface{}{1.1, 2.2},
 			},
-			resultTypeID: fieldTypeArrayFloat,
+			resultTypeID: nodeTypeArrayFloat,
 		},
 		{
 			name: "input to []float #2",
 			inputs: []interface{}{
 				[]interface{}{1, 2.2},
 			},
-			resultTypeID: fieldTypeArrayFloat,
+			resultTypeID: nodeTypeArrayFloat,
 		},
 		{
 			name: "input to []float #3",
 			inputs: []interface{}{
 				[]interface{}{1.1, 2},
 			},
-			resultTypeID: fieldTypeArrayFloat,
+			resultTypeID: nodeTypeArrayFloat,
 		},
 		{
 			name: "input to []string",
 			inputs: []interface{}{
 				[]interface{}{"xxx", "yyy"},
 			},
-			resultTypeID: fieldTypeArrayString,
+			resultTypeID: nodeTypeArrayString,
 		},
 		{
 			name: "input to []interface{}",
 			inputs: []interface{}{
 				[]interface{}{true, 1},
 			},
-			resultTypeID: fieldTypeArrayInterface,
+			resultTypeID: nodeTypeArrayInterface,
 		},
 		{
 			name: "input to []interface{} #2",
@@ -206,7 +206,7 @@ func TestTypeExpand(t *testing.T) {
 				[]interface{}{true, 1},
 				[]interface{}{false, 2},
 			},
-			resultTypeID: fieldTypeArrayInterface,
+			resultTypeID: nodeTypeArrayInterface,
 		},
 		{
 			name: "input to []interface{} #3",
@@ -214,7 +214,7 @@ func TestTypeExpand(t *testing.T) {
 				[]interface{}{true, 1},
 				[]interface{}{2, false},
 			},
-			resultTypeID: fieldTypeArrayInterface,
+			resultTypeID: nodeTypeArrayInterface,
 		},
 		{
 			name: "input to {}interface{} - []bool + []int",
@@ -222,7 +222,7 @@ func TestTypeExpand(t *testing.T) {
 				[]interface{}{true, false},
 				[]interface{}{1, 2},
 			},
-			resultTypeID: fieldTypeArrayInterface,
+			resultTypeID: nodeTypeArrayInterface,
 		},
 	}
 

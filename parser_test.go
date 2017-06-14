@@ -58,7 +58,10 @@ type %s struct {
 				}
 			}
 
-			repr := p.String()
+			repr, err := p.String()
+			if err != nil {
+				t.Fatalf("parser.String error: %v", err)
+			}
 			expectedRepr := strings.TrimSpace(tc.expectedRepr)
 			if repr != expectedRepr {
 				t.Errorf("invalid repr.\nwant:\n%s\n\ngot:\n%s", expectedRepr, repr)

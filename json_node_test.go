@@ -6,13 +6,13 @@ import (
 	"testing"
 )
 
-func TestFieldRepr(t *testing.T) {
+func TestNodeRepr(t *testing.T) {
 	testCases := []struct {
-		name           string
-		startFieldName string
-		startAsRoot    bool
-		expands        []interface{}
-		expectedRepr   string
+		name          string
+		startNodeName string
+		startAsRoot   bool
+		expands       []interface{}
+		expectedRepr  string
 	}{
 		// base types
 		{
@@ -319,7 +319,7 @@ type %s struct {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			f := newField(tc.startFieldName)
+			f := newNode(tc.startNodeName)
 			f.root = tc.startAsRoot
 
 			for _, v := range tc.expands {
