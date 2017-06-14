@@ -68,7 +68,7 @@ for _, in := range inputs {
 	parser.FeedBytes([]byte(in))
 }
 
-err, res := parser.Result()
+err, res := parser.String()
 if err != nil {
 	log.Errorf("parser error: %v", err)
 }
