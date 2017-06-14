@@ -28,19 +28,19 @@ func newNode(name string) *node {
 	}
 }
 
-func (f *node) grow(input interface{}) {
-	f.t = f.t.grow(input)
+func (n *node) grow(input interface{}) {
+	n.t = n.t.grow(input)
 
 	switch typedInput := input.(type) {
 	case map[string]interface{}:
 		for k, v := range typedInput {
-			if _, ok := f.children[k]; !ok {
-				f.children[k] = newNode(k)
+			if _, ok := n.children[k]; !ok {
+				n.children[k] = newNode(k)
 			}
-			f.children[k].grow(v)
+			n.children[k].grow(v)
 		}
 	case []interface{}:
-		if f.t.id != nodeTypeArrayObject {
+		if n.t.id != nodeTypeArrayObject {
 			break
 		}
 
@@ -52,10 +52,10 @@ func (f *node) grow(input interface{}) {
 			}
 
 			for k, v := range mv {
-				if _, ok := f.children[k]; !ok {
-					f.children[k] = newNode(k)
+				if _, ok := n.children[k]; !ok {
+					n.children[k] = newNode(k)
 				}
-				f.children[k].grow(v)
+				n.children[k].grow(v)
 			}
 
 		}
@@ -63,7 +63,7 @@ func (f *node) grow(input interface{}) {
 	}
 }
 
-func (f *node) repr() (string, error) {
+func (n *node) repr() (string, error) {
 	var b bytes.Buffer
 
 	// write valid go file header
@@ -71,13 +71,15 @@ func (f *node) repr() (string, error) {
 	b.WriteString(fileHeader)
 
 	// write struct representation
-	f.reprToBuffer(&b)
+	if !n.reprToBuffer(&b) {
+		return "", errors.New("cannot produce valid type definition")
+	}
 
 	// parse and print formatted
 	fset := token.NewFileSet()
 	astf, err := parser.ParseFile(fset, "", b.String(), 0)
 	if err != nil {
-		return b.String(), errors.New("invalid type definition")
+		return b.String(), errors.New("cannot produce valid type definition")
 	}
 
 	b.Reset()
@@ -91,30 +93,34 @@ func (f *node) repr() (string, error) {
 	return repr, nil
 }
 
-func (f *node) reprToBuffer(b *bytes.Buffer) {
-	if f.root {
+func (n *node) reprToBuffer(b *bytes.Buffer) bool {
+	if n.root {
 		b.WriteString(fmt.Sprintf("type %s ", baseTypeName))
 	} else {
-		b.WriteString(fmt.Sprintf("%s ", attrName(f.name)))
+		name := attrName(n.name)
+		if name == "" {
+			return false
+		}
+		b.WriteString(fmt.Sprintf("%s ", name))
 	}
-	b.WriteString(f.t.repr())
+	b.WriteString(n.t.repr())
 
 	isObject := false
-	if f.t.id == nodeTypeObject || f.t.id == nodeTypeArrayObject {
+	if n.t.id == nodeTypeObject || n.t.id == nodeTypeArrayObject {
 		isObject = true
 
 		b.WriteString(" {")
 		defer b.WriteString("}")
 	}
 
-	if isObject && len(f.children) > 0 {
+	if isObject && len(n.children) > 0 {
 		// sort children by name
 		type nodeWithName struct {
 			name string
 			node *node
 		}
 		var sortedChildren []nodeWithName
-		for subName, child := range f.children {
+		for subName, child := range n.children {
 			sortedChildren = append(sortedChildren, nodeWithName{
 				name: subName,
 				node: child,
@@ -129,11 +135,15 @@ func (f *node) reprToBuffer(b *bytes.Buffer) {
 			b.WriteString("\n")
 
 			// repr child
-			child.node.reprToBuffer(b)
+			if !child.node.reprToBuffer(b) {
+				continue
+			}
 
 			// add json tag
 			b.WriteString(fmt.Sprintf(" `json:\"%s\"`", child.name))
 		}
 		b.WriteString("\n")
 	}
+
+	return true
 }

@@ -312,6 +312,21 @@ type %s struct {
 }
 					`, baseTypeName),
 		},
+		{
+			name:        "object with one field with garbage name",
+			startAsRoot: true,
+			expands: []interface{}{
+				map[string]interface{}{
+					"a":        "str",
+					"!@#$%^&*": false,
+				},
+			},
+			expectedRepr: fmt.Sprintf(`
+type %s struct {
+	A string `+"`json:\"a\"`"+`
+}
+			`, baseTypeName),
+		},
 	}
 
 	for i := range testCases {
