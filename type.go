@@ -1,7 +1,5 @@
 package json2go
 
-import "go/ast"
-
 type nodeTypeID string
 
 const (
@@ -28,10 +26,8 @@ type nodeType struct {
 	id        nodeTypeID
 	fitFunc   func(nodeType, interface{}) nodeType
 	arrayFunc func() nodeType
-	reprFunc  func() string
 
 	expandsTypes []nodeType
-	grown        bool
 }
 
 func (k nodeType) grow(value interface{}) nodeType {
@@ -40,10 +36,9 @@ func (k nodeType) grow(value interface{}) nodeType {
 	}
 
 	new := k.fit(value)
-	if k.grown && !new.expands(k) {
+	if k.id != nodeTypeInit && !new.expands(k) {
 		return newInterfaceType()
 	}
-	new.grown = true
 
 	return new
 }
@@ -80,15 +75,6 @@ func (k nodeType) arrayType() nodeType {
 	return k.arrayFunc()
 }
 
-func (k nodeType) repr() string {
-	return k.reprFunc()
-}
-
-func (k nodeType) astFieldType() *ast.Ident {
-	// TODO: tmp
-	return ast.NewIdent("string")
-}
-
 func newInitType() nodeType {
 	return nodeType{
 		id: nodeTypeInit,
@@ -97,9 +83,6 @@ func newInitType() nodeType {
 		},
 		arrayFunc: func() nodeType {
 			return newUnknownArrayType()
-		},
-		reprFunc: func() string {
-			return "interface{}"
 		},
 	}
 }
@@ -117,9 +100,6 @@ func newBoolType() nodeType {
 		},
 		arrayFunc: func() nodeType {
 			return newBoolArrayType()
-		},
-		reprFunc: func() string {
-			return "bool"
 		},
 	}
 }
@@ -146,9 +126,6 @@ func newIntType() nodeType {
 		arrayFunc: func() nodeType {
 			return newIntArrayType()
 		},
-		reprFunc: func() string {
-			return "int"
-		},
 	}
 }
 
@@ -169,9 +146,6 @@ func newFloatType() nodeType {
 		arrayFunc: func() nodeType {
 			return newFloatArrayType()
 		},
-		reprFunc: func() string {
-			return "float64"
-		},
 	}
 }
 
@@ -188,9 +162,6 @@ func newStringType() nodeType {
 		},
 		arrayFunc: func() nodeType {
 			return newStringArrayType()
-		},
-		reprFunc: func() string {
-			return "string"
 		},
 	}
 }
@@ -210,9 +181,6 @@ func newUnknownObjectType() nodeType {
 		},
 		arrayFunc: func() nodeType {
 			return newInterfaceArrayType()
-		},
-		reprFunc: func() string {
-			return "interface{}"
 		},
 	}
 }
@@ -234,9 +202,6 @@ func newObjectType() nodeType {
 		arrayFunc: func() nodeType {
 			return newObjectArrayType()
 		},
-		reprFunc: func() string {
-			return "struct"
-		},
 	}
 }
 
@@ -245,9 +210,6 @@ func newInterfaceType() nodeType {
 		id: nodeTypeInterface,
 		fitFunc: func(k nodeType, value interface{}) nodeType {
 			return k
-		},
-		reprFunc: func() string {
-			return "interface{}"
 		},
 	}
 }
@@ -263,9 +225,6 @@ func newUnknownArrayType() nodeType {
 
 			return newInterfaceType()
 		},
-		reprFunc: func() string {
-			return "[]interface{}"
-		},
 	}
 }
 
@@ -273,9 +232,6 @@ func newBoolArrayType() nodeType {
 	return nodeType{
 		id:      nodeTypeArrayBool,
 		fitFunc: fitArray,
-		reprFunc: func() string {
-			return "[]bool"
-		},
 	}
 }
 
@@ -283,9 +239,6 @@ func newIntArrayType() nodeType {
 	return nodeType{
 		id:      nodeTypeArrayInt,
 		fitFunc: fitArray,
-		reprFunc: func() string {
-			return "[]int"
-		},
 	}
 }
 
@@ -293,9 +246,6 @@ func newFloatArrayType() nodeType {
 	return nodeType{
 		id:      nodeTypeArrayFloat,
 		fitFunc: fitArray,
-		reprFunc: func() string {
-			return "[]float64"
-		},
 	}
 }
 
@@ -303,9 +253,6 @@ func newStringArrayType() nodeType {
 	return nodeType{
 		id:      nodeTypeArrayString,
 		fitFunc: fitArray,
-		reprFunc: func() string {
-			return "[]string"
-		},
 	}
 }
 
@@ -313,9 +260,6 @@ func newObjectArrayType() nodeType {
 	return nodeType{
 		id:      nodeTypeArrayObject,
 		fitFunc: fitArray,
-		reprFunc: func() string {
-			return "[]struct"
-		},
 	}
 }
 
@@ -330,9 +274,6 @@ func newInterfaceArrayType() nodeType {
 			newObjectArrayType(),
 		},
 		fitFunc: fitArray,
-		reprFunc: func() string {
-			return "[]interface{}"
-		},
 	}
 }
 

@@ -13,12 +13,12 @@ func TestParserRepr(t *testing.T) {
 		expectedRepr string
 	}{
 		{
-			name:         "empty input",
+			name:         "empty",
 			inputs:       []string{},
 			expectedRepr: fmt.Sprintf("type %s interface{}", baseTypeName),
 		},
 		{
-			name: "single simple input",
+			name: "int",
 			inputs: []string{
 				"1",
 				"2",
@@ -26,7 +26,7 @@ func TestParserRepr(t *testing.T) {
 			expectedRepr: fmt.Sprintf("type %s int", baseTypeName),
 		},
 		{
-			name: "single simple arrays",
+			name: "float arrays",
 			inputs: []string{
 				"[1, 2.0]",
 				"[3, 4]",
@@ -34,7 +34,7 @@ func TestParserRepr(t *testing.T) {
 			expectedRepr: fmt.Sprintf("type %s []int", baseTypeName),
 		},
 		{
-			name: "single simple object",
+			name: "simple object",
 			inputs: []string{
 				`{"x": true, "y": "str"}`,
 				`{"x": false, "y": "str2"}`,
@@ -43,6 +43,19 @@ func TestParserRepr(t *testing.T) {
 type %s struct {
 	X	bool	`+"`json:\"x\"`"+`
 	Y	string	`+"`json:\"y\"`"+`
+}
+			`, baseTypeName),
+		},
+		{
+			name: "simple object, one attr nullable",
+			inputs: []string{
+				`{"x": true, "y": "str"}`,
+				`{"x": false}`,
+			},
+			expectedRepr: fmt.Sprintf(`
+type %s struct {
+	X	bool	`+"`json:\"x\"`"+`
+	Y	*string	`+"`json:\"y,omitempty\"`"+`
 }
 			`, baseTypeName),
 		},

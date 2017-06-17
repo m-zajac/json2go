@@ -75,5 +75,4 @@ fmt.Println(res)
 
 ## TODO
 
-- nullable fields as pointers
 - extract common structures

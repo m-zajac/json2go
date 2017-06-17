@@ -34,6 +34,20 @@ func TestCompare(t *testing.T) {
 			expectedEqual: false,
 		},
 		{
+			name: "required not equal",
+			n1: &node{
+				name:     "n",
+				t:        newBoolType(),
+				required: true,
+			},
+			n2: &node{
+				name:     "n",
+				t:        newBoolType(),
+				required: false,
+			},
+			expectedEqual: false,
+		},
+		{
 			name: "simple equal",
 			n1: &node{
 				name: "n",
@@ -147,9 +161,10 @@ func TestNodeRepr(t *testing.T) {
 			startAsRoot: true,
 			expands:     []interface{}{true},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newBoolType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newBoolType(),
+				required: true,
 			},
 		},
 		{
@@ -157,9 +172,10 @@ func TestNodeRepr(t *testing.T) {
 			startAsRoot: true,
 			expands:     []interface{}{1},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newIntType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newIntType(),
+				required: true,
 			},
 		},
 		{
@@ -167,9 +183,10 @@ func TestNodeRepr(t *testing.T) {
 			startAsRoot: true,
 			expands:     []interface{}{1.1},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newFloatType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newFloatType(),
+				required: true,
 			},
 		},
 		{
@@ -177,9 +194,10 @@ func TestNodeRepr(t *testing.T) {
 			startAsRoot: true,
 			expands:     []interface{}{"1.1"},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newStringType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newStringType(),
+				required: true,
 			},
 		},
 		{
@@ -187,9 +205,10 @@ func TestNodeRepr(t *testing.T) {
 			startAsRoot: true,
 			expands:     []interface{}{true, 1},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newInterfaceType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newInterfaceType(),
+				required: true,
 			},
 		},
 
@@ -201,9 +220,10 @@ func TestNodeRepr(t *testing.T) {
 				[]interface{}{true},
 			},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newBoolArrayType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newBoolArrayType(),
+				required: true,
 			},
 		},
 		{
@@ -213,9 +233,10 @@ func TestNodeRepr(t *testing.T) {
 				[]interface{}{1},
 			},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newIntArrayType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newIntArrayType(),
+				required: true,
 			},
 		},
 		{
@@ -225,9 +246,10 @@ func TestNodeRepr(t *testing.T) {
 				[]interface{}{1.1},
 			},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newFloatArrayType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newFloatArrayType(),
+				required: true,
 			},
 		},
 		{
@@ -237,9 +259,10 @@ func TestNodeRepr(t *testing.T) {
 				[]interface{}{"1.1"},
 			},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newStringArrayType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newStringArrayType(),
+				required: true,
 			},
 		},
 		{
@@ -249,9 +272,10 @@ func TestNodeRepr(t *testing.T) {
 				[]interface{}{true, 1},
 			},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newInterfaceArrayType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newInterfaceArrayType(),
+				required: true,
 			},
 		},
 
@@ -268,13 +292,15 @@ func TestNodeRepr(t *testing.T) {
 				},
 			},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newObjectType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newObjectType(),
+				required: true,
 				children: map[string]*node{
 					"x": {
-						name: "x",
-						t:    newIntType(),
+						name:     "x",
+						t:        newIntType(),
+						required: true,
 					},
 				},
 			},
@@ -295,21 +321,25 @@ func TestNodeRepr(t *testing.T) {
 				},
 			},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newObjectType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newObjectType(),
+				required: true,
 				children: map[string]*node{
 					"a": {
-						name: "a",
-						t:    newStringType(),
+						name:     "a",
+						t:        newStringType(),
+						required: true,
 					},
 					"b": {
-						name: "b",
-						t:    newInterfaceType(),
+						name:     "b",
+						t:        newInterfaceType(),
+						required: true,
 					},
 					"c": {
-						name: "c",
-						t:    newFloatType(),
+						name:     "c",
+						t:        newFloatType(),
+						required: true,
 					},
 				},
 			},
@@ -326,13 +356,15 @@ func TestNodeRepr(t *testing.T) {
 				},
 			},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newObjectType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newObjectType(),
+				required: true,
 				children: map[string]*node{
 					"slice": {
-						name: "slice",
-						t:    newIntArrayType(),
+						name:     "slice",
+						t:        newIntArrayType(),
+						required: true,
 					},
 				},
 			},
@@ -353,17 +385,20 @@ func TestNodeRepr(t *testing.T) {
 				},
 			},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newObjectType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newObjectType(),
+				required: true,
 				children: map[string]*node{
 					"level1": {
-						name: "level1",
-						t:    newObjectType(),
+						name:     "level1",
+						t:        newObjectType(),
+						required: true,
 						children: map[string]*node{
 							"level2": {
-								name: "level2",
-								t:    newFloatArrayType(),
+								name:     "level2",
+								t:        newFloatArrayType(),
+								required: true,
 							},
 						},
 					},
@@ -382,17 +417,20 @@ func TestNodeRepr(t *testing.T) {
 				},
 			},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newObjectType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newObjectType(),
+				required: true,
 				children: map[string]*node{
 					"x": {
-						name: "x",
-						t:    newIntType(),
+						name:     "x",
+						t:        newIntType(),
+						required: false,
 					},
 					"y": {
-						name: "y",
-						t:    newStringType(),
+						name:     "y",
+						t:        newStringType(),
+						required: false,
 					},
 				},
 			},
@@ -431,25 +469,30 @@ func TestNodeRepr(t *testing.T) {
 				},
 			},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newObjectType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newObjectType(),
+				required: true,
 				children: map[string]*node{
 					"level1": {
-						name: "level1",
-						t:    newObjectType(),
+						name:     "level1",
+						t:        newObjectType(),
+						required: true,
 						children: map[string]*node{
 							"level2": {
-								name: "level2",
-								t:    newObjectArrayType(),
+								name:     "level2",
+								t:        newObjectArrayType(),
+								required: true,
 								children: map[string]*node{
 									"x": {
-										name: "x",
-										t:    newIntType(),
+										name:     "x",
+										t:        newIntType(),
+										required: true,
 									},
 									"y": {
-										name: "y",
-										t:    newIntType(),
+										name:     "y",
+										t:        newIntType(),
+										required: true,
 									},
 								},
 							},
@@ -474,17 +517,20 @@ func TestNodeRepr(t *testing.T) {
 				},
 			},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newObjectType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newObjectType(),
+				required: true,
 				children: map[string]*node{
 					"level1": {
-						name: "level1",
-						t:    newObjectType(),
+						name:     "level1",
+						t:        newObjectType(),
+						required: true,
 						children: map[string]*node{
 							"level2": {
-								name: "level2",
-								t:    newUnknownObjectType(),
+								name:     "level2",
+								t:        newUnknownObjectType(),
+								required: true,
 							},
 						},
 					},
@@ -510,25 +556,30 @@ func TestNodeRepr(t *testing.T) {
 				},
 			},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newObjectType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newObjectType(),
+				required: true,
 				children: map[string]*node{
 					"level1": {
-						name: "level1",
-						t:    newObjectType(),
+						name:     "level1",
+						t:        newObjectType(),
+						required: true,
 						children: map[string]*node{
 							"level2": {
-								name: "level2",
-								t:    newObjectType(),
+								name:     "level2",
+								t:        newObjectType(),
+								required: false,
 								children: map[string]*node{
 									"x": {
-										name: "x",
-										t:    newIntType(),
+										name:     "x",
+										t:        newIntType(),
+										required: true,
 									},
 									"y": {
-										name: "y",
-										t:    newIntType(),
+										name:     "y",
+										t:        newIntType(),
+										required: true,
 									},
 								},
 							},
@@ -556,25 +607,30 @@ func TestNodeRepr(t *testing.T) {
 				},
 			},
 			expected: &node{
-				root: true,
-				name: baseTypeName,
-				t:    newObjectType(),
+				root:     true,
+				name:     baseTypeName,
+				t:        newObjectType(),
+				required: true,
 				children: map[string]*node{
 					"level1": {
-						name: "level1",
-						t:    newObjectType(),
+						name:     "level1",
+						t:        newObjectType(),
+						required: true,
 						children: map[string]*node{
 							"level2": {
-								name: "level2",
-								t:    newObjectType(),
+								name:     "level2",
+								t:        newObjectType(),
+								required: false,
 								children: map[string]*node{
 									"x": {
-										name: "x",
-										t:    newIntType(),
+										name:     "x",
+										t:        newIntType(),
+										required: true,
 									},
 									"y": {
-										name: "y",
-										t:    newIntType(),
+										name:     "y",
+										t:        newIntType(),
+										required: true,
 									},
 								},
 							},

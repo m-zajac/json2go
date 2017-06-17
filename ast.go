@@ -26,18 +26,25 @@ func astMakeDecls(rootNode *node) []ast.Decl {
 }
 
 func astTypeFromNode(n *node) ast.Expr {
+	var resultType ast.Expr
+	var pointable bool
+
 	switch n.t.id {
 	case nodeTypeBool:
-		return ast.NewIdent("bool")
+		resultType = ast.NewIdent("bool")
+		pointable = true
 	case nodeTypeInt:
-		return ast.NewIdent("int")
+		resultType = ast.NewIdent("int")
+		pointable = true
 	case nodeTypeFloat:
-		return ast.NewIdent("float64")
+		resultType = ast.NewIdent("float64")
+		pointable = true
 	case nodeTypeString:
-		return ast.NewIdent("string")
+		resultType = ast.NewIdent("string")
+		pointable = true
 
 	case nodeTypeArrayUnknown:
-		return &ast.ArrayType{
+		resultType = &ast.ArrayType{
 			Elt: &ast.InterfaceType{
 				Methods: &ast.FieldList{
 					Opening: 1,
@@ -46,23 +53,23 @@ func astTypeFromNode(n *node) ast.Expr {
 			},
 		}
 	case nodeTypeArrayBool:
-		return &ast.ArrayType{
+		resultType = &ast.ArrayType{
 			Elt: ast.NewIdent("bool"),
 		}
 	case nodeTypeArrayInt:
-		return &ast.ArrayType{
+		resultType = &ast.ArrayType{
 			Elt: ast.NewIdent("int"),
 		}
 	case nodeTypeArrayFloat:
-		return &ast.ArrayType{
+		resultType = &ast.ArrayType{
 			Elt: ast.NewIdent("float64"),
 		}
 	case nodeTypeArrayString:
-		return &ast.ArrayType{
+		resultType = &ast.ArrayType{
 			Elt: ast.NewIdent("string"),
 		}
 	case nodeTypeArrayInterface:
-		return &ast.ArrayType{
+		resultType = &ast.ArrayType{
 			Elt: &ast.InterfaceType{
 				Methods: &ast.FieldList{
 					Opening: 1,
@@ -72,20 +79,29 @@ func astTypeFromNode(n *node) ast.Expr {
 		}
 
 	case nodeTypeArrayObject:
-		return &ast.ArrayType{
+		resultType = &ast.ArrayType{
 			Elt: astStructTypeFromNode(n),
 		}
 
 	case nodeTypeObject:
-		return astStructTypeFromNode(n)
+		resultType = astStructTypeFromNode(n)
+		pointable = true
+
+	default:
+		resultType = &ast.InterfaceType{
+			Methods: &ast.FieldList{
+				Opening: token.Pos(1),
+				Closing: token.Pos(2),
+			},
+		}
 	}
 
-	return &ast.InterfaceType{
-		Methods: &ast.FieldList{
-			Opening: token.Pos(1),
-			Closing: token.Pos(2),
-		},
+	if pointable && !n.required {
+		resultType = &ast.StarExpr{
+			X: resultType,
+		}
 	}
+	return resultType
 }
 
 func astStructTypeFromNode(n *node) *ast.StructType {
@@ -120,7 +136,7 @@ func astStructTypeFromNode(n *node) *ast.StructType {
 		typeDesc.Fields.List = append(typeDesc.Fields.List, &ast.Field{
 			Names: []*ast.Ident{ast.NewIdent(childName)},
 			Type:  astTypeFromNode(child.node),
-			Tag:   astJSONTag(child.key, false),
+			Tag:   astJSONTag(child.key, !child.node.required),
 		})
 	}
 
