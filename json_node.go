@@ -30,25 +30,31 @@ func (n *node) grow(input interface{}) {
 		return
 	}
 
-	prevType := n.t
-	usedKeys := make(map[string]struct{})
-	growChild := func(k string, v interface{}) {
-		usedKeys[k] = struct{}{}
+	keyFirstAppereance := (n.t.id == nodeTypeInit)
+	growChild := func(k string, v interface{}, usedKeys map[string]struct{}) {
 		if _, ok := n.children[k]; !ok {
 			n.children[k] = newNode(k)
-			if prevType.id != nodeTypeInit { // not first input for this node, but new key => not required
+			if !keyFirstAppereance {
 				n.children[k].required = false
 			}
 		}
 		n.children[k].grow(v)
+		usedKeys[k] = struct{}{}
 	}
 
 	n.t = n.t.grow(input)
 
 	switch typedInput := input.(type) {
 	case map[string]interface{}:
+		usedKeys := make(map[string]struct{})
 		for k, v := range typedInput {
-			growChild(k, v)
+			growChild(k, v, usedKeys)
+		}
+
+		for k, child := range n.children {
+			if _, used := usedKeys[k]; !used {
+				child.required = false
+			}
 		}
 	case []interface{}:
 		if n.t.id != nodeTypeArrayObject {
@@ -62,15 +68,20 @@ func (n *node) grow(input interface{}) {
 				break loop
 			}
 
+			usedKeys := make(map[string]struct{})
 			for k, v := range mv {
-				growChild(k, v)
+				growChild(k, v, usedKeys)
 			}
-		}
-	}
 
-	for k, child := range n.children {
-		if _, used := usedKeys[k]; !used {
-			child.required = false
+			for k, child := range n.children {
+				if _, used := usedKeys[k]; !used {
+					child.required = false
+				}
+			}
+
+			// after first iteration, no key is appearing as first
+			// TODO: there should be a better way to implement this
+			keyFirstAppereance = false
 		}
 	}
 }

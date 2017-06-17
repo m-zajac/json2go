@@ -26,7 +26,7 @@ func (p *JSONParser) FeedBytes(input []byte) error {
 		return err
 	}
 
-	p.rootNode.grow(v)
+	p.FeedValue(v)
 
 	return nil
 }
@@ -47,6 +47,13 @@ func (p *JSONParser) FeedBytes(input []byte) error {
 // 	}
 // 	parser.FeedValue(v)
 func (p *JSONParser) FeedValue(input interface{}) {
+	if slice, ok := input.([]interface{}); ok {
+		for _, v := range slice {
+			p.rootNode.grow(v)
+		}
+		return
+	}
+
 	p.rootNode.grow(input)
 }
 

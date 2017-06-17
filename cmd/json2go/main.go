@@ -23,5 +23,5 @@ func main() {
 
 	os.Stdout.WriteString("\n")
 	os.Stdout.WriteString(repr)
-	os.Stdout.WriteString("\n")
+	os.Stdout.WriteString("\n\n")
 }

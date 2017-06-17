@@ -41,10 +41,10 @@ Package provides Parser, which can consume multiple jsons and outputs go type fi
     >>>
 
     type Object struct {
-    	A	int          `json:"a"`
-    	X	float64      `json:"x"`
-    	Y	interface{}  `json:"y"`
-    	Z	bool         `json:"z"`
+    	A	*int		`json:"a,omitempty"`
+    	X	float64		`json:"x"`
+    	Y	interface{}	`json:"y"`
+    	Z	*bool		`json:"z,omitempty"`
     }
 
 ---

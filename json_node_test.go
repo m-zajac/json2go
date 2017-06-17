@@ -639,6 +639,106 @@ func TestNodeRepr(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:        "nested object slice with nullable attrs",
+			startAsRoot: true,
+			expands: []interface{}{
+				map[string]interface{}{
+					"level1": map[string]interface{}{
+						"level2": []interface{}{
+							map[string]interface{}{"x": 1},
+						},
+					},
+				},
+				map[string]interface{}{
+					"level1": map[string]interface{}{
+						"level2": []interface{}{
+							map[string]interface{}{"x": 1},
+							map[string]interface{}{"x": 1, "y": "ok"},
+							map[string]interface{}{"y": "thumbs up"},
+						},
+					},
+				},
+			},
+			expected: &node{
+				root:     true,
+				name:     baseTypeName,
+				t:        newObjectType(),
+				required: true,
+				children: map[string]*node{
+					"level1": {
+						name:     "level1",
+						t:        newObjectType(),
+						required: true,
+						children: map[string]*node{
+							"level2": {
+								name:     "level2",
+								t:        newObjectArrayType(),
+								required: true,
+								children: map[string]*node{
+									"x": {
+										name:     "x",
+										t:        newIntType(),
+										required: false,
+									},
+									"y": {
+										name:     "y",
+										t:        newStringType(),
+										required: false,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name:        "nested object slice with nullable attrs #2",
+			startAsRoot: true,
+			expands: []interface{}{
+				map[string]interface{}{
+					"x": true,
+				},
+				map[string]interface{}{
+					"x": false,
+					"y": []interface{}{
+						map[string]interface{}{"a": "yes"},
+						map[string]interface{}{"b": "no"},
+					},
+				},
+			},
+			expected: &node{
+				root:     true,
+				name:     baseTypeName,
+				t:        newObjectType(),
+				required: true,
+				children: map[string]*node{
+					"x": {
+						name:     "x",
+						t:        newBoolType(),
+						required: true,
+					},
+					"y": {
+						name:     "y",
+						t:        newObjectArrayType(),
+						required: false,
+						children: map[string]*node{
+							"a": {
+								name:     "a",
+								t:        newStringType(),
+								required: false,
+							},
+							"b": {
+								name:     "b",
+								t:        newStringType(),
+								required: false,
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for i := range testCases {
