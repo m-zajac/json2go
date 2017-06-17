@@ -76,3 +76,4 @@ fmt.Println(res)
 ## TODO
 
 - extract common structures
+- try decoding to map if resulting struct has many attributes with same type
