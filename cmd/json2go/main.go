@@ -16,13 +16,10 @@ func main() {
 		log.Fatalf("json decoding error: %v", err)
 	}
 
-	parser := json2go.NewParser()
+	parser := json2go.NewJSONParser()
 	parser.FeedValue(data)
 
-	repr, err := parser.String()
-	if err != nil {
-		log.Fatalf("%v\n", err)
-	}
+	repr := parser.String()
 
 	os.Stdout.WriteString("\n")
 	os.Stdout.WriteString(repr)

@@ -1,5 +1,7 @@
 package json2go
 
+import "go/ast"
+
 type nodeTypeID string
 
 const (
@@ -80,6 +82,11 @@ func (k nodeType) arrayType() nodeType {
 
 func (k nodeType) repr() string {
 	return k.reprFunc()
+}
+
+func (k nodeType) astFieldType() *ast.Ident {
+	// TODO: tmp
+	return ast.NewIdent("string")
 }
 
 func newInitType() nodeType {

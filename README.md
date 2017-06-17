@@ -63,20 +63,17 @@ inputs = []string{
 	`{"a": 123, "x": 12.3, "y": true}`,
 }
 
-parser := json2go.NewParser()
+parser := json2go.NewJSONParser()
 for _, in := range inputs {
 	parser.FeedBytes([]byte(in))
 }
 
-err, res := parser.String()
-if err != nil {
-	log.Errorf("parser error: %v", err)
-}
+res := parser.String()
 fmt.Println(res)
 ```
 
 
 ## TODO
 
+- nullable fields as pointers
 - extract common structures
-- generate ast straight from decoded types

@@ -1,49 +1,196 @@
 package json2go
 
-import (
-	"fmt"
-	"strings"
-	"testing"
-)
+import "testing"
+
+func TestCompare(t *testing.T) {
+	testCases := []struct {
+		name          string
+		n1            *node
+		n2            *node
+		expectedEqual bool
+	}{
+		{
+			name: "name not equal",
+			n1: &node{
+				name: "n",
+				t:    newBoolType(),
+			},
+			n2: &node{
+				name: "n2",
+				t:    newBoolType(),
+			},
+			expectedEqual: false,
+		},
+		{
+			name: "type not equal",
+			n1: &node{
+				name: "n",
+				t:    newBoolType(),
+			},
+			n2: &node{
+				name: "n",
+				t:    newIntType(),
+			},
+			expectedEqual: false,
+		},
+		{
+			name: "simple equal",
+			n1: &node{
+				name: "n",
+				t:    newBoolType(),
+			},
+			n2: &node{
+				name: "n",
+				t:    newBoolType(),
+			},
+			expectedEqual: true,
+		},
+		{
+			name: "complex equal",
+			n1: &node{
+				name: "n",
+				t:    newBoolType(),
+				children: map[string]*node{
+					"n1": {
+						name: "n1",
+						t:    newFloatArrayType(),
+					},
+				},
+			},
+			n2: &node{
+				name: "n",
+				t:    newBoolType(),
+				children: map[string]*node{
+					"n1": {
+						name: "n1",
+						t:    newFloatArrayType(),
+					},
+				},
+			},
+			expectedEqual: true,
+		},
+		{
+			name: "complex - child num not equal",
+			n1: &node{
+				name: "n",
+				t:    newBoolType(),
+				children: map[string]*node{
+					"n1": {
+						name: "n1",
+						t:    newFloatArrayType(),
+					},
+				},
+			},
+			n2: &node{
+				name: "n",
+				t:    newBoolType(),
+				children: map[string]*node{
+					"n1": {
+						name: "n1",
+						t:    newFloatArrayType(),
+					},
+					"n2": {
+						name: "n1",
+						t:    newFloatArrayType(),
+					},
+				},
+			},
+			expectedEqual: false,
+		},
+		{
+			name: "complex - child type not equal",
+			n1: &node{
+				name: "n",
+				t:    newBoolType(),
+				children: map[string]*node{
+					"n1": {
+						name: "n1",
+						t:    newFloatArrayType(),
+					},
+				},
+			},
+			n2: &node{
+				name: "n",
+				t:    newBoolType(),
+				children: map[string]*node{
+					"n1": {
+						name: "n1",
+						t:    newInterfaceArrayType(),
+					},
+				},
+			},
+			expectedEqual: false,
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+			eq := tc.n1.compare(tc.n2)
+			if eq != tc.expectedEqual {
+				t.Errorf("want %t, got %t", tc.expectedEqual, eq)
+			}
+		})
+	}
+}
 
 func TestNodeRepr(t *testing.T) {
 	testCases := []struct {
-		name          string
-		startNodeName string
-		startAsRoot   bool
-		expands       []interface{}
-		expectedRepr  string
+		name        string
+		startAsRoot bool
+		expands     []interface{}
+		expected    *node
 	}{
 		// base types
 		{
-			name:         "bool",
-			startAsRoot:  true,
-			expands:      []interface{}{true},
-			expectedRepr: fmt.Sprintf("type %s bool", baseTypeName),
+			name:        "bool",
+			startAsRoot: true,
+			expands:     []interface{}{true},
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newBoolType(),
+			},
 		},
 		{
-			name:         "int",
-			startAsRoot:  true,
-			expands:      []interface{}{1},
-			expectedRepr: fmt.Sprintf("type %s int", baseTypeName),
+			name:        "int",
+			startAsRoot: true,
+			expands:     []interface{}{1},
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newIntType(),
+			},
 		},
 		{
-			name:         "float",
-			startAsRoot:  true,
-			expands:      []interface{}{1.1},
-			expectedRepr: fmt.Sprintf("type %s float64", baseTypeName),
+			name:        "float",
+			startAsRoot: true,
+			expands:     []interface{}{1.1},
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newFloatType(),
+			},
 		},
 		{
-			name:         "string",
-			startAsRoot:  true,
-			expands:      []interface{}{"1.1"},
-			expectedRepr: fmt.Sprintf("type %s string", baseTypeName),
+			name:        "string",
+			startAsRoot: true,
+			expands:     []interface{}{"1.1"},
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newStringType(),
+			},
 		},
 		{
-			name:         "interface",
-			startAsRoot:  true,
-			expands:      []interface{}{true, 1},
-			expectedRepr: fmt.Sprintf("type %s interface{}", baseTypeName),
+			name:        "interface",
+			startAsRoot: true,
+			expands:     []interface{}{true, 1},
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newInterfaceType(),
+			},
 		},
 
 		// slice types
@@ -53,7 +200,11 @@ func TestNodeRepr(t *testing.T) {
 			expands: []interface{}{
 				[]interface{}{true},
 			},
-			expectedRepr: fmt.Sprintf("type %s []bool", baseTypeName),
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newBoolArrayType(),
+			},
 		},
 		{
 			name:        "[]int",
@@ -61,7 +212,11 @@ func TestNodeRepr(t *testing.T) {
 			expands: []interface{}{
 				[]interface{}{1},
 			},
-			expectedRepr: fmt.Sprintf("type %s []int", baseTypeName),
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newIntArrayType(),
+			},
 		},
 		{
 			name:        "[]float",
@@ -69,7 +224,11 @@ func TestNodeRepr(t *testing.T) {
 			expands: []interface{}{
 				[]interface{}{1.1},
 			},
-			expectedRepr: fmt.Sprintf("type %s []float64", baseTypeName),
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newFloatArrayType(),
+			},
 		},
 		{
 			name:        "[]string",
@@ -77,7 +236,11 @@ func TestNodeRepr(t *testing.T) {
 			expands: []interface{}{
 				[]interface{}{"1.1"},
 			},
-			expectedRepr: fmt.Sprintf("type %s []string", baseTypeName),
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newStringArrayType(),
+			},
 		},
 		{
 			name:        "[]interface",
@@ -85,7 +248,11 @@ func TestNodeRepr(t *testing.T) {
 			expands: []interface{}{
 				[]interface{}{true, 1},
 			},
-			expectedRepr: fmt.Sprintf("type %s []interface{}", baseTypeName),
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newInterfaceArrayType(),
+			},
 		},
 
 		// objects
@@ -100,11 +267,17 @@ func TestNodeRepr(t *testing.T) {
 					"x": 3,
 				},
 			},
-			expectedRepr: fmt.Sprintf(`
-type %s struct {
-	X int `+"`json:\"x\"`"+`
-}
-			`, baseTypeName),
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newObjectType(),
+				children: map[string]*node{
+					"x": {
+						name: "x",
+						t:    newIntType(),
+					},
+				},
+			},
 		},
 		{
 			name:        "object with multiple attrs - sorted by name",
@@ -121,13 +294,25 @@ type %s struct {
 					"a": "str2",
 				},
 			},
-			expectedRepr: fmt.Sprintf(`
-type %s struct {
-	A	string		`+"`json:\"a\"`"+`
-	B	interface{}	`+"`json:\"b\"`"+`
-	C	float64		`+"`json:\"c\"`"+`
-}
-			`, baseTypeName),
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newObjectType(),
+				children: map[string]*node{
+					"a": {
+						name: "a",
+						t:    newStringType(),
+					},
+					"b": {
+						name: "b",
+						t:    newInterfaceType(),
+					},
+					"c": {
+						name: "c",
+						t:    newFloatType(),
+					},
+				},
+			},
 		},
 		{
 			name:        "object with slice attr",
@@ -140,11 +325,17 @@ type %s struct {
 					"slice": []interface{}{3, 4, 5},
 				},
 			},
-			expectedRepr: fmt.Sprintf(`
-type %s struct {
-	Slice []int `+"`json:\"slice\"`"+`
-}
-			`, baseTypeName),
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newObjectType(),
+				children: map[string]*node{
+					"slice": {
+						name: "slice",
+						t:    newIntArrayType(),
+					},
+				},
+			},
 		},
 		{
 			name:        "object with nested object attr",
@@ -161,13 +352,23 @@ type %s struct {
 					},
 				},
 			},
-			expectedRepr: fmt.Sprintf(`
-type %s struct {
-	Level1 struct {
-		Level2 []float64 `+"`json:\"level2\"`"+`
-	} `+"`json:\"level1\"`"+`
-}
-			`, baseTypeName),
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newObjectType(),
+				children: map[string]*node{
+					"level1": {
+						name: "level1",
+						t:    newObjectType(),
+						children: map[string]*node{
+							"level2": {
+								name: "level2",
+								t:    newFloatArrayType(),
+							},
+						},
+					},
+				},
+			},
 		},
 		{
 			name:        "object 2 different attrs",
@@ -180,12 +381,21 @@ type %s struct {
 					"y": "asd",
 				},
 			},
-			expectedRepr: fmt.Sprintf(`
-type %s struct {
-	X	int	`+"`json:\"x\"`"+`
-	Y	string	`+"`json:\"y\"`"+`
-}
-			`, baseTypeName),
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newObjectType(),
+				children: map[string]*node{
+					"x": {
+						name: "x",
+						t:    newIntType(),
+					},
+					"y": {
+						name: "y",
+						t:    newStringType(),
+					},
+				},
+			},
 		},
 		{
 			name:        "nested slice of objects attr",
@@ -220,16 +430,33 @@ type %s struct {
 					},
 				},
 			},
-			expectedRepr: fmt.Sprintf(`
-type %s struct {
-	Level1 struct {
-		Level2 []struct {
-			X	int	`+"`json:\"x\"`"+`
-			Y	int	`+"`json:\"y\"`"+`
-		} `+"`json:\"level2\"`"+`
-	} `+"`json:\"level1\"`"+`
-}
-			`, baseTypeName),
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newObjectType(),
+				children: map[string]*node{
+					"level1": {
+						name: "level1",
+						t:    newObjectType(),
+						children: map[string]*node{
+							"level2": {
+								name: "level2",
+								t:    newObjectArrayType(),
+								children: map[string]*node{
+									"x": {
+										name: "x",
+										t:    newIntType(),
+									},
+									"y": {
+										name: "y",
+										t:    newIntType(),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 		{
 			name:        "nested object with no data",
@@ -246,13 +473,23 @@ type %s struct {
 					},
 				},
 			},
-			expectedRepr: fmt.Sprintf(`
-type %s struct {
-	Level1 struct {
-		Level2 interface{} `+"`json:\"level2\"`"+`
-	} `+"`json:\"level1\"`"+`
-}
-			`, baseTypeName),
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newObjectType(),
+				children: map[string]*node{
+					"level1": {
+						name: "level1",
+						t:    newObjectType(),
+						children: map[string]*node{
+							"level2": {
+								name: "level2",
+								t:    newUnknownObjectType(),
+							},
+						},
+					},
+				},
+			},
 		},
 		{
 			name:        "object attr - null then data",
@@ -272,16 +509,33 @@ type %s struct {
 					},
 				},
 			},
-			expectedRepr: fmt.Sprintf(`
-type %s struct {
-	Level1 struct {
-		Level2 struct {
-			X	int	`+"`json:\"x\"`"+`
-			Y	int	`+"`json:\"y\"`"+`
-		} `+"`json:\"level2\"`"+`
-	} `+"`json:\"level1\"`"+`
-}
-			`, baseTypeName),
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newObjectType(),
+				children: map[string]*node{
+					"level1": {
+						name: "level1",
+						t:    newObjectType(),
+						children: map[string]*node{
+							"level2": {
+								name: "level2",
+								t:    newObjectType(),
+								children: map[string]*node{
+									"x": {
+										name: "x",
+										t:    newIntType(),
+									},
+									"y": {
+										name: "y",
+										t:    newIntType(),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 		{
 			name:        "object attr - data then null",
@@ -301,31 +555,33 @@ type %s struct {
 					},
 				},
 			},
-			expectedRepr: fmt.Sprintf(`
-type %s struct {
-	Level1 struct {
-		Level2 struct {
-			X	int	`+"`json:\"x\"`"+`
-			Y	int	`+"`json:\"y\"`"+`
-		} `+"`json:\"level2\"`"+`
-	} `+"`json:\"level1\"`"+`
-}
-					`, baseTypeName),
-		},
-		{
-			name:        "object with one field with garbage name",
-			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
-					"a":        "str",
-					"!@#$%^&*": false,
+			expected: &node{
+				root: true,
+				name: baseTypeName,
+				t:    newObjectType(),
+				children: map[string]*node{
+					"level1": {
+						name: "level1",
+						t:    newObjectType(),
+						children: map[string]*node{
+							"level2": {
+								name: "level2",
+								t:    newObjectType(),
+								children: map[string]*node{
+									"x": {
+										name: "x",
+										t:    newIntType(),
+									},
+									"y": {
+										name: "y",
+										t:    newIntType(),
+									},
+								},
+							},
+						},
+					},
 				},
 			},
-			expectedRepr: fmt.Sprintf(`
-type %s struct {
-	A string `+"`json:\"a\"`"+`
-}
-			`, baseTypeName),
 		},
 	}
 
@@ -334,21 +590,15 @@ type %s struct {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			f := newNode(tc.startNodeName)
+			f := newNode(baseTypeName)
 			f.root = tc.startAsRoot
 
 			for _, v := range tc.expands {
 				f.grow(v)
 			}
 
-			repr, err := f.repr()
-			if err != nil {
-				t.Fatalf("got repr error.\nerror: %v\n repr:\n%s\n", err, repr)
-			}
-
-			expectedRepr := strings.TrimSpace(tc.expectedRepr)
-			if repr != expectedRepr {
-				t.Errorf("invalid repr.\nwant:\n%s\n\ngot:\n%s", expectedRepr, repr)
+			if !f.compare(tc.expected) {
+				t.Fatalf("invalid node. want:\n%s\ngot:\n%s", tc.expected.repr(""), f.repr(""))
 			}
 		})
 	}

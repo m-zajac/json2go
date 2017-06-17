@@ -1,23 +1,26 @@
 package json2go
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"go/ast"
+)
 
-// Parser parses successive json inputs and returns go representation as string
-type Parser struct {
+// JSONParser parses successive json inputs and returns go representation as string
+type JSONParser struct {
 	rootNode *node
 }
 
-// NewParser creates new Parser
-func NewParser() *Parser {
-	rootNode := newNode("root")
+// NewJSONParser creates new json Parser
+func NewJSONParser() *JSONParser {
+	rootNode := newNode("object")
 	rootNode.root = true
-	return &Parser{
+	return &JSONParser{
 		rootNode: rootNode,
 	}
 }
 
 // FeedBytes consumes json input as bytes. If input is invalid, json unmarshalling error is returned
-func (p *Parser) FeedBytes(input []byte) error {
+func (p *JSONParser) FeedBytes(input []byte) error {
 	var v interface{}
 	if err := json.Unmarshal(input, &v); err != nil {
 		return err
@@ -43,11 +46,16 @@ func (p *Parser) FeedBytes(input []byte) error {
 // 		return err
 // 	}
 // 	parser.FeedValue(v)
-func (p *Parser) FeedValue(input interface{}) {
+func (p *JSONParser) FeedValue(input interface{}) {
 	p.rootNode.grow(input)
 }
 
 // String returns string representation of go struct fitting parsed json values
-func (p *Parser) String() (string, error) {
-	return p.rootNode.repr()
+func (p *JSONParser) String() string {
+	return astPrintDecls(astMakeDecls(p.rootNode))
+}
+
+// ASTDecls returns ast type declarations
+func (p *JSONParser) ASTDecls() []ast.Decl {
+	return astMakeDecls(p.rootNode)
 }

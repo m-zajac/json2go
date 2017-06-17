@@ -51,17 +51,14 @@ type %s struct {
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			p := NewParser()
+			p := NewJSONParser()
 			for _, v := range tc.inputs {
 				if err := p.FeedBytes([]byte(v)); err != nil {
 					t.Fatalf("feed error: %v", err)
 				}
 			}
 
-			repr, err := p.String()
-			if err != nil {
-				t.Fatalf("parser.String error: %v", err)
-			}
+			repr := p.String()
 			expectedRepr := strings.TrimSpace(tc.expectedRepr)
 			if repr != expectedRepr {
 				t.Errorf("invalid repr.\nwant:\n%s\n\ngot:\n%s", expectedRepr, repr)

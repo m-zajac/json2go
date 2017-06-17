@@ -2,13 +2,7 @@ package json2go
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
-	"go/parser"
-	"go/printer"
-	"go/token"
-	"sort"
-	"strings"
 )
 
 const baseTypeName = "Object"
@@ -63,87 +57,44 @@ func (n *node) grow(input interface{}) {
 	}
 }
 
-func (n *node) repr() (string, error) {
-	var b bytes.Buffer
-
-	// write valid go file header
-	fileHeader := "package main\n\n"
-	b.WriteString(fileHeader)
-
-	// write struct representation
-	if !n.reprToBuffer(&b) {
-		return "", errors.New("cannot produce valid type definition")
+func (n *node) compare(n2 *node) bool {
+	if n.name != n2.name {
+		return false
+	}
+	if n.t.id != n2.t.id {
+		return false
+	}
+	if len(n.children) != len(n2.children) {
+		return false
 	}
 
-	// parse and print formatted
-	fset := token.NewFileSet()
-	astf, err := parser.ParseFile(fset, "", b.String(), 0)
-	if err != nil {
-		return b.String(), errors.New("cannot produce valid type definition")
-	}
-
-	b.Reset()
-	printer.Fprint(&b, fset, astf)
-
-	// remove go file header
-	repr := b.String()
-	repr = strings.TrimPrefix(repr, fileHeader)
-	repr = strings.TrimSpace(repr)
-
-	return repr, nil
-}
-
-func (n *node) reprToBuffer(b *bytes.Buffer) bool {
-	if n.root {
-		b.WriteString(fmt.Sprintf("type %s ", baseTypeName))
-	} else {
-		name := attrName(n.name)
-		if name == "" {
+	for k, child := range n.children {
+		child2, ok := n2.children[k]
+		if !ok {
 			return false
 		}
-		b.WriteString(fmt.Sprintf("%s ", name))
-	}
-	b.WriteString(n.t.repr())
-
-	isObject := false
-	if n.t.id == nodeTypeObject || n.t.id == nodeTypeArrayObject {
-		isObject = true
-
-		b.WriteString(" {")
-		defer b.WriteString("}")
-	}
-
-	if isObject && len(n.children) > 0 {
-		// sort children by name
-		type nodeWithName struct {
-			name string
-			node *node
+		if !child.compare(child2) {
+			return false
 		}
-		var sortedChildren []nodeWithName
-		for subName, child := range n.children {
-			sortedChildren = append(sortedChildren, nodeWithName{
-				name: subName,
-				node: child,
-			})
-		}
-		sort.Slice(sortedChildren, func(i, j int) bool {
-			return sortedChildren[i].name < sortedChildren[j].name
-		})
-
-		// repr children
-		for _, child := range sortedChildren {
-			b.WriteString("\n")
-
-			// repr child
-			if !child.node.reprToBuffer(b) {
-				continue
-			}
-
-			// add json tag
-			b.WriteString(fmt.Sprintf(" `json:\"%s\"`", child.name))
-		}
-		b.WriteString("\n")
 	}
 
 	return true
+}
+
+func (n *node) repr(prefix string) string {
+	var buf bytes.Buffer
+
+	buf.WriteString(fmt.Sprintf("%s{\n", prefix))
+	buf.WriteString(fmt.Sprintf("%s  n: %s\n", prefix, n.name))
+	buf.WriteString(fmt.Sprintf("%s  t: %s\n", prefix, n.t.id))
+	if len(n.children) > 0 {
+		buf.WriteString(fmt.Sprintf("%s  children: {\n", prefix))
+		for _, c := range n.children {
+			buf.WriteString(fmt.Sprintf("%s    %s:\n%s\n", prefix, c.name, c.repr(prefix+"    ")))
+		}
+		buf.WriteString(fmt.Sprintf("%s  }\n", prefix))
+	}
+	buf.WriteString(fmt.Sprintf("%s}", prefix))
+
+	return buf.String()
 }
