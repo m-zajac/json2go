@@ -78,3 +78,4 @@ fmt.Println(res)
 - extract common structures
 - try decoding to map if resulting struct has many attributes with same type
 - add examples for JSONParser usage in godocs
+- convert json schema to go type
