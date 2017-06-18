@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"go/ast"
 	"go/token"
-	"sort"
 )
 
 func astMakeDecls(rootNode *node) []ast.Decl {
-	name := attrName(rootNode.name)
+	name := attrName(rootNode.key)
 	if name == "" {
 		return nil
 	}
@@ -111,42 +110,26 @@ func astStructTypeFromNode(n *node) *ast.StructType {
 		},
 	}
 
-	// sort children by name
-	type nodeWithName struct {
-		key  string
-		node *node
-	}
-	var sortedChildren []nodeWithName
-	for childName, child := range n.children {
-		sortedChildren = append(sortedChildren, nodeWithName{
-			key:  childName,
-			node: child,
-		})
-	}
-	sort.Slice(sortedChildren, func(i, j int) bool {
-		return sortedChildren[i].key < sortedChildren[j].key
-	})
-
-	for _, child := range sortedChildren {
-		childName := attrName(child.node.name)
+	for _, child := range n.children {
+		childName := attrName(child.key)
 		if childName == "" {
 			continue
 		}
 
 		typeDesc.Fields.List = append(typeDesc.Fields.List, &ast.Field{
 			Names: []*ast.Ident{ast.NewIdent(childName)},
-			Type:  astTypeFromNode(child.node),
-			Tag:   astJSONTag(child.key, !child.node.required),
+			Type:  astTypeFromNode(child),
+			Tag:   astJSONTag(child.key, !child.required),
 		})
 	}
 
 	return typeDesc
 }
 
-func astJSONTag(name string, omitempty bool) *ast.BasicLit {
+func astJSONTag(key string, omitempty bool) *ast.BasicLit {
 	var buf bytes.Buffer
 	buf.WriteString("`json:\"")
-	buf.WriteString(name)
+	buf.WriteString(key)
 	if omitempty {
 		buf.WriteString(",omitempty")
 	}

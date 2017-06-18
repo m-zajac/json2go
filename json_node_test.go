@@ -12,36 +12,36 @@ func TestCompare(t *testing.T) {
 		{
 			name: "name not equal",
 			n1: &node{
-				name: "n",
-				t:    newBoolType(),
+				key: "n",
+				t:   newBoolType(),
 			},
 			n2: &node{
-				name: "n2",
-				t:    newBoolType(),
+				key: "n2",
+				t:   newBoolType(),
 			},
 			expectedEqual: false,
 		},
 		{
 			name: "type not equal",
 			n1: &node{
-				name: "n",
-				t:    newBoolType(),
+				key: "n",
+				t:   newBoolType(),
 			},
 			n2: &node{
-				name: "n",
-				t:    newIntType(),
+				key: "n",
+				t:   newIntType(),
 			},
 			expectedEqual: false,
 		},
 		{
 			name: "required not equal",
 			n1: &node{
-				name:     "n",
+				key:      "n",
 				t:        newBoolType(),
 				required: true,
 			},
 			n2: &node{
-				name:     "n",
+				key:      "n",
 				t:        newBoolType(),
 				required: false,
 			},
@@ -50,34 +50,34 @@ func TestCompare(t *testing.T) {
 		{
 			name: "simple equal",
 			n1: &node{
-				name: "n",
-				t:    newBoolType(),
+				key: "n",
+				t:   newBoolType(),
 			},
 			n2: &node{
-				name: "n",
-				t:    newBoolType(),
+				key: "n",
+				t:   newBoolType(),
 			},
 			expectedEqual: true,
 		},
 		{
 			name: "complex equal",
 			n1: &node{
-				name: "n",
-				t:    newBoolType(),
-				children: map[string]*node{
-					"n1": {
-						name: "n1",
-						t:    newFloatArrayType(),
+				key: "n",
+				t:   newBoolType(),
+				children: []*node{
+					{
+						key: "n1",
+						t:   newFloatArrayType(),
 					},
 				},
 			},
 			n2: &node{
-				name: "n",
-				t:    newBoolType(),
-				children: map[string]*node{
-					"n1": {
-						name: "n1",
-						t:    newFloatArrayType(),
+				key: "n",
+				t:   newBoolType(),
+				children: []*node{
+					{
+						key: "n1",
+						t:   newFloatArrayType(),
 					},
 				},
 			},
@@ -86,26 +86,26 @@ func TestCompare(t *testing.T) {
 		{
 			name: "complex - child num not equal",
 			n1: &node{
-				name: "n",
-				t:    newBoolType(),
-				children: map[string]*node{
-					"n1": {
-						name: "n1",
-						t:    newFloatArrayType(),
+				key: "n",
+				t:   newBoolType(),
+				children: []*node{
+					{
+						key: "n1",
+						t:   newFloatArrayType(),
 					},
 				},
 			},
 			n2: &node{
-				name: "n",
-				t:    newBoolType(),
-				children: map[string]*node{
-					"n1": {
-						name: "n1",
-						t:    newFloatArrayType(),
+				key: "n",
+				t:   newBoolType(),
+				children: []*node{
+					{
+						key: "n1",
+						t:   newFloatArrayType(),
 					},
-					"n2": {
-						name: "n1",
-						t:    newFloatArrayType(),
+					{
+						key: "n1",
+						t:   newFloatArrayType(),
 					},
 				},
 			},
@@ -114,22 +114,22 @@ func TestCompare(t *testing.T) {
 		{
 			name: "complex - child type not equal",
 			n1: &node{
-				name: "n",
-				t:    newBoolType(),
-				children: map[string]*node{
-					"n1": {
-						name: "n1",
-						t:    newFloatArrayType(),
+				key: "n",
+				t:   newBoolType(),
+				children: []*node{
+					{
+						key: "n1",
+						t:   newFloatArrayType(),
 					},
 				},
 			},
 			n2: &node{
-				name: "n",
-				t:    newBoolType(),
-				children: map[string]*node{
-					"n1": {
-						name: "n1",
-						t:    newInterfaceArrayType(),
+				key: "n",
+				t:   newBoolType(),
+				children: []*node{
+					{
+						key: "n1",
+						t:   newInterfaceArrayType(),
 					},
 				},
 			},
@@ -162,7 +162,7 @@ func TestNodeRepr(t *testing.T) {
 			expands:     []interface{}{true},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newBoolType(),
 				required: true,
 			},
@@ -173,7 +173,7 @@ func TestNodeRepr(t *testing.T) {
 			expands:     []interface{}{1},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newIntType(),
 				required: true,
 			},
@@ -184,7 +184,7 @@ func TestNodeRepr(t *testing.T) {
 			expands:     []interface{}{1.1},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newFloatType(),
 				required: true,
 			},
@@ -195,7 +195,7 @@ func TestNodeRepr(t *testing.T) {
 			expands:     []interface{}{"1.1"},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newStringType(),
 				required: true,
 			},
@@ -206,7 +206,7 @@ func TestNodeRepr(t *testing.T) {
 			expands:     []interface{}{true, 1},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newInterfaceType(),
 				required: true,
 			},
@@ -221,7 +221,7 @@ func TestNodeRepr(t *testing.T) {
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newBoolArrayType(),
 				required: true,
 			},
@@ -234,7 +234,7 @@ func TestNodeRepr(t *testing.T) {
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newIntArrayType(),
 				required: true,
 			},
@@ -247,7 +247,7 @@ func TestNodeRepr(t *testing.T) {
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newFloatArrayType(),
 				required: true,
 			},
@@ -260,7 +260,7 @@ func TestNodeRepr(t *testing.T) {
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newStringArrayType(),
 				required: true,
 			},
@@ -273,7 +273,7 @@ func TestNodeRepr(t *testing.T) {
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newInterfaceArrayType(),
 				required: true,
 			},
@@ -293,12 +293,12 @@ func TestNodeRepr(t *testing.T) {
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newObjectType(),
 				required: true,
-				children: map[string]*node{
-					"x": {
-						name:     "x",
+				children: []*node{
+					{
+						key:      "x",
 						t:        newIntType(),
 						required: true,
 					},
@@ -311,33 +311,33 @@ func TestNodeRepr(t *testing.T) {
 			expands: []interface{}{
 				map[string]interface{}{
 					"c": 1,
-					"b": 2.0,
 					"a": "str",
+					"b": 2.0,
 				},
 				map[string]interface{}{
+					"a": "str2",
 					"c": 12.7,
 					"b": true,
-					"a": "str2",
 				},
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newObjectType(),
 				required: true,
-				children: map[string]*node{
-					"a": {
-						name:     "a",
+				children: []*node{
+					{
+						key:      "a",
 						t:        newStringType(),
 						required: true,
 					},
-					"b": {
-						name:     "b",
+					{
+						key:      "b",
 						t:        newInterfaceType(),
 						required: true,
 					},
-					"c": {
-						name:     "c",
+					{
+						key:      "c",
 						t:        newFloatType(),
 						required: true,
 					},
@@ -357,12 +357,12 @@ func TestNodeRepr(t *testing.T) {
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newObjectType(),
 				required: true,
-				children: map[string]*node{
-					"slice": {
-						name:     "slice",
+				children: []*node{
+					{
+						key:      "slice",
 						t:        newIntArrayType(),
 						required: true,
 					},
@@ -386,17 +386,17 @@ func TestNodeRepr(t *testing.T) {
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newObjectType(),
 				required: true,
-				children: map[string]*node{
-					"level1": {
-						name:     "level1",
+				children: []*node{
+					{
+						key:      "level1",
 						t:        newObjectType(),
 						required: true,
-						children: map[string]*node{
-							"level2": {
-								name:     "level2",
+						children: []*node{
+							{
+								key:      "level2",
 								t:        newFloatArrayType(),
 								required: true,
 							},
@@ -418,17 +418,17 @@ func TestNodeRepr(t *testing.T) {
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newObjectType(),
 				required: true,
-				children: map[string]*node{
-					"x": {
-						name:     "x",
+				children: []*node{
+					{
+						key:      "x",
 						t:        newIntType(),
 						required: false,
 					},
-					"y": {
-						name:     "y",
+					{
+						key:      "y",
 						t:        newStringType(),
 						required: false,
 					},
@@ -470,27 +470,27 @@ func TestNodeRepr(t *testing.T) {
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newObjectType(),
 				required: true,
-				children: map[string]*node{
-					"level1": {
-						name:     "level1",
+				children: []*node{
+					{
+						key:      "level1",
 						t:        newObjectType(),
 						required: true,
-						children: map[string]*node{
-							"level2": {
-								name:     "level2",
+						children: []*node{
+							{
+								key:      "level2",
 								t:        newObjectArrayType(),
 								required: true,
-								children: map[string]*node{
-									"x": {
-										name:     "x",
+								children: []*node{
+									{
+										key:      "x",
 										t:        newIntType(),
 										required: true,
 									},
-									"y": {
-										name:     "y",
+									{
+										key:      "y",
 										t:        newIntType(),
 										required: true,
 									},
@@ -518,17 +518,17 @@ func TestNodeRepr(t *testing.T) {
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newObjectType(),
 				required: true,
-				children: map[string]*node{
-					"level1": {
-						name:     "level1",
+				children: []*node{
+					{
+						key:      "level1",
 						t:        newObjectType(),
 						required: true,
-						children: map[string]*node{
-							"level2": {
-								name:     "level2",
+						children: []*node{
+							{
+								key:      "level2",
 								t:        newUnknownObjectType(),
 								required: true,
 							},
@@ -557,27 +557,27 @@ func TestNodeRepr(t *testing.T) {
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newObjectType(),
 				required: true,
-				children: map[string]*node{
-					"level1": {
-						name:     "level1",
+				children: []*node{
+					{
+						key:      "level1",
 						t:        newObjectType(),
 						required: true,
-						children: map[string]*node{
-							"level2": {
-								name:     "level2",
+						children: []*node{
+							{
+								key:      "level2",
 								t:        newObjectType(),
 								required: false,
-								children: map[string]*node{
-									"x": {
-										name:     "x",
+								children: []*node{
+									{
+										key:      "x",
 										t:        newIntType(),
 										required: true,
 									},
-									"y": {
-										name:     "y",
+									{
+										key:      "y",
 										t:        newIntType(),
 										required: true,
 									},
@@ -608,27 +608,27 @@ func TestNodeRepr(t *testing.T) {
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newObjectType(),
 				required: true,
-				children: map[string]*node{
-					"level1": {
-						name:     "level1",
+				children: []*node{
+					{
+						key:      "level1",
 						t:        newObjectType(),
 						required: true,
-						children: map[string]*node{
-							"level2": {
-								name:     "level2",
+						children: []*node{
+							{
+								key:      "level2",
 								t:        newObjectType(),
 								required: false,
-								children: map[string]*node{
-									"x": {
-										name:     "x",
+								children: []*node{
+									{
+										key:      "x",
 										t:        newIntType(),
 										required: true,
 									},
-									"y": {
-										name:     "y",
+									{
+										key:      "y",
 										t:        newIntType(),
 										required: true,
 									},
@@ -662,27 +662,27 @@ func TestNodeRepr(t *testing.T) {
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newObjectType(),
 				required: true,
-				children: map[string]*node{
-					"level1": {
-						name:     "level1",
+				children: []*node{
+					{
+						key:      "level1",
 						t:        newObjectType(),
 						required: true,
-						children: map[string]*node{
-							"level2": {
-								name:     "level2",
+						children: []*node{
+							{
+								key:      "level2",
 								t:        newObjectArrayType(),
 								required: true,
-								children: map[string]*node{
-									"x": {
-										name:     "x",
+								children: []*node{
+									{
+										key:      "x",
 										t:        newIntType(),
 										required: false,
 									},
-									"y": {
-										name:     "y",
+									{
+										key:      "y",
 										t:        newStringType(),
 										required: false,
 									},
@@ -710,27 +710,27 @@ func TestNodeRepr(t *testing.T) {
 			},
 			expected: &node{
 				root:     true,
-				name:     baseTypeName,
+				key:      baseTypeName,
 				t:        newObjectType(),
 				required: true,
-				children: map[string]*node{
-					"x": {
-						name:     "x",
+				children: []*node{
+					{
+						key:      "x",
 						t:        newBoolType(),
 						required: true,
 					},
-					"y": {
-						name:     "y",
+					{
+						key:      "y",
 						t:        newObjectArrayType(),
 						required: false,
-						children: map[string]*node{
-							"a": {
-								name:     "a",
+						children: []*node{
+							{
+								key:      "a",
 								t:        newStringType(),
 								required: false,
 							},
-							"b": {
-								name:     "b",
+							{
+								key:      "b",
 								t:        newStringType(),
 								required: false,
 							},
@@ -752,6 +752,7 @@ func TestNodeRepr(t *testing.T) {
 			for _, v := range tc.expands {
 				f.grow(v)
 			}
+			f.sort()
 
 			if !f.compare(tc.expected) {
 				t.Fatalf("invalid node. want:\n%s\ngot:\n%s", tc.expected.repr(""), f.repr(""))
