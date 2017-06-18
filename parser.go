@@ -59,10 +59,12 @@ func (p *JSONParser) FeedValue(input interface{}) {
 
 // String returns string representation of go struct fitting parsed json values
 func (p *JSONParser) String() string {
-	return astPrintDecls(astMakeDecls(p.rootNode))
+	p.rootNode.sort()
+	return astPrintDecls(astMakeDecls([]*node{p.rootNode}))
 }
 
 // ASTDecls returns ast type declarations
 func (p *JSONParser) ASTDecls() []ast.Decl {
-	return astMakeDecls(p.rootNode)
+	p.rootNode.sort()
+	return astMakeDecls([]*node{p.rootNode})
 }

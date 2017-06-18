@@ -3,24 +3,26 @@ package json2go
 import (
 	"bytes"
 	"fmt"
+	"sort"
+	"strings"
 )
 
 const baseTypeName = "Object"
 
 type node struct {
-	root     bool
-	name     string
-	t        nodeType
-	required bool
-	children map[string]*node
+	root           bool
+	key            string
+	t              nodeType
+	externalTypeID string
+	required       bool
+	children       []*node
 }
 
 func newNode(name string) *node {
 	return &node{
-		name:     name,
+		key:      name,
 		t:        newInitType(),
 		required: true,
-		children: make(map[string]*node),
 	}
 }
 
@@ -32,13 +34,11 @@ func (n *node) grow(input interface{}) {
 
 	keyFirstAppereance := (n.t.id == nodeTypeInit)
 	growChild := func(k string, v interface{}, usedKeys map[string]struct{}) {
-		if _, ok := n.children[k]; !ok {
-			n.children[k] = newNode(k)
-			if !keyFirstAppereance {
-				n.children[k].required = false
-			}
+		child, created := n.getOrCreateChild(k)
+		if created && !keyFirstAppereance {
+			child.required = false
 		}
-		n.children[k].grow(v)
+		child.grow(v)
 		usedKeys[k] = struct{}{}
 	}
 
@@ -51,8 +51,8 @@ func (n *node) grow(input interface{}) {
 			growChild(k, v, usedKeys)
 		}
 
-		for k, child := range n.children {
-			if _, used := usedKeys[k]; !used {
+		for _, child := range n.children {
+			if _, used := usedKeys[child.key]; !used {
 				child.required = false
 			}
 		}
@@ -73,8 +73,8 @@ func (n *node) grow(input interface{}) {
 				growChild(k, v, usedKeys)
 			}
 
-			for k, child := range n.children {
-				if _, used := usedKeys[k]; !used {
+			for _, child := range n.children {
+				if _, used := usedKeys[child.key]; !used {
 					child.required = false
 				}
 			}
@@ -86,8 +86,38 @@ func (n *node) grow(input interface{}) {
 	}
 }
 
+func (n *node) getOrCreateChild(key string) (*node, bool) {
+	if child := n.getChild(key); child != nil {
+		return child, false
+	}
+
+	child := newNode(key)
+	n.children = append(n.children, child)
+	return child, true
+}
+
+func (n *node) getChild(key string) *node {
+	for _, child := range n.children {
+		if child.key == key {
+			return child
+		}
+	}
+
+	return nil
+}
+
+func (n *node) sort() {
+	sort.Slice(n.children, func(i int, j int) bool {
+		return n.children[i].key < n.children[j].key
+	})
+
+	for _, child := range n.children {
+		child.sort()
+	}
+}
+
 func (n *node) compare(n2 *node) bool {
-	if n.name != n2.name {
+	if n.key != n2.key {
 		return false
 	}
 	if n.t.id != n2.t.id {
@@ -100,11 +130,8 @@ func (n *node) compare(n2 *node) bool {
 		return false
 	}
 
-	for k, child := range n.children {
-		child2, ok := n2.children[k]
-		if !ok {
-			return false
-		}
+	for i, child := range n.children {
+		child2 := n2.children[i]
 		if !child.compare(child2) {
 			return false
 		}
@@ -113,17 +140,68 @@ func (n *node) compare(n2 *node) bool {
 	return true
 }
 
+// structureID returns identifier unique for this nodes structure
+func (n *node) structureID() string {
+	var parts []string
+	parts = append(parts, string(n.t.id))
+	for _, child := range n.children {
+		parts = append(parts, child.structureID())
+	}
+
+	return strings.Join(parts, "|")
+}
+
+type nodeStructureInfo struct {
+	structureID string
+	typeID      nodeTypeID
+	nodes       []*node
+}
+
+func (n *node) treeInfo(infos map[string]nodeStructureInfo) {
+	var info nodeStructureInfo
+
+	id := n.structureID()
+	if ninfo, ok := infos[id]; ok {
+		info = ninfo
+		info.nodes = append(info.nodes, n)
+	} else {
+		info = nodeStructureInfo{
+			structureID: id,
+			typeID:      n.t.id,
+			nodes:       []*node{n},
+		}
+	}
+	infos[id] = info
+
+	for _, child := range n.children {
+		child.treeInfo(infos)
+	}
+}
+
+// modify executes function f on all nodes in subtree with given structure id
+func (n *node) modify(structureID string, f func(*node)) {
+	for i, child := range n.children {
+		if child.structureID() == structureID {
+			f(n.children[i])
+		}
+
+		child.modify(structureID, f)
+	}
+}
+
 func (n *node) repr(prefix string) string {
 	var buf bytes.Buffer
 
 	buf.WriteString(fmt.Sprintf("%s{\n", prefix))
-	buf.WriteString(fmt.Sprintf("%s  name: %s\n", prefix, n.name))
 	buf.WriteString(fmt.Sprintf("%s  type: %s\n", prefix, n.t.id))
 	buf.WriteString(fmt.Sprintf("%s  required: %t\n", prefix, n.required))
+	if n.externalTypeID != "" {
+		buf.WriteString(fmt.Sprintf("%s  extType: %s\n", prefix, n.externalTypeID))
+	}
 	if len(n.children) > 0 {
 		buf.WriteString(fmt.Sprintf("%s  children: {\n", prefix))
 		for _, c := range n.children {
-			buf.WriteString(fmt.Sprintf("%s    %s:\n%s\n", prefix, c.name, c.repr(prefix+"    ")))
+			buf.WriteString(fmt.Sprintf("%s    %s:\n%s\n", prefix, c.key, c.repr(prefix+"    ")))
 		}
 		buf.WriteString(fmt.Sprintf("%s  }\n", prefix))
 	}

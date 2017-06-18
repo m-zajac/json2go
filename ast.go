@@ -7,22 +7,26 @@ import (
 	"sort"
 )
 
-func astMakeDecls(rootNode *node) []ast.Decl {
-	name := attrName(rootNode.name)
-	if name == "" {
-		return nil
-	}
-	rootDecl := &ast.GenDecl{
-		Tok: token.TYPE,
-		Specs: []ast.Spec{
-			&ast.TypeSpec{
-				Name: ast.NewIdent(name),
-				Type: astTypeFromNode(rootNode),
+func astMakeDecls(rootNodes []*node) []ast.Decl {
+	var decls []ast.Decl
+
+	for _, rootNode := range rootNodes {
+		name := attrName(rootNode.key)
+		if name == "" {
+			continue
+		}
+		decls = append(decls, &ast.GenDecl{
+			Tok: token.TYPE,
+			Specs: []ast.Spec{
+				&ast.TypeSpec{
+					Name: ast.NewIdent(name),
+					Type: astTypeFromNode(rootNode),
+				},
 			},
-		},
+		})
 	}
 
-	return []ast.Decl{rootDecl}
+	return decls
 }
 
 func astTypeFromNode(n *node) ast.Expr {
@@ -87,6 +91,14 @@ func astTypeFromNode(n *node) ast.Expr {
 		resultType = astStructTypeFromNode(n)
 		pointable = true
 
+	case nodeTypeExternalNode:
+		extName := n.externalTypeID
+		if extName == "" {
+			extName = attrName(n.key)
+		}
+		resultType = ast.NewIdent(extName)
+		pointable = true
+
 	default:
 		resultType = &ast.InterfaceType{
 			Methods: &ast.FieldList{
@@ -117,9 +129,9 @@ func astStructTypeFromNode(n *node) *ast.StructType {
 		node *node
 	}
 	var sortedChildren []nodeWithName
-	for childName, child := range n.children {
+	for _, child := range n.children {
 		sortedChildren = append(sortedChildren, nodeWithName{
-			key:  childName,
+			key:  child.key,
 			node: child,
 		})
 	}
@@ -128,7 +140,7 @@ func astStructTypeFromNode(n *node) *ast.StructType {
 	})
 
 	for _, child := range sortedChildren {
-		childName := attrName(child.node.name)
+		childName := attrName(child.key)
 		if childName == "" {
 			continue
 		}
@@ -143,10 +155,10 @@ func astStructTypeFromNode(n *node) *ast.StructType {
 	return typeDesc
 }
 
-func astJSONTag(name string, omitempty bool) *ast.BasicLit {
+func astJSONTag(key string, omitempty bool) *ast.BasicLit {
 	var buf bytes.Buffer
 	buf.WriteString("`json:\"")
-	buf.WriteString(name)
+	buf.WriteString(key)
 	if omitempty {
 		buf.WriteString(",omitempty")
 	}

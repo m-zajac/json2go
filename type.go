@@ -20,6 +20,8 @@ const (
 	nodeTypeArrayString    nodeTypeID = "[]string"
 	nodeTypeArrayObject    nodeTypeID = "[]object"
 	nodeTypeArrayInterface nodeTypeID = "[]interface"
+
+	nodeTypeExternalNode nodeTypeID = "node" // this node type points to other tree root
 )
 
 type nodeType struct {
@@ -274,6 +276,12 @@ func newInterfaceArrayType() nodeType {
 			newObjectArrayType(),
 		},
 		fitFunc: fitArray,
+	}
+}
+
+func newExternalObjectType() nodeType {
+	return nodeType{
+		id: nodeTypeExternalNode,
 	}
 }
 
