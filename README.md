@@ -14,48 +14,19 @@ CLI tools can be used directly to create go type from stdin data (see examples).
 
 Package provides Parser, which can consume multiple jsons and outputs go type fitting all inputs (see examples and [documentation](https://godoc.org/github.com/m-zajac/json2go)). Example usage: read documents from document-oriented database and feed them too parser for go struct.
 
-### CLI examples:
+### CLI usage examples
 
-    echo '123' | json2go
-
-    >>>
-
-    type Object int
-
----
-
-    echo '{"x": 123, "y": "test", "z": false}' | json2go
-
-    >>>
-
-    type Object struct {
-    	X	int      `json:"x"`
-    	Y	string   `json:"y"`
-    	Z	bool     `json:"z"`
-    }
-
----
-
-    echo '[{"x": 123, "y": "test", "z": false}, {"a": 123, "x": 12.3, "y": true}]' | json2go
-
-    >>>
-
-    type Object struct {
-    	A	*int		`json:"a,omitempty"`
-    	X	float64		`json:"x"`
-    	Y	interface{}	`json:"y"`
-    	Z	*bool		`json:"z,omitempty"`
-    }
+    echo '{"x":1,"y":2}' | json2go
 
 ---
 
     curl -s https://www.reddit.com/r/golang.json | json2go
 
-    >>>
+---
 
-    Check out yourself :)
+    cat data.json | json2go
 
-### Package examples:
+### Package usage examples
 
 ```go
 inputs = []string{
@@ -70,6 +41,85 @@ for _, in := range inputs {
 
 res := parser.String()
 fmt.Println(res)
+```
+
+## Example outputs
+
+```json
+{
+    "line": {
+        "point1": {
+            "x": 12.1,
+            "y": 2
+        },
+        "point2": {
+            "x": 12.1,
+            "y": 2
+        }
+    }
+}
+```
+```go
+type Document struct {
+	Line struct {
+		Point1 Point `json:"point1"`
+		Point2 Point `json:"point2"`
+	} `json:"line"`
+}
+type Point struct {
+	X float64 `json:"x"`
+	Y int     `json:"y"`
+}
+```
+
+---
+
+```json
+[
+    {
+        "name": "water",
+        "type": "liquid",
+        "boiling_point": {
+            "units": "C",
+            "value": 100
+        }
+    },
+    {
+        "name": "oxygen",
+        "type": "gas",
+        "density": {
+            "units": "g/L",
+            "value": 1.429
+        }
+    },
+    {
+        "name": "carbon monoxide",
+        "type": "gas",
+        "dangerous": true,
+        "boiling_point": {
+            "units": "C",
+            "value": -191.5
+        },
+        "density": {
+            "units": "kg/m3",
+            "value": 789
+        }
+    }
+]
+```
+```go
+type Document struct {
+	BoilingPoint *UnitsValue `json:"boiling_point,omitempty"`
+	Dangerous    *bool       `json:"dangerous,omitempty"`
+	Density      *UnitsValue `json:"density,omitempty"`
+	Name         string      `json:"name"`
+	Type         string      `json:"type"`
+}
+type UnitsValue *struct {
+	Units string  `json:"units"`
+	Value float64 `json:"value"`
+}
+
 ```
 
 
