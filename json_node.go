@@ -7,7 +7,10 @@ import (
 	"strings"
 )
 
-const baseTypeName = "Object"
+const (
+	baseTypeName           = "Object"
+	structIDlevelSeparator = "|"
+)
 
 type node struct {
 	root           bool
@@ -126,6 +129,9 @@ func (n *node) compare(n2 *node) bool {
 	if n.required != n2.required {
 		return false
 	}
+	if n.externalTypeID != n2.externalTypeID {
+		return false
+	}
 	if len(n.children) != len(n2.children) {
 		return false
 	}
@@ -141,14 +147,19 @@ func (n *node) compare(n2 *node) bool {
 }
 
 // structureID returns identifier unique for this nodes structure
-func (n *node) structureID() string {
+// if `asRoot` is true, this node id does not depend on "required" property
+func (n *node) structureID(asRoot bool) string {
 	var parts []string
-	parts = append(parts, string(n.t.id))
+	if asRoot {
+		parts = append(parts, string(n.t.id))
+	} else {
+		parts = append(parts, fmt.Sprintf("%s.%s.%t", n.t.id, n.key, n.required))
+	}
 	for _, child := range n.children {
-		parts = append(parts, child.structureID())
+		parts = append(parts, child.structureID(false))
 	}
 
-	return strings.Join(parts, "|")
+	return strings.Join(parts, structIDlevelSeparator)
 }
 
 type nodeStructureInfo struct {
@@ -160,7 +171,7 @@ type nodeStructureInfo struct {
 func (n *node) treeInfo(infos map[string]nodeStructureInfo) {
 	var info nodeStructureInfo
 
-	id := n.structureID()
+	id := n.structureID(true)
 	if ninfo, ok := infos[id]; ok {
 		info = ninfo
 		info.nodes = append(info.nodes, n)
@@ -181,7 +192,7 @@ func (n *node) treeInfo(infos map[string]nodeStructureInfo) {
 // modify executes function f on all nodes in subtree with given structure id
 func (n *node) modify(structureID string, f func(*node)) {
 	for i, child := range n.children {
-		if child.structureID() == structureID {
+		if child.structureID(true) == structureID {
 			f(n.children[i])
 		}
 
@@ -208,4 +219,78 @@ func (n *node) repr(prefix string) string {
 	buf.WriteString(fmt.Sprintf("%s}", prefix))
 
 	return buf.String()
+}
+
+func extractCommonSubtrees(root *node) []*node {
+	result := []*node{root}
+
+	infos := make(map[string]nodeStructureInfo)
+	rootKeys := map[string]struct{}{
+		root.key: {},
+	}
+	extractedStructIDs := make(map[string]struct{})
+
+	root.treeInfo(infos)
+
+	sortedStructsInfo := make([]nodeStructureInfo, 0, len(infos))
+	for _, inf := range infos {
+		sortedStructsInfo = append(sortedStructsInfo, inf)
+	}
+	sort.Slice(sortedStructsInfo, func(i int, j int) bool {
+		l1 := strings.Count(sortedStructsInfo[i].structureID, structIDlevelSeparator)
+		l2 := strings.Count(sortedStructsInfo[j].structureID, structIDlevelSeparator)
+		if l1 == l2 {
+			return sortedStructsInfo[i].structureID < sortedStructsInfo[j].structureID
+		}
+
+		return l1 < l2
+	})
+
+structInfoLoop:
+	for _, info := range sortedStructsInfo {
+		if len(info.nodes) > 1 && info.typeID == nodeTypeObject {
+			for extractedStructID := range extractedStructIDs {
+				if strings.Contains(info.structureID, extractedStructID) {
+					continue structInfoLoop
+				}
+			}
+
+			extractedNode := *info.nodes[0]
+
+			var names []string
+			for _, in := range info.nodes {
+				names = append(names, in.key)
+			}
+			extractedKey := extractCommonName(names...)
+			if extractedKey == "" {
+				var keys []string
+				for _, child := range extractedNode.children {
+					keys = append(keys, child.key)
+				}
+				extractedKey = keynameFromKeys(keys...)
+			}
+			if extractedKey == "" {
+				continue
+			}
+
+			_, exists := rootKeys[extractedKey]
+			for exists {
+				extractedKey = nextName(extractedKey)
+				_, exists = rootKeys[extractedKey]
+			}
+			rootKeys[extractedKey] = struct{}{}
+			extractedNode.key = extractedKey
+
+			root.modify(info.structureID, func(modNode *node) {
+				modNode.t = newExternalObjectType()
+				modNode.externalTypeID = attrName(extractedKey)
+				modNode.children = nil
+			})
+
+			extractedStructIDs[info.structureID] = struct{}{}
+			result = append(result, &extractedNode)
+		}
+	}
+
+	return result
 }

@@ -74,3 +74,117 @@ func TestNames(t *testing.T) {
 		})
 	}
 }
+
+func TestExtractCommonName(t *testing.T) {
+	testCases := []struct {
+		name     string
+		inputs   []string
+		expected string
+	}{
+		{
+			name:     "empty",
+			inputs:   []string{},
+			expected: "",
+		},
+		{
+			name:     "single input",
+			inputs:   []string{"test"},
+			expected: "test",
+		},
+		{
+			name:     "multiple same strings",
+			inputs:   []string{"test", "test", "test"},
+			expected: "test",
+		},
+		{
+			name:     "common prefix",
+			inputs:   []string{"test1", "test2", "testXyz", "test"},
+			expected: "test",
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+			if result := extractCommonName(tc.inputs...); result != tc.expected {
+				t.Errorf("invalid result, want `%s`, got `%s`", tc.expected, result)
+			}
+		})
+	}
+}
+
+func TestKeynameFromKeys(t *testing.T) {
+	testCases := []struct {
+		name     string
+		inputs   []string
+		expected string
+	}{
+		{
+			name:     "empty",
+			inputs:   []string{},
+			expected: "",
+		},
+		{
+			name:     "single input",
+			inputs:   []string{"test"},
+			expected: "test",
+		},
+		{
+			name:     "multiple long strings",
+			inputs:   []string{"aaaaaa", "bbbbbb", "cccccc", "dddddd"},
+			expected: "aaaaaa_bbbbbb_cccccc",
+		},
+		{
+			name:     "multiple short strings",
+			inputs:   []string{"a", "b", "c", "d", "e", "f"},
+			expected: "a_b_c",
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+			if result := keynameFromKeys(tc.inputs...); result != tc.expected {
+				t.Errorf("invalid result, want `%s`, got `%s`", tc.expected, result)
+			}
+		})
+	}
+}
+
+func TestNextName(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "empty",
+			input:    "",
+			expected: "1",
+		},
+		{
+			name:     "simple",
+			input:    "simple",
+			expected: "simple2",
+		},
+		{
+			name:     "simple2",
+			input:    "simple2",
+			expected: "simple3",
+		},
+		{
+			name:     "numbers in name",
+			input:    "2sim234ple3",
+			expected: "2sim234ple4",
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+			if result := nextName(tc.input); result != tc.expected {
+				t.Errorf("invalid result, want `%s`, got `%s`", tc.expected, result)
+			}
+		})
+	}
+}

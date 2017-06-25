@@ -2,6 +2,8 @@ package json2go
 
 import (
 	"bytes"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -52,6 +54,63 @@ func removeInvalidChars(s string, removeFirstDigit bool) string {
 	}
 
 	return buf.String()
+}
+
+func extractCommonName(names ...string) string {
+	if len(names) == 0 {
+		return ""
+	}
+
+	result := []rune(names[0])
+	for _, s := range names {
+		for i, char := range []rune(s) {
+			if i >= len(result) {
+				break
+			}
+
+			if result[i] != char {
+				result = result[:i]
+				break
+			}
+		}
+	}
+
+	return string(result)
+}
+
+func keynameFromKeys(keys ...string) string {
+	if len(keys) == 0 {
+		return ""
+	}
+
+	result := keys[0]
+	for i, k := range keys[1:] {
+		result = result + "_" + k
+		if i > 0 && len(result) > 3 {
+			return result
+		}
+	}
+
+	return result
+}
+
+func nextName(name string) string {
+	if name == "" {
+		return "1"
+	}
+
+	re := regexp.MustCompile("\\d+$")
+	subs := re.FindStringSubmatch(name)
+	if len(subs) == 0 {
+		return name + "2"
+	}
+
+	num, err := strconv.Atoi(subs[0])
+	if err != nil {
+		return name + "2"
+	}
+
+	return re.ReplaceAllString(name, strconv.Itoa(num+1))
 }
 
 // commonInitialisms is a set of common initialisms.

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"log"
 	"os"
 
@@ -9,6 +10,11 @@ import (
 )
 
 func main() {
+	extractCommonNodes := flag.Bool("c", true, "Extract common nodes as top level struct definitions")
+	rootTypeName := flag.String("n", "Document", "Type name")
+
+	flag.Parse()
+
 	var data interface{}
 
 	jd := json.NewDecoder(os.Stdin)
@@ -16,7 +22,9 @@ func main() {
 		log.Fatalf("json decoding error: %v", err)
 	}
 
-	parser := json2go.NewJSONParser()
+	parser := json2go.NewJSONParser(*rootTypeName)
+	parser.ExtractCommonStructs = *extractCommonNodes
+
 	parser.FeedValue(data)
 
 	repr := parser.String()

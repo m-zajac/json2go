@@ -8,11 +8,13 @@ import (
 // JSONParser parses successive json inputs and returns go representation as string
 type JSONParser struct {
 	rootNode *node
+
+	ExtractCommonStructs bool
 }
 
 // NewJSONParser creates new json Parser
-func NewJSONParser() *JSONParser {
-	rootNode := newNode("object")
+func NewJSONParser(rootTypeName string) *JSONParser {
+	rootNode := newNode(rootTypeName)
 	rootNode.root = true
 	return &JSONParser{
 		rootNode: rootNode,
@@ -60,7 +62,11 @@ func (p *JSONParser) FeedValue(input interface{}) {
 // String returns string representation of go struct fitting parsed json values
 func (p *JSONParser) String() string {
 	p.rootNode.sort()
-	return astPrintDecls(astMakeDecls([]*node{p.rootNode}))
+	nodes := []*node{p.rootNode}
+	if p.ExtractCommonStructs {
+		nodes = extractCommonSubtrees(p.rootNode)
+	}
+	return astPrintDecls(astMakeDecls(nodes))
 }
 
 // ASTDecls returns ast type declarations

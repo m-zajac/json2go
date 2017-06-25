@@ -63,7 +63,7 @@ inputs = []string{
 	`{"a": 123, "x": 12.3, "y": true}`,
 }
 
-parser := json2go.NewJSONParser()
+parser := json2go.NewJSONParser("Document")
 for _, in := range inputs {
 	parser.FeedBytes([]byte(in))
 }
@@ -75,7 +75,6 @@ fmt.Println(res)
 
 ## TODO
 
-- extract common structures
 - try decoding to map if resulting struct has many attributes with same type
 - add examples for JSONParser usage in godocs
 - convert json schema to go type
