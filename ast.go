@@ -4,24 +4,29 @@ import (
 	"bytes"
 	"go/ast"
 	"go/token"
+	"sort"
 )
 
-func astMakeDecls(rootNode *node) []ast.Decl {
-	name := attrName(rootNode.key)
-	if name == "" {
-		return nil
-	}
-	rootDecl := &ast.GenDecl{
-		Tok: token.TYPE,
-		Specs: []ast.Spec{
-			&ast.TypeSpec{
-				Name: ast.NewIdent(name),
-				Type: astTypeFromNode(rootNode),
+func astMakeDecls(rootNodes []*node) []ast.Decl {
+	var decls []ast.Decl
+
+	for _, rootNode := range rootNodes {
+		name := attrName(rootNode.key)
+		if name == "" {
+			continue
+		}
+		decls = append(decls, &ast.GenDecl{
+			Tok: token.TYPE,
+			Specs: []ast.Spec{
+				&ast.TypeSpec{
+					Name: ast.NewIdent(name),
+					Type: astTypeFromNode(rootNode),
+				},
 			},
-		},
+		})
 	}
 
-	return []ast.Decl{rootDecl}
+	return decls
 }
 
 func astTypeFromNode(n *node) ast.Expr {
@@ -86,6 +91,14 @@ func astTypeFromNode(n *node) ast.Expr {
 		resultType = astStructTypeFromNode(n)
 		pointable = true
 
+	case nodeTypeExternalNode:
+		extName := n.externalTypeID
+		if extName == "" {
+			extName = attrName(n.key)
+		}
+		resultType = ast.NewIdent(extName)
+		pointable = true
+
 	default:
 		resultType = &ast.InterfaceType{
 			Methods: &ast.FieldList{
@@ -110,7 +123,23 @@ func astStructTypeFromNode(n *node) *ast.StructType {
 		},
 	}
 
+	// sort children by name
+	type nodeWithName struct {
+		key  string
+		node *node
+	}
+	var sortedChildren []nodeWithName
 	for _, child := range n.children {
+		sortedChildren = append(sortedChildren, nodeWithName{
+			key:  child.key,
+			node: child,
+		})
+	}
+	sort.Slice(sortedChildren, func(i, j int) bool {
+		return sortedChildren[i].key < sortedChildren[j].key
+	})
+
+	for _, child := range sortedChildren {
 		childName := attrName(child.key)
 		if childName == "" {
 			continue
@@ -118,8 +147,8 @@ func astStructTypeFromNode(n *node) *ast.StructType {
 
 		typeDesc.Fields.List = append(typeDesc.Fields.List, &ast.Field{
 			Names: []*ast.Ident{ast.NewIdent(childName)},
-			Type:  astTypeFromNode(child),
-			Tag:   astJSONTag(child.key, !child.required),
+			Type:  astTypeFromNode(child.node),
+			Tag:   astJSONTag(child.key, !child.node.required),
 		})
 	}
 

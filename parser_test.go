@@ -134,7 +134,7 @@ type %s struct {
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			p := NewJSONParser()
+			p := NewJSONParser(baseTypeName)
 			for _, v := range tc.inputs {
 				if err := p.FeedBytes([]byte(v)); err != nil {
 					t.Fatalf("feed error: %v", err)

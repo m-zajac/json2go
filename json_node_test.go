@@ -760,3 +760,574 @@ func TestNodeRepr(t *testing.T) {
 		})
 	}
 }
+
+func TestExtractCommonSubtrees(t *testing.T) {
+	testCases := []struct {
+		name     string
+		root     *node
+		expected []*node
+	}{
+		{
+			name: "no extraction",
+			root: &node{
+				root:     true,
+				key:      baseTypeName,
+				t:        newObjectType(),
+				required: true,
+				children: []*node{
+					{
+						key:      "fieldA",
+						t:        newObjectType(),
+						required: true,
+						children: []*node{
+							{
+								key:      "x",
+								t:        newFloatType(),
+								required: true,
+							},
+						},
+					},
+					{
+						key:      "fieldB",
+						t:        newObjectType(),
+						required: false,
+						children: []*node{
+							{
+								key:      "y",
+								t:        newFloatType(),
+								required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: []*node{
+				{
+					root:     true,
+					key:      baseTypeName,
+					t:        newObjectType(),
+					required: true,
+					children: []*node{
+						{
+							key:      "fieldA",
+							t:        newObjectType(),
+							required: true,
+							children: []*node{
+								{
+									key:      "x",
+									t:        newFloatType(),
+									required: true,
+								},
+							},
+						},
+						{
+							key:      "fieldB",
+							t:        newObjectType(),
+							required: false,
+							children: []*node{
+								{
+									key:      "y",
+									t:        newFloatType(),
+									required: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "extract one",
+			root: &node{
+				root:     true,
+				key:      baseTypeName,
+				t:        newObjectType(),
+				required: true,
+				children: []*node{
+					{
+						key:      "pointA",
+						t:        newObjectType(),
+						required: true,
+						children: []*node{
+							{
+								key:      "x",
+								t:        newFloatType(),
+								required: true,
+							},
+							{
+								key:      "y",
+								t:        newFloatType(),
+								required: true,
+							},
+						},
+					},
+					{
+						key:      "pointB",
+						t:        newObjectType(),
+						required: true,
+						children: []*node{
+							{
+								key:      "x",
+								t:        newFloatType(),
+								required: true,
+							},
+							{
+								key:      "y",
+								t:        newFloatType(),
+								required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: []*node{
+				{
+					root:     true,
+					key:      baseTypeName,
+					t:        newObjectType(),
+					required: true,
+					children: []*node{
+						{
+							key:            "pointA",
+							t:              newExternalObjectType(),
+							externalTypeID: "Point",
+							required:       true,
+						},
+						{
+							key:            "pointB",
+							t:              newExternalObjectType(),
+							externalTypeID: "Point",
+							required:       true,
+						},
+					},
+				},
+				{
+					root:     true,
+					key:      "point",
+					t:        newObjectType(),
+					required: true,
+					children: []*node{
+						{
+							key:      "x",
+							t:        newFloatType(),
+							required: true,
+						},
+						{
+							key:      "y",
+							t:        newFloatType(),
+							required: true,
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "extract one required, one not required",
+			root: &node{
+				root:     true,
+				key:      baseTypeName,
+				t:        newObjectType(),
+				required: true,
+				children: []*node{
+					{
+						key:      "pointA",
+						t:        newObjectType(),
+						required: true,
+						children: []*node{
+							{
+								key:      "x",
+								t:        newFloatType(),
+								required: true,
+							},
+							{
+								key:      "y",
+								t:        newFloatType(),
+								required: false,
+							},
+						},
+					},
+					{
+						key:      "pointB",
+						t:        newObjectType(),
+						required: false,
+						children: []*node{
+							{
+								key:      "x",
+								t:        newFloatType(),
+								required: true,
+							},
+							{
+								key:      "y",
+								t:        newFloatType(),
+								required: false,
+							},
+						},
+					},
+				},
+			},
+			expected: []*node{
+				{
+					root:     true,
+					key:      baseTypeName,
+					t:        newObjectType(),
+					required: true,
+					children: []*node{
+						{
+							key:            "pointA",
+							t:              newExternalObjectType(),
+							externalTypeID: "Point",
+							required:       true,
+						},
+						{
+							key:            "pointB",
+							t:              newExternalObjectType(),
+							externalTypeID: "Point",
+							required:       false,
+						},
+					},
+				},
+				{
+					root:     true,
+					key:      "point",
+					t:        newObjectType(),
+					required: true,
+					children: []*node{
+						{
+							key:      "x",
+							t:        newFloatType(),
+							required: true,
+						},
+						{
+							key:      "y",
+							t:        newFloatType(),
+							required: false,
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "extract simple 2",
+			root: &node{
+				root:     true,
+				key:      baseTypeName,
+				t:        newObjectType(),
+				required: true,
+				children: []*node{
+					{
+						key:      "pointA",
+						t:        newObjectType(),
+						required: true,
+						children: []*node{
+							{
+								key:      "x",
+								t:        newFloatType(),
+								required: true,
+							},
+							{
+								key:      "y",
+								t:        newFloatType(),
+								required: true,
+							},
+						},
+					},
+					{
+						key:      "pointB",
+						t:        newObjectType(),
+						required: true,
+						children: []*node{
+							{
+								key:      "x",
+								t:        newFloatType(),
+								required: true,
+							},
+							{
+								key:      "y",
+								t:        newFloatType(),
+								required: true,
+							},
+						},
+					},
+					{
+						key:      "size1",
+						t:        newObjectType(),
+						required: true,
+						children: []*node{
+							{
+								key:      "width",
+								t:        newIntType(),
+								required: true,
+							},
+							{
+								key:      "height",
+								t:        newIntType(),
+								required: true,
+							},
+						},
+					},
+					{
+						key:      "size2",
+						t:        newObjectType(),
+						required: true,
+						children: []*node{
+							{
+								key:      "width",
+								t:        newIntType(),
+								required: true,
+							},
+							{
+								key:      "height",
+								t:        newIntType(),
+								required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: []*node{
+				{
+					root:     true,
+					key:      baseTypeName,
+					t:        newObjectType(),
+					required: true,
+					children: []*node{
+						{
+							key:            "pointA",
+							t:              newExternalObjectType(),
+							externalTypeID: "Point",
+							required:       true,
+						},
+						{
+							key:            "pointB",
+							t:              newExternalObjectType(),
+							externalTypeID: "Point",
+							required:       true,
+						},
+						{
+							key:            "size1",
+							t:              newExternalObjectType(),
+							externalTypeID: "Size",
+							required:       true,
+						},
+						{
+							key:            "size2",
+							t:              newExternalObjectType(),
+							externalTypeID: "Size",
+							required:       true,
+						},
+					},
+				},
+				{
+					root:     true,
+					key:      "point",
+					t:        newObjectType(),
+					required: true,
+					children: []*node{
+						{
+							key:      "x",
+							t:        newFloatType(),
+							required: true,
+						},
+						{
+							key:      "y",
+							t:        newFloatType(),
+							required: true,
+						},
+					},
+				},
+				{
+					root:     true,
+					key:      "size",
+					t:        newObjectType(),
+					required: true,
+					children: []*node{
+						{
+							key:      "height",
+							t:        newIntType(),
+							required: true,
+						},
+						{
+							key:      "width",
+							t:        newIntType(),
+							required: true,
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "extract 2 with colliding names",
+			root: &node{
+				root:     true,
+				key:      baseTypeName,
+				t:        newObjectType(),
+				required: true,
+				children: []*node{
+					{
+						key:      "pointA",
+						t:        newObjectType(),
+						required: true,
+						children: []*node{
+							{
+								key:      "x",
+								t:        newFloatType(),
+								required: true,
+							},
+							{
+								key:      "y",
+								t:        newFloatType(),
+								required: true,
+							},
+						},
+					},
+					{
+						key:      "pointB",
+						t:        newObjectType(),
+						required: true,
+						children: []*node{
+							{
+								key:      "x",
+								t:        newFloatType(),
+								required: true,
+							},
+							{
+								key:      "y",
+								t:        newFloatType(),
+								required: true,
+							},
+						},
+					},
+					{
+						key:      "pointC",
+						t:        newObjectType(),
+						required: true,
+						children: []*node{
+							{
+								key:      "x",
+								t:        newIntType(),
+								required: true,
+							},
+							{
+								key:      "y",
+								t:        newIntType(),
+								required: true,
+							},
+						},
+					},
+					{
+						key:      "pointD",
+						t:        newObjectType(),
+						required: true,
+						children: []*node{
+							{
+								key:      "x",
+								t:        newIntType(),
+								required: true,
+							},
+							{
+								key:      "y",
+								t:        newIntType(),
+								required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: []*node{
+				{
+					root:     true,
+					key:      baseTypeName,
+					t:        newObjectType(),
+					required: true,
+					children: []*node{
+						{
+							key:            "pointA",
+							t:              newExternalObjectType(),
+							externalTypeID: "Point",
+							required:       true,
+						},
+						{
+							key:            "pointB",
+							t:              newExternalObjectType(),
+							externalTypeID: "Point",
+							required:       true,
+						},
+						{
+							key:            "pointC",
+							t:              newExternalObjectType(),
+							externalTypeID: "Point2",
+							required:       true,
+						},
+						{
+							key:            "pointD",
+							t:              newExternalObjectType(),
+							externalTypeID: "Point2",
+							required:       true,
+						},
+					},
+				},
+				{
+					root:     true,
+					key:      "point",
+					t:        newObjectType(),
+					required: true,
+					children: []*node{
+						{
+							key:      "x",
+							t:        newFloatType(),
+							required: true,
+						},
+						{
+							key:      "y",
+							t:        newFloatType(),
+							required: true,
+						},
+					},
+				},
+				{
+					root:     true,
+					key:      "point2",
+					t:        newObjectType(),
+					required: true,
+					children: []*node{
+						{
+							key:      "x",
+							t:        newIntType(),
+							required: true,
+						},
+						{
+							key:      "y",
+							t:        newIntType(),
+							required: true,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+			tc.root.sort()
+
+			nodes := extractCommonSubtrees(tc.root)
+			if len(nodes) != len(tc.expected) {
+				t.Logf("\n%s\n\n", astPrintDecls(astMakeDecls(nodes)))
+				t.Fatalf("got invalid num of nodes, want %d, got %d", len(tc.expected), len(nodes))
+			}
+
+			ok := true
+			for i, n := range nodes {
+				if !n.compare(tc.expected[i]) {
+					t.Errorf("invald node %d, want:\n\n%s\n\ngot:\n\n%s", i, tc.expected[i].repr(""), n.repr(""))
+					ok = false
+				}
+			}
+
+			if !ok {
+				t.Logf("\n%s\n\n", astPrintDecls(astMakeDecls(nodes)))
+			}
+		})
+	}
+}
