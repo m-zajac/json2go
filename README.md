@@ -20,7 +20,9 @@ Package provides Parser, which can consume multiple jsons and outputs go type fi
 
 ---
 
-    curl -s https://www.reddit.com/r/golang.json | json2go
+    curl -s https://api.punkapi.com/v2/beers?page=1&per_page=5 | json2go
+
+Check this one :)
 
 ---
 
