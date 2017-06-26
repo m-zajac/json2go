@@ -127,6 +127,7 @@ type UnitsValue struct {
 
 ## TODO
 
+- extract common structs (working with nested objects, but not with lists)
 - better atrtibute names
 - try decoding to map if resulting struct has many attributes with same type
 - add examples for JSONParser usage in godocs

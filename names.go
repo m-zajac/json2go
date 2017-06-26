@@ -30,6 +30,13 @@ func attrName(fieldName string) string {
 		b.WriteString(out)
 	}
 
+	if b.Len() == 0 { // check if this is number
+		if _, err := strconv.Atoi(fieldName); err == nil {
+			b.WriteString("Key")
+			b.WriteString(fieldName)
+		}
+	}
+
 	return b.String()
 }
 
