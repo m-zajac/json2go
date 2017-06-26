@@ -108,7 +108,7 @@ func astTypeFromNode(n *node) ast.Expr {
 		}
 	}
 
-	if pointable && !n.required {
+	if pointable && !n.required && !n.root {
 		resultType = &ast.StarExpr{
 			X: resultType,
 		}

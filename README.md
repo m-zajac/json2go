@@ -117,7 +117,7 @@ type Document struct {
 	Name         string      `json:"name"`
 	Type         string      `json:"type"`
 }
-type UnitsValue *struct {
+type UnitsValue struct {
 	Units string  `json:"units"`
 	Value float64 `json:"value"`
 }

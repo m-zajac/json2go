@@ -278,6 +278,7 @@ func extractCommonSubtree(root *node, rootKeys map[string]struct{}) *node {
 		}
 		rootKeys[extractedKey] = struct{}{}
 		extractedNode.key = extractedKey
+		extractedNode.root = true
 
 		root.modify(info.structureID, func(modNode *node) {
 			modNode.t = newExternalObjectType()
