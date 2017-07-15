@@ -39,9 +39,19 @@ func TestNames(t *testing.T) {
 			expectedName: "HTMLFieldName",
 		},
 		{
+			name:         "camel case",
+			fieldName:    "camelCaseName",
+			expectedName: "CamelCaseName",
+		},
+		{
 			name:         "mixed case",
-			fieldName:    "aBcDeFg",
-			expectedName: "Abcdefg",
+			fieldName:    "mixed_caseName_test",
+			expectedName: "MixedCaseNameTest",
+		},
+		{
+			name:         "mixed case with initialism",
+			fieldName:    "mixed_caseName_htmlTest",
+			expectedName: "MixedCaseNameHTMLTest",
 		},
 		{
 			name:         "special chars",
