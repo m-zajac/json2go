@@ -13,21 +13,12 @@ const (
 	nodeTypeObject        nodeTypeID = "object"
 	nodeTypeInterface     nodeTypeID = "interface"
 
-	nodeTypeArrayUnknown   nodeTypeID = "[]?"
-	nodeTypeArrayBool      nodeTypeID = "[]bool"
-	nodeTypeArrayInt       nodeTypeID = "[]int"
-	nodeTypeArrayFloat     nodeTypeID = "[]float"
-	nodeTypeArrayString    nodeTypeID = "[]string"
-	nodeTypeArrayObject    nodeTypeID = "[]object"
-	nodeTypeArrayInterface nodeTypeID = "[]interface"
-
 	nodeTypeExternalNode nodeTypeID = "node" // this node type points to other tree root
 )
 
 type nodeType struct {
-	id        nodeTypeID
-	fitFunc   func(nodeType, interface{}) nodeType
-	arrayFunc func() nodeType
+	id      nodeTypeID
+	fitFunc func(nodeType, interface{}) nodeType
 
 	expandsTypes []nodeType
 }
@@ -46,13 +37,6 @@ func (k nodeType) grow(value interface{}) nodeType {
 }
 
 func (k nodeType) fit(value interface{}) nodeType {
-	switch typedValue := value.(type) {
-	case []interface{}:
-		if k.arrayFunc != nil { // k is base type
-			return newArrayNodeTypeFromValues(typedValue)
-		}
-	}
-
 	return k.fitFunc(k, value)
 }
 
@@ -70,21 +54,11 @@ func (k nodeType) expands(k2 nodeType) bool {
 	return false
 }
 
-func (k nodeType) arrayType() nodeType {
-	if k.arrayFunc == nil {
-		return newUnknownArrayType()
-	}
-	return k.arrayFunc()
-}
-
 func newInitType() nodeType {
 	return nodeType{
 		id: nodeTypeInit,
 		fitFunc: func(k nodeType, value interface{}) nodeType {
 			return newBoolType().fit(value)
-		},
-		arrayFunc: func() nodeType {
-			return newUnknownArrayType()
 		},
 	}
 }
@@ -99,9 +73,6 @@ func newBoolType() nodeType {
 			}
 
 			return newIntType().fit(value)
-		},
-		arrayFunc: func() nodeType {
-			return newBoolArrayType()
 		},
 	}
 }
@@ -125,9 +96,6 @@ func newIntType() nodeType {
 			k = newFloatType()
 			return k.fit(value)
 		},
-		arrayFunc: func() nodeType {
-			return newIntArrayType()
-		},
 	}
 }
 
@@ -139,14 +107,11 @@ func newFloatType() nodeType {
 		},
 		fitFunc: func(k nodeType, value interface{}) nodeType {
 			switch value.(type) {
-			case float32, float64:
+			case float32, float64, int, int16, int32, int64:
 				return k
 			}
 
 			return newStringType().fit(value)
-		},
-		arrayFunc: func() nodeType {
-			return newFloatArrayType()
 		},
 	}
 }
@@ -161,9 +126,6 @@ func newStringType() nodeType {
 			}
 
 			return newUnknownObjectType().fit(value)
-		},
-		arrayFunc: func() nodeType {
-			return newStringArrayType()
 		},
 	}
 }
@@ -180,9 +142,6 @@ func newUnknownObjectType() nodeType {
 			}
 
 			return newObjectType().fit(value)
-		},
-		arrayFunc: func() nodeType {
-			return newInterfaceArrayType()
 		},
 	}
 }
@@ -201,9 +160,6 @@ func newObjectType() nodeType {
 
 			return newInterfaceType().fit(value)
 		},
-		arrayFunc: func() nodeType {
-			return newObjectArrayType()
-		},
 	}
 }
 
@@ -216,120 +172,8 @@ func newInterfaceType() nodeType {
 	}
 }
 
-func newUnknownArrayType() nodeType {
-	return nodeType{
-		id: nodeTypeArrayUnknown,
-		fitFunc: func(k nodeType, value interface{}) nodeType {
-			switch typedValue := value.(type) {
-			case []interface{}:
-				return newArrayNodeTypeFromValues(typedValue)
-			}
-
-			return newInterfaceType()
-		},
-	}
-}
-
-func newBoolArrayType() nodeType {
-	return nodeType{
-		id:      nodeTypeArrayBool,
-		fitFunc: fitArray,
-	}
-}
-
-func newIntArrayType() nodeType {
-	return nodeType{
-		id:      nodeTypeArrayInt,
-		fitFunc: fitArray,
-	}
-}
-
-func newFloatArrayType() nodeType {
-	return nodeType{
-		id:      nodeTypeArrayFloat,
-		fitFunc: fitArray,
-	}
-}
-
-func newStringArrayType() nodeType {
-	return nodeType{
-		id:      nodeTypeArrayString,
-		fitFunc: fitArray,
-	}
-}
-
-func newObjectArrayType() nodeType {
-	return nodeType{
-		id:      nodeTypeArrayObject,
-		fitFunc: fitArray,
-	}
-}
-
-func newInterfaceArrayType() nodeType {
-	return nodeType{
-		id: nodeTypeArrayInterface,
-		expandsTypes: []nodeType{
-			newBoolArrayType(),
-			newIntArrayType(),
-			newFloatArrayType(),
-			newStringArrayType(),
-			newObjectArrayType(),
-		},
-		fitFunc: fitArray,
-	}
-}
-
 func newExternalObjectType() nodeType {
 	return nodeType{
 		id: nodeTypeExternalNode,
 	}
-}
-
-func newArrayNodeTypeFromValues(values []interface{}) nodeType {
-	if values == nil || len(values) == 0 {
-		return newUnknownArrayType()
-	}
-
-	var valuesTypes []nodeType
-	for _, v := range values {
-		valuesTypes = append(valuesTypes, newInitType().fit(v))
-	}
-
-	selectedType := valuesTypes[0]
-
-loop:
-	for _, k := range valuesTypes {
-		if k.id == selectedType.id {
-			continue
-		}
-
-		if k.expands(selectedType) {
-			selectedType = k
-			continue loop
-		}
-		if selectedType.expands(k) {
-			continue loop
-		}
-
-		return newInterfaceArrayType()
-	}
-
-	return selectedType.arrayType()
-}
-
-func fitArray(k nodeType, value interface{}) nodeType {
-	sliceValue, ok := value.([]interface{})
-	if !ok {
-		return newInterfaceType()
-	}
-
-	ak := newArrayNodeTypeFromValues(sliceValue)
-	if k.expands(ak) {
-		return k
-	}
-	if ak.expands(k) {
-		return ak
-	}
-
-	return newInterfaceArrayType()
 }

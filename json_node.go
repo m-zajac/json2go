@@ -14,6 +14,7 @@ const (
 
 type node struct {
 	root           bool
+	array          bool
 	key            string
 	t              nodeType
 	externalTypeID string
@@ -35,23 +36,16 @@ func (n *node) grow(input interface{}) {
 		return
 	}
 
-	keyFirstAppereance := (n.t.id == nodeTypeInit)
-	growChild := func(k string, v interface{}, usedKeys map[string]struct{}) {
-		child, created := n.getOrCreateChild(k)
-		if created && !keyFirstAppereance {
-			child.required = false
-		}
-		child.grow(v)
-		usedKeys[k] = struct{}{}
-	}
-
-	n.t = n.t.grow(input)
-
-	switch typedInput := input.(type) {
-	case map[string]interface{}:
+	startTypeID := n.t.id
+	handleObject := func(obj map[string]interface{}) {
 		usedKeys := make(map[string]struct{})
-		for k, v := range typedInput {
-			growChild(k, v, usedKeys)
+		for k, v := range obj {
+			child, created := n.getOrCreateChild(k)
+			if created && startTypeID != nodeTypeInit {
+				child.required = false
+			}
+			child.grow(v)
+			usedKeys[k] = struct{}{}
 		}
 
 		for _, child := range n.children {
@@ -59,33 +53,28 @@ func (n *node) grow(input interface{}) {
 				child.required = false
 			}
 		}
+	}
+
+	if n.t.id == nodeTypeInterface {
+		return //nothing to do now
+	}
+
+	switch typedInput := input.(type) {
+	case map[string]interface{}:
+		n.t = n.t.grow(typedInput)
+		handleObject(typedInput)
 	case []interface{}:
-		if n.t.id != nodeTypeArrayObject {
+		if n.t.id != nodeTypeInit && !n.array {
+			n.t = newInterfaceType()
 			break
 		}
 
-	loop:
+		n.array = true
 		for _, iv := range typedInput {
-			mv, ok := iv.(map[string]interface{})
-			if !ok {
-				break loop
-			}
-
-			usedKeys := make(map[string]struct{})
-			for k, v := range mv {
-				growChild(k, v, usedKeys)
-			}
-
-			for _, child := range n.children {
-				if _, used := usedKeys[child.key]; !used {
-					child.required = false
-				}
-			}
-
-			// after first iteration, no key is appearing as first
-			// TODO: there should be a better way to implement this
-			keyFirstAppereance = false
+			n.grow(iv)
 		}
+	default:
+		n.t = n.t.grow(typedInput)
 	}
 }
 
@@ -211,7 +200,11 @@ func (n *node) repr(prefix string) string {
 
 	buf.WriteString(fmt.Sprintf("%s{\n", prefix))
 	buf.WriteString(fmt.Sprintf("%s  key: %s\n", prefix, n.key))
-	buf.WriteString(fmt.Sprintf("%s  type: %s\n", prefix, n.t.id))
+	if n.array {
+		buf.WriteString(fmt.Sprintf("%s  type: []%s\n", prefix, n.t.id))
+	} else {
+		buf.WriteString(fmt.Sprintf("%s  type: %s\n", prefix, n.t.id))
+	}
 	buf.WriteString(fmt.Sprintf("%s  required: %t\n", prefix, n.required))
 	if n.externalTypeID != "" {
 		buf.WriteString(fmt.Sprintf("%s  extType: %s\n", prefix, n.externalTypeID))

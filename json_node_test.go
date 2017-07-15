@@ -2,7 +2,7 @@ package json2go
 
 import "testing"
 
-func TestCompare(t *testing.T) {
+func TestJSONNodeCompare(t *testing.T) {
 	testCases := []struct {
 		name          string
 		n1            *node
@@ -66,8 +66,9 @@ func TestCompare(t *testing.T) {
 				t:   newBoolType(),
 				children: []*node{
 					{
-						key: "n1",
-						t:   newFloatArrayType(),
+						key:   "n1",
+						t:     newFloatType(),
+						array: true,
 					},
 				},
 			},
@@ -76,8 +77,9 @@ func TestCompare(t *testing.T) {
 				t:   newBoolType(),
 				children: []*node{
 					{
-						key: "n1",
-						t:   newFloatArrayType(),
+						key:   "n1",
+						t:     newFloatType(),
+						array: true,
 					},
 				},
 			},
@@ -90,8 +92,9 @@ func TestCompare(t *testing.T) {
 				t:   newBoolType(),
 				children: []*node{
 					{
-						key: "n1",
-						t:   newFloatArrayType(),
+						key:   "n1",
+						t:     newFloatType(),
+						array: true,
 					},
 				},
 			},
@@ -100,12 +103,14 @@ func TestCompare(t *testing.T) {
 				t:   newBoolType(),
 				children: []*node{
 					{
-						key: "n1",
-						t:   newFloatArrayType(),
+						key:   "n1",
+						t:     newFloatType(),
+						array: true,
 					},
 					{
-						key: "n1",
-						t:   newFloatArrayType(),
+						key:   "n1",
+						t:     newFloatType(),
+						array: true,
 					},
 				},
 			},
@@ -118,8 +123,9 @@ func TestCompare(t *testing.T) {
 				t:   newBoolType(),
 				children: []*node{
 					{
-						key: "n1",
-						t:   newFloatArrayType(),
+						key:   "n1",
+						t:     newFloatType(),
+						array: true,
 					},
 				},
 			},
@@ -128,8 +134,9 @@ func TestCompare(t *testing.T) {
 				t:   newBoolType(),
 				children: []*node{
 					{
-						key: "n1",
-						t:   newInterfaceArrayType(),
+						key:   "n1",
+						t:     newInterfaceType(),
+						array: true,
 					},
 				},
 			},
@@ -148,7 +155,7 @@ func TestCompare(t *testing.T) {
 	}
 }
 
-func TestNodeRepr(t *testing.T) {
+func TestJSONNodeRepr(t *testing.T) {
 	testCases := []struct {
 		name        string
 		startAsRoot bool
@@ -222,7 +229,8 @@ func TestNodeRepr(t *testing.T) {
 			expected: &node{
 				root:     true,
 				key:      baseTypeName,
-				t:        newBoolArrayType(),
+				t:        newBoolType(),
+				array:    true,
 				required: true,
 			},
 		},
@@ -235,7 +243,8 @@ func TestNodeRepr(t *testing.T) {
 			expected: &node{
 				root:     true,
 				key:      baseTypeName,
-				t:        newIntArrayType(),
+				t:        newIntType(),
+				array:    true,
 				required: true,
 			},
 		},
@@ -248,7 +257,8 @@ func TestNodeRepr(t *testing.T) {
 			expected: &node{
 				root:     true,
 				key:      baseTypeName,
-				t:        newFloatArrayType(),
+				t:        newFloatType(),
+				array:    true,
 				required: true,
 			},
 		},
@@ -261,7 +271,8 @@ func TestNodeRepr(t *testing.T) {
 			expected: &node{
 				root:     true,
 				key:      baseTypeName,
-				t:        newStringArrayType(),
+				t:        newStringType(),
+				array:    true,
 				required: true,
 			},
 		},
@@ -274,7 +285,8 @@ func TestNodeRepr(t *testing.T) {
 			expected: &node{
 				root:     true,
 				key:      baseTypeName,
-				t:        newInterfaceArrayType(),
+				t:        newInterfaceType(),
+				array:    true,
 				required: true,
 			},
 		},
@@ -363,7 +375,8 @@ func TestNodeRepr(t *testing.T) {
 				children: []*node{
 					{
 						key:      "slice",
-						t:        newIntArrayType(),
+						t:        newIntType(),
+						array:    true,
 						required: true,
 					},
 				},
@@ -397,7 +410,8 @@ func TestNodeRepr(t *testing.T) {
 						children: []*node{
 							{
 								key:      "level2",
-								t:        newFloatArrayType(),
+								t:        newFloatType(),
+								array:    true,
 								required: true,
 							},
 						},
@@ -481,7 +495,8 @@ func TestNodeRepr(t *testing.T) {
 						children: []*node{
 							{
 								key:      "level2",
-								t:        newObjectArrayType(),
+								t:        newObjectType(),
+								array:    true,
 								required: true,
 								children: []*node{
 									{
@@ -673,7 +688,8 @@ func TestNodeRepr(t *testing.T) {
 						children: []*node{
 							{
 								key:      "level2",
-								t:        newObjectArrayType(),
+								t:        newObjectType(),
+								array:    true,
 								required: true,
 								children: []*node{
 									{
@@ -721,7 +737,8 @@ func TestNodeRepr(t *testing.T) {
 					},
 					{
 						key:      "y",
-						t:        newObjectArrayType(),
+						t:        newObjectType(),
+						array:    true,
 						required: false,
 						children: []*node{
 							{
@@ -755,13 +772,13 @@ func TestNodeRepr(t *testing.T) {
 			f.sort()
 
 			if !f.compare(tc.expected) {
-				t.Fatalf("invalid node. want:\n%s\ngot:\n%s", tc.expected.repr(""), f.repr(""))
+				t.Errorf("invalid node. want:\n%s\ngot:\n%s", tc.expected.repr(""), f.repr(""))
 			}
 		})
 	}
 }
 
-func TestExtractCommonSubtrees(t *testing.T) {
+func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 	testCases := []struct {
 		name     string
 		root     *node
@@ -1298,6 +1315,93 @@ func TestExtractCommonSubtrees(t *testing.T) {
 						{
 							key:      "y",
 							t:        newIntType(),
+							required: true,
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "extract object and slice of objects",
+			root: &node{
+				root:     true,
+				key:      baseTypeName,
+				t:        newObjectType(),
+				required: true,
+				children: []*node{
+					{
+						key:      "pointA",
+						t:        newObjectType(),
+						required: true,
+						children: []*node{
+							{
+								key:      "x",
+								t:        newFloatType(),
+								required: true,
+							},
+							{
+								key:      "y",
+								t:        newFloatType(),
+								required: true,
+							},
+						},
+					},
+					{
+						key:      "pointsOther",
+						t:        newObjectType(),
+						required: true,
+						array:    true,
+						children: []*node{
+							{
+								key:      "x",
+								t:        newFloatType(),
+								required: true,
+							},
+							{
+								key:      "y",
+								t:        newFloatType(),
+								required: true,
+							},
+						},
+					},
+				},
+			},
+			expected: []*node{
+				{
+					root:     true,
+					key:      baseTypeName,
+					t:        newObjectType(),
+					required: true,
+					children: []*node{
+						{
+							key:            "pointA",
+							t:              newExternalObjectType(),
+							externalTypeID: "Point",
+							required:       true,
+						},
+						{
+							key:            "pointsOther",
+							t:              newExternalObjectType(),
+							externalTypeID: "Point",
+							required:       true,
+							array:          true,
+						},
+					},
+				},
+				{
+					root:     true,
+					key:      "point",
+					t:        newObjectType(),
+					required: true,
+					children: []*node{
+						{
+							key:      "x",
+							t:        newFloatType(),
+							required: true,
+						},
+						{
+							key:      "y",
+							t:        newFloatType(),
 							required: true,
 						},
 					},
