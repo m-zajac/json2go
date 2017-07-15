@@ -46,51 +46,9 @@ func astTypeFromNode(n *node) ast.Expr {
 	case nodeTypeString:
 		resultType = ast.NewIdent("string")
 		pointable = true
-
-	case nodeTypeArrayUnknown:
-		resultType = &ast.ArrayType{
-			Elt: &ast.InterfaceType{
-				Methods: &ast.FieldList{
-					Opening: 1,
-					Closing: 2,
-				},
-			},
-		}
-	case nodeTypeArrayBool:
-		resultType = &ast.ArrayType{
-			Elt: ast.NewIdent("bool"),
-		}
-	case nodeTypeArrayInt:
-		resultType = &ast.ArrayType{
-			Elt: ast.NewIdent("int"),
-		}
-	case nodeTypeArrayFloat:
-		resultType = &ast.ArrayType{
-			Elt: ast.NewIdent("float64"),
-		}
-	case nodeTypeArrayString:
-		resultType = &ast.ArrayType{
-			Elt: ast.NewIdent("string"),
-		}
-	case nodeTypeArrayInterface:
-		resultType = &ast.ArrayType{
-			Elt: &ast.InterfaceType{
-				Methods: &ast.FieldList{
-					Opening: 1,
-					Closing: 2,
-				},
-			},
-		}
-
-	case nodeTypeArrayObject:
-		resultType = &ast.ArrayType{
-			Elt: astStructTypeFromNode(n),
-		}
-
 	case nodeTypeObject:
 		resultType = astStructTypeFromNode(n)
 		pointable = true
-
 	case nodeTypeExternalNode:
 		extName := n.externalTypeID
 		if extName == "" {
@@ -98,7 +56,6 @@ func astTypeFromNode(n *node) ast.Expr {
 		}
 		resultType = ast.NewIdent(extName)
 		pointable = true
-
 	default:
 		resultType = &ast.InterfaceType{
 			Methods: &ast.FieldList{
@@ -108,9 +65,14 @@ func astTypeFromNode(n *node) ast.Expr {
 		}
 	}
 
-	if pointable && !n.required && !n.root {
+	if pointable && !n.required && !n.root && !n.array {
 		resultType = &ast.StarExpr{
 			X: resultType,
+		}
+	}
+	if n.array {
+		resultType = &ast.ArrayType{
+			Elt: resultType,
 		}
 	}
 	return resultType
