@@ -287,7 +287,7 @@ func extractCommonSubtree(root *node, rootKeys map[string]struct{}) *node {
 
 func extractCommonSubtrees(root *node) []*node {
 	rootKeys := map[string]struct{}{
-		root.key: struct{}{},
+		root.key: {},
 	}
 
 	extractedSize := 0
