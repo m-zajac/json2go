@@ -6,6 +6,35 @@ import (
 	"testing"
 )
 
+func ExampleNewJSONParser() {
+	inputs := []string{
+		`{"line":{"start":{"x":12.1,"y":2.8},"end":{"x":12.1,"y":5.67}}}`,
+		`{"triangle":[{"x":2.34,"y":2.1}, {"x":45.1,"y":6.7}, {"x":4,"y":94.6}]}`,
+	}
+
+	parser := NewJSONParser("Document")
+	parser.ExtractCommonStructs = true
+
+	for _, in := range inputs {
+		parser.FeedBytes([]byte(in))
+	}
+
+	res := parser.String()
+	fmt.Println(res)
+
+	// Output: type Document struct {
+	// 	Line	*struct {
+	// 		End	XY	`json:"end"`
+	// 		Start	XY	`json:"start"`
+	// 	}	`json:"line,omitempty"`
+	// 	Triangle	[]XY	`json:"triangle,omitempty"`
+	// }
+	// type XY struct {
+	// 	X	float64	`json:"x"`
+	// 	Y	float64	`json:"y"`
+	// }
+}
+
 func TestParserRepr(t *testing.T) {
 	testCases := []struct {
 		name         string

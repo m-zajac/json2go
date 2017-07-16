@@ -31,7 +31,7 @@ Check this one :)
 ### Package usage examples
 
 ```go
-inputs = []string{
+inputs := []string{
 	`{"x": 123, "y": "test", "z": false}`,
 	`{"a": 123, "x": 12.3, "y": true}`,
 }
@@ -129,5 +129,4 @@ type UnitsValue struct {
 
 - extract common structs (working, but every nested struct had to have same fields)
 - try decoding to map if resulting struct has many attributes with same type
-- add examples for JSONParser usage in godocs
 - convert json schema to go type
