@@ -25,7 +25,7 @@ type node struct {
 func newNode(name string) *node {
 	return &node{
 		key:      name,
-		t:        newInitType(),
+		t:        nodeTypeInit,
 		required: true,
 	}
 }
@@ -36,12 +36,12 @@ func (n *node) grow(input interface{}) {
 		return
 	}
 
-	startTypeID := n.t.id
+	startType := n.t
 	handleObject := func(obj map[string]interface{}) {
 		usedKeys := make(map[string]struct{})
 		for k, v := range obj {
 			child, created := n.getOrCreateChild(k)
-			if created && startTypeID != nodeTypeInit {
+			if created && startType != nodeTypeInit {
 				child.required = false
 			}
 			child.grow(v)
@@ -55,17 +55,17 @@ func (n *node) grow(input interface{}) {
 		}
 	}
 
-	if n.t.id == nodeTypeInterface {
+	if n.t.id() == nodeTypeInterface.id() {
 		return //nothing to do now
 	}
 
 	switch typedInput := input.(type) {
 	case map[string]interface{}:
-		n.t = n.t.grow(typedInput)
+		n.t = growType(n.t, typedInput)
 		handleObject(typedInput)
 	case []interface{}:
-		if n.t.id != nodeTypeInit && !n.array {
-			n.t = newInterfaceType()
+		if n.t != nodeTypeInit && !n.array {
+			n.t = nodeTypeInterface
 			break
 		}
 
@@ -74,7 +74,7 @@ func (n *node) grow(input interface{}) {
 			n.grow(iv)
 		}
 	default:
-		n.t = n.t.grow(typedInput)
+		n.t = growType(n.t, typedInput)
 	}
 }
 
@@ -112,7 +112,7 @@ func (n *node) compare(n2 *node) bool {
 	if n.key != n2.key {
 		return false
 	}
-	if n.t.id != n2.t.id {
+	if n.t.id() != n2.t.id() {
 		return false
 	}
 	if n.required != n2.required {
@@ -140,9 +140,9 @@ func (n *node) compare(n2 *node) bool {
 func (n *node) structureID(asRoot bool) string {
 	var id string
 	if asRoot {
-		id = string(n.t.id)
+		id = string(n.t.id())
 	} else {
-		id = fmt.Sprintf("%s.%s.%t", n.key, n.t.id, n.required)
+		id = fmt.Sprintf("%s.%s.%t", n.key, n.t.id(), n.required)
 	}
 
 	var parts []string
@@ -159,7 +159,7 @@ func (n *node) structureID(asRoot bool) string {
 
 type nodeStructureInfo struct {
 	structureID string
-	typeID      nodeTypeID
+	typeID      string
 	nodes       []*node
 }
 
@@ -173,7 +173,7 @@ func (n *node) treeInfo(infos map[string]nodeStructureInfo) {
 	} else {
 		info = nodeStructureInfo{
 			structureID: id,
-			typeID:      n.t.id,
+			typeID:      n.t.id(),
 			nodes:       []*node{n},
 		}
 	}
@@ -201,9 +201,9 @@ func (n *node) repr(prefix string) string {
 	buf.WriteString(fmt.Sprintf("%s{\n", prefix))
 	buf.WriteString(fmt.Sprintf("%s  key: %s\n", prefix, n.key))
 	if n.array {
-		buf.WriteString(fmt.Sprintf("%s  type: []%s\n", prefix, n.t.id))
+		buf.WriteString(fmt.Sprintf("%s  type: []%s\n", prefix, n.t.id()))
 	} else {
-		buf.WriteString(fmt.Sprintf("%s  type: %s\n", prefix, n.t.id))
+		buf.WriteString(fmt.Sprintf("%s  type: %s\n", prefix, n.t.id()))
 	}
 	buf.WriteString(fmt.Sprintf("%s  required: %t\n", prefix, n.required))
 	if n.externalTypeID != "" {
@@ -229,7 +229,7 @@ func extractCommonSubtree(root *node, rootKeys map[string]struct{}) *node {
 
 	infosForExtraction := make([]nodeStructureInfo, 0, len(infos))
 	for _, info := range infos {
-		if len(info.nodes) > 1 && info.typeID == nodeTypeObject {
+		if len(info.nodes) > 1 && info.typeID == nodeTypeObject.id() {
 			infosForExtraction = append(infosForExtraction, info)
 		}
 	}
@@ -274,7 +274,7 @@ func extractCommonSubtree(root *node, rootKeys map[string]struct{}) *node {
 		extractedNode.root = true
 
 		root.modify(info.structureID, func(modNode *node) {
-			modNode.t = newExternalObjectType()
+			modNode.t = nodeTypeExternal
 			modNode.externalTypeID = attrName(extractedKey)
 			modNode.children = nil
 		})

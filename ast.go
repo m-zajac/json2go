@@ -33,23 +33,23 @@ func astTypeFromNode(n *node) ast.Expr {
 	var resultType ast.Expr
 	var pointable bool
 
-	switch n.t.id {
-	case nodeTypeBool:
+	switch n.t.(type) {
+	case nodeBoolType:
 		resultType = ast.NewIdent("bool")
 		pointable = true
-	case nodeTypeInt:
+	case nodeIntType:
 		resultType = ast.NewIdent("int")
 		pointable = true
-	case nodeTypeFloat:
+	case nodeFloatType:
 		resultType = ast.NewIdent("float64")
 		pointable = true
-	case nodeTypeString:
+	case nodeStringType:
 		resultType = ast.NewIdent("string")
 		pointable = true
-	case nodeTypeObject:
+	case nodeObjectType:
 		resultType = astStructTypeFromNode(n)
 		pointable = true
-	case nodeTypeExternalNode:
+	case nodeExternalType:
 		extName := n.externalTypeID
 		if extName == "" {
 			extName = attrName(n.key)

@@ -6,28 +6,28 @@ func TestTypeExpand(t *testing.T) {
 	testCases := []struct {
 		name         string
 		inputs       []interface{}
-		resultTypeID nodeTypeID
+		resultTypeID string
 	}{
 		// base types
 		{
 			name:         "input to bool",
 			inputs:       []interface{}{true},
-			resultTypeID: nodeTypeBool,
+			resultTypeID: nodeTypeBool.id(),
 		},
 		{
 			name:         "input to int",
 			inputs:       []interface{}{1},
-			resultTypeID: nodeTypeInt,
+			resultTypeID: nodeTypeInt.id(),
 		},
 		{
 			name:         "input to float",
 			inputs:       []interface{}{1.1},
-			resultTypeID: nodeTypeFloat,
+			resultTypeID: nodeTypeFloat.id(),
 		},
 		{
 			name:         "input to string",
 			inputs:       []interface{}{"123"},
-			resultTypeID: nodeTypeString,
+			resultTypeID: nodeTypeString.id(),
 		},
 		{
 			name: "input to object",
@@ -36,34 +36,34 @@ func TestTypeExpand(t *testing.T) {
 					"key": "value",
 				},
 			},
-			resultTypeID: nodeTypeObject,
+			resultTypeID: nodeTypeObject.id(),
 		},
 
 		// mixed types
 		{
 			name:         "input to interface #1",
 			inputs:       []interface{}{"123", 123},
-			resultTypeID: nodeTypeInterface,
+			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name:         "input to interface #2",
 			inputs:       []interface{}{123, "123"},
-			resultTypeID: nodeTypeInterface,
+			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name:         "input to interface #3",
 			inputs:       []interface{}{"123", 123.4},
-			resultTypeID: nodeTypeInterface,
+			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name:         "input to interface #4",
 			inputs:       []interface{}{123, true},
-			resultTypeID: nodeTypeInterface,
+			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name:         "input to interface #5",
 			inputs:       []interface{}{true, 123},
-			resultTypeID: nodeTypeInterface,
+			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface #6",
@@ -74,7 +74,7 @@ func TestTypeExpand(t *testing.T) {
 				true,
 				123,
 			},
-			resultTypeID: nodeTypeInterface,
+			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - bool + []bool",
@@ -82,7 +82,7 @@ func TestTypeExpand(t *testing.T) {
 				true,
 				[]interface{}{true},
 			},
-			resultTypeID: nodeTypeInterface,
+			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - []bool + bool",
@@ -90,7 +90,7 @@ func TestTypeExpand(t *testing.T) {
 				[]interface{}{true},
 				true,
 			},
-			resultTypeID: nodeTypeInterface,
+			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - int + []int",
@@ -98,7 +98,7 @@ func TestTypeExpand(t *testing.T) {
 				1,
 				[]interface{}{1},
 			},
-			resultTypeID: nodeTypeInterface,
+			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - []int + int",
@@ -106,7 +106,7 @@ func TestTypeExpand(t *testing.T) {
 				[]interface{}{1},
 				1,
 			},
-			resultTypeID: nodeTypeInterface,
+			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - float + []float",
@@ -114,7 +114,7 @@ func TestTypeExpand(t *testing.T) {
 				1.1,
 				[]interface{}{1.1},
 			},
-			resultTypeID: nodeTypeInterface,
+			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - []float + float",
@@ -122,7 +122,7 @@ func TestTypeExpand(t *testing.T) {
 				[]interface{}{1.1},
 				1.1,
 			},
-			resultTypeID: nodeTypeInterface,
+			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - string + []string",
@@ -130,7 +130,7 @@ func TestTypeExpand(t *testing.T) {
 				"1.1",
 				[]interface{}{"1.1"},
 			},
-			resultTypeID: nodeTypeInterface,
+			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - []string + string",
@@ -138,19 +138,19 @@ func TestTypeExpand(t *testing.T) {
 				[]interface{}{"1.1"},
 				"1.1",
 			},
-			resultTypeID: nodeTypeInterface,
+			resultTypeID: nodeTypeInterface.id(),
 		},
 	}
 
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			k := newInitType()
+			var k nodeType = nodeTypeInit
 			for _, in := range tc.inputs {
-				k = k.grow(in)
+				k = growType(k, in)
 			}
-			if k.id != tc.resultTypeID {
-				t.Errorf("invalid result type, want %s, got %s", tc.resultTypeID, k.id)
+			if k.id() != tc.resultTypeID {
+				t.Errorf("invalid result type, want %s, got %s", tc.resultTypeID, k.id())
 			}
 		})
 	}

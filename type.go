@@ -1,179 +1,200 @@
 package json2go
 
-type nodeTypeID string
-
 const (
-	nodeTypeInit nodeTypeID = "init"
-
-	nodeTypeBool          nodeTypeID = "bool"
-	nodeTypeInt           nodeTypeID = "int"
-	nodeTypeFloat         nodeTypeID = "float"
-	nodeTypeString        nodeTypeID = "string"
-	nodeTypeUnknownObject nodeTypeID = "object?"
-	nodeTypeObject        nodeTypeID = "object"
-	nodeTypeInterface     nodeTypeID = "interface"
-
-	nodeTypeExternalNode nodeTypeID = "node" // this node type points to other tree root
+	nodeTypeInit          = nodeInitType(".")
+	nodeTypeBool          = nodeBoolType("bool")
+	nodeTypeInt           = nodeIntType("int")
+	nodeTypeFloat         = nodeFloatType("float")
+	nodeTypeString        = nodeStringType("string")
+	nodeTypeUnknownObject = nodeUnknownObjectType("object?")
+	nodeTypeObject        = nodeObjectType("object")
+	nodeTypeInterface     = nodeInterfaceType("interface")
+	nodeTypeExternal      = nodeExternalType("node")
 )
 
-type nodeType struct {
-	id      nodeTypeID
-	fitFunc func(nodeType, interface{}) nodeType
-
-	expandsTypes []nodeType
+type nodeType interface {
+	id() string
+	fit(interface{}) nodeType
+	expands(nodeType) bool
 }
 
-func (k nodeType) grow(value interface{}) nodeType {
-	if value == nil {
-		return k
+func growType(t nodeType, v interface{}) nodeType {
+	if v == nil {
+		return t
 	}
 
-	new := k.fit(value)
-	if k.id != nodeTypeInit && !new.expands(k) {
-		return newInterfaceType()
+	new := t.fit(v)
+	if t.id() != nodeTypeInit.id() && !new.expands(t) {
+		return nodeTypeInterface
 	}
 
 	return new
 }
 
-func (k nodeType) fit(value interface{}) nodeType {
-	return k.fitFunc(k, value)
+// Type defs
+
+type nodeInitType string
+
+func (n nodeInitType) id() string {
+	return string(n)
 }
 
-func (k nodeType) expands(k2 nodeType) bool {
-	if k.id == k2.id {
-		return true
+func (n nodeInitType) expands(n2 nodeType) bool {
+	return n == n2
+}
+
+func (n nodeInitType) fit(v interface{}) nodeType {
+	return nodeTypeBool.fit(v)
+}
+
+type nodeBoolType string
+
+func (n nodeBoolType) id() string {
+	return string(n)
+}
+
+func (n nodeBoolType) expands(n2 nodeType) bool {
+	return n == n2
+}
+
+func (n nodeBoolType) fit(v interface{}) nodeType {
+	switch v.(type) {
+	case bool:
+		return n
 	}
 
-	for _, smallerType := range k.expandsTypes {
-		if k2.id == smallerType.id {
-			return smallerType.expands(k2)
+	return nodeTypeInt.fit(v)
+}
+
+type nodeIntType string
+
+func (n nodeIntType) id() string {
+	return string(n)
+}
+
+func (n nodeIntType) expands(n2 nodeType) bool {
+	return n == n2
+}
+
+func (n nodeIntType) fit(v interface{}) nodeType {
+	switch typedValue := v.(type) {
+	case int, int8, int16, int32, int64:
+		return n
+	case float32:
+		if typedValue == float32(int(typedValue)) {
+			return n
+		}
+	case float64:
+		if typedValue == float64(int(typedValue)) {
+			return n
 		}
 	}
 
-	return false
+	return nodeTypeFloat.fit(v)
 }
 
-func newInitType() nodeType {
-	return nodeType{
-		id: nodeTypeInit,
-		fitFunc: func(k nodeType, value interface{}) nodeType {
-			return newBoolType().fit(value)
-		},
-	}
+type nodeFloatType string
+
+func (n nodeFloatType) id() string {
+	return string(n)
 }
 
-func newBoolType() nodeType {
-	return nodeType{
-		id: nodeTypeBool,
-		fitFunc: func(k nodeType, value interface{}) nodeType {
-			switch value.(type) {
-			case bool:
-				return k
-			}
-
-			return newIntType().fit(value)
-		},
-	}
+func (n nodeFloatType) expands(n2 nodeType) bool {
+	return n == n2 || n2.id() == nodeTypeInt.id()
 }
 
-func newIntType() nodeType {
-	return nodeType{
-		id: nodeTypeInt,
-		fitFunc: func(k nodeType, value interface{}) nodeType {
-			switch typedValue := value.(type) {
-			case int, int8, int16, int32, int64:
-				return k
-			case float32:
-				if typedValue == float32(int(typedValue)) {
-					return k
-				}
-			case float64:
-				if typedValue == float64(int(typedValue)) {
-					return k
-				}
-			}
-			k = newFloatType()
-			return k.fit(value)
-		},
+func (n nodeFloatType) fit(v interface{}) nodeType {
+	switch v.(type) {
+	case float32, float64, int, int16, int32, int64:
+		return n
 	}
+
+	return nodeTypeString.fit(v)
 }
 
-func newFloatType() nodeType {
-	return nodeType{
-		id: nodeTypeFloat,
-		expandsTypes: []nodeType{
-			newIntType(),
-		},
-		fitFunc: func(k nodeType, value interface{}) nodeType {
-			switch value.(type) {
-			case float32, float64, int, int16, int32, int64:
-				return k
-			}
+type nodeStringType string
 
-			return newStringType().fit(value)
-		},
-	}
+func (n nodeStringType) id() string {
+	return string(n)
 }
 
-func newStringType() nodeType {
-	return nodeType{
-		id: nodeTypeString,
-		fitFunc: func(k nodeType, value interface{}) nodeType {
-			switch value.(type) {
-			case string:
-				return k
-			}
-
-			return newUnknownObjectType().fit(value)
-		},
-	}
+func (n nodeStringType) expands(n2 nodeType) bool {
+	return n == n2
 }
 
-func newUnknownObjectType() nodeType {
-	return nodeType{
-		id: nodeTypeUnknownObject,
-		fitFunc: func(k nodeType, value interface{}) nodeType {
-			switch typedValue := value.(type) {
-			case map[string]interface{}:
-				if len(typedValue) == 0 {
-					return k
-				}
-			}
-
-			return newObjectType().fit(value)
-		},
+func (n nodeStringType) fit(v interface{}) nodeType {
+	switch v.(type) {
+	case string:
+		return n
 	}
+
+	return nodeTypeUnknownObject.fit(v)
 }
 
-func newObjectType() nodeType {
-	return nodeType{
-		id: nodeTypeObject,
-		expandsTypes: []nodeType{
-			newUnknownObjectType(),
-		},
-		fitFunc: func(k nodeType, value interface{}) nodeType {
-			switch value.(type) {
-			case map[string]interface{}:
-				return k
-			}
+type nodeUnknownObjectType string
 
-			return newInterfaceType().fit(value)
-		},
-	}
+func (n nodeUnknownObjectType) id() string {
+	return string(n)
 }
 
-func newInterfaceType() nodeType {
-	return nodeType{
-		id: nodeTypeInterface,
-		fitFunc: func(k nodeType, value interface{}) nodeType {
-			return k
-		},
-	}
+func (n nodeUnknownObjectType) expands(n2 nodeType) bool {
+	return n == n2
 }
 
-func newExternalObjectType() nodeType {
-	return nodeType{
-		id: nodeTypeExternalNode,
+func (n nodeUnknownObjectType) fit(v interface{}) nodeType {
+	switch typedValue := v.(type) {
+	case map[string]interface{}:
+		if len(typedValue) == 0 {
+			return n
+		}
 	}
+
+	return nodeTypeObject.fit(v)
+}
+
+type nodeObjectType string
+
+func (n nodeObjectType) id() string {
+	return string(n)
+}
+
+func (n nodeObjectType) expands(n2 nodeType) bool {
+	return n == n2 || n2 == nodeTypeUnknownObject
+}
+
+func (n nodeObjectType) fit(v interface{}) nodeType {
+	switch v.(type) {
+	case map[string]interface{}:
+		return n
+	}
+
+	return nodeTypeInterface.fit(v)
+}
+
+type nodeInterfaceType string
+
+func (n nodeInterfaceType) id() string {
+	return string(n)
+}
+
+func (n nodeInterfaceType) expands(n2 nodeType) bool {
+	return n == n2
+}
+
+func (n nodeInterfaceType) fit(v interface{}) nodeType {
+	return n
+}
+
+type nodeExternalType string
+
+func (n nodeExternalType) id() string {
+	return string(n)
+}
+
+func (n nodeExternalType) expands(n2 nodeType) bool {
+	return n == n2
+}
+
+func (n nodeExternalType) fit(v interface{}) nodeType {
+	return n
 }
