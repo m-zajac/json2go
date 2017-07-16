@@ -33,21 +33,13 @@ func (p *JSONParser) FeedBytes(input []byte) error {
 	return nil
 }
 
-// FeedValue consumes any value coming from interface value.
-// If input can be one of:
+// FeedValue consumes one of:
 //
 //	* simple type (int, float, string, etc.)
 //	* []interface{} - each value must meet these requirements
 //	* map[string]interface{}  - each value must meet these requirements
 //
-// json.Unmarshal to empty interface value provides perfect input.
-//
-// Example:
-// 	var v interface{}
-// 	if err := json.Unmarshal(input, &v); err != nil {
-// 		return err
-// 	}
-// 	parser.FeedValue(v)
+// json.Unmarshal to empty interface value provides perfect input (see example)
 func (p *JSONParser) FeedValue(input interface{}) {
 	if slice, ok := input.([]interface{}); ok {
 		for _, v := range slice {

@@ -1,6 +1,7 @@
 package json2go
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -32,6 +33,29 @@ func ExampleNewJSONParser() {
 	// type XY struct {
 	// 	X	float64	`json:"x"`
 	// 	Y	float64	`json:"y"`
+	// }
+}
+
+func ExampleJSONParser_FeedValue() {
+	var v interface{}
+	json.Unmarshal([]byte(`{"line":{"start":{"x":12.1,"y":2.8},"end":{"x":12.1,"y":5.67}}}`), &v)
+
+	parser := NewJSONParser("Document")
+	parser.FeedValue(v)
+	res := parser.String()
+	fmt.Println(res)
+
+	// Output: type Document struct {
+	// 	Line struct {
+	// 		End	struct {
+	// 			X	float64	`json:"x"`
+	// 			Y	float64	`json:"y"`
+	// 		}	`json:"end"`
+	// 		Start	struct {
+	// 			X	float64	`json:"x"`
+	// 			Y	float64	`json:"y"`
+	// 		}	`json:"start"`
+	// 	} `json:"line"`
 	// }
 }
 
