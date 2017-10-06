@@ -108,7 +108,7 @@ type %s struct {
 			expectedRepr: fmt.Sprintf(`
 type %s struct {
 	X	bool	`+"`json:\"x\"`"+`
-	Y	*string	`+"`json:\"y,omitempty\"`"+`
+	Y	string	`+"`json:\"y,omitempty\"`"+`
 }
 					`, baseTypeName),
 		},
@@ -120,7 +120,7 @@ type %s struct {
 			expectedRepr: fmt.Sprintf(`
 type %s []struct {
 	X	bool	`+"`json:\"x\"`"+`
-	Y	*string	`+"`json:\"y,omitempty\"`"+`
+	Y	string	`+"`json:\"y,omitempty\"`"+`
 }
 			`, baseTypeName),
 		},
@@ -176,8 +176,8 @@ type %s struct {
 type %s struct {
 	X	bool	`+"`json:\"x\"`"+`
 	Y	[]struct {
-		A	*string	`+"`json:\"a,omitempty\"`"+`
-		B	*string	`+"`json:\"b,omitempty\"`"+`
+		A	string	`+"`json:\"a,omitempty\"`"+`
+		B	string	`+"`json:\"b,omitempty\"`"+`
 	}	`+"`json:\"y,omitempty\"`"+`
 }
 					`, baseTypeName),

@@ -45,7 +45,7 @@ func astTypeFromNode(n *node) ast.Expr {
 		pointable = true
 	case nodeStringType:
 		resultType = ast.NewIdent("string")
-		pointable = true
+		pointable = false
 	case nodeObjectType:
 		resultType = astStructTypeFromNode(n)
 		pointable = true
