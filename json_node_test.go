@@ -66,9 +66,9 @@ func TestJSONNodeCompare(t *testing.T) {
 				t:   nodeTypeBool,
 				children: []*node{
 					{
-						key:   "n1",
-						t:     nodeTypeFloat,
-						array: true,
+						key:        "n1",
+						t:          nodeTypeFloat,
+						arrayLevel: 1,
 					},
 				},
 			},
@@ -77,9 +77,9 @@ func TestJSONNodeCompare(t *testing.T) {
 				t:   nodeTypeBool,
 				children: []*node{
 					{
-						key:   "n1",
-						t:     nodeTypeFloat,
-						array: true,
+						key:        "n1",
+						t:          nodeTypeFloat,
+						arrayLevel: 1,
 					},
 				},
 			},
@@ -92,9 +92,9 @@ func TestJSONNodeCompare(t *testing.T) {
 				t:   nodeTypeBool,
 				children: []*node{
 					{
-						key:   "n1",
-						t:     nodeTypeFloat,
-						array: true,
+						key:        "n1",
+						t:          nodeTypeFloat,
+						arrayLevel: 1,
 					},
 				},
 			},
@@ -103,14 +103,14 @@ func TestJSONNodeCompare(t *testing.T) {
 				t:   nodeTypeBool,
 				children: []*node{
 					{
-						key:   "n1",
-						t:     nodeTypeFloat,
-						array: true,
+						key:        "n1",
+						t:          nodeTypeFloat,
+						arrayLevel: 1,
 					},
 					{
-						key:   "n1",
-						t:     nodeTypeFloat,
-						array: true,
+						key:        "n1",
+						t:          nodeTypeFloat,
+						arrayLevel: 1,
 					},
 				},
 			},
@@ -123,9 +123,9 @@ func TestJSONNodeCompare(t *testing.T) {
 				t:   nodeTypeBool,
 				children: []*node{
 					{
-						key:   "n1",
-						t:     nodeTypeFloat,
-						array: true,
+						key:        "n1",
+						t:          nodeTypeFloat,
+						arrayLevel: 1,
 					},
 				},
 			},
@@ -134,11 +134,53 @@ func TestJSONNodeCompare(t *testing.T) {
 				t:   nodeTypeBool,
 				children: []*node{
 					{
-						key:   "n1",
-						t:     nodeTypeInterface,
-						array: true,
+						key:        "n1",
+						t:          nodeTypeInterface,
+						arrayLevel: 1,
 					},
 				},
+			},
+			expectedEqual: false,
+		},
+		{
+			name: "array level equal",
+			n1: &node{
+				key:        "n",
+				t:          nodeTypeBool,
+				arrayLevel: 5,
+			},
+			n2: &node{
+				key:        "n",
+				t:          nodeTypeBool,
+				arrayLevel: 5,
+			},
+			expectedEqual: true,
+		},
+		{
+			name: "array level not equal #1",
+			n1: &node{
+				key:        "n",
+				t:          nodeTypeBool,
+				arrayLevel: 0,
+			},
+			n2: &node{
+				key:        "n",
+				t:          nodeTypeBool,
+				arrayLevel: 1,
+			},
+			expectedEqual: false,
+		},
+		{
+			name: "array level not equal #2",
+			n1: &node{
+				key:        "n",
+				t:          nodeTypeBool,
+				arrayLevel: 1,
+			},
+			n2: &node{
+				key:        "n",
+				t:          nodeTypeBool,
+				arrayLevel: 2,
 			},
 			expectedEqual: false,
 		},
@@ -227,11 +269,11 @@ func TestJSONNodeRepr(t *testing.T) {
 				[]interface{}{true},
 			},
 			expected: &node{
-				root:     true,
-				key:      baseTypeName,
-				t:        nodeTypeBool,
-				array:    true,
-				required: true,
+				root:       true,
+				key:        baseTypeName,
+				t:          nodeTypeBool,
+				arrayLevel: 1,
+				required:   true,
 			},
 		},
 		{
@@ -241,11 +283,11 @@ func TestJSONNodeRepr(t *testing.T) {
 				[]interface{}{1},
 			},
 			expected: &node{
-				root:     true,
-				key:      baseTypeName,
-				t:        nodeTypeInt,
-				array:    true,
-				required: true,
+				root:       true,
+				key:        baseTypeName,
+				t:          nodeTypeInt,
+				arrayLevel: 1,
+				required:   true,
 			},
 		},
 		{
@@ -255,11 +297,11 @@ func TestJSONNodeRepr(t *testing.T) {
 				[]interface{}{1.1},
 			},
 			expected: &node{
-				root:     true,
-				key:      baseTypeName,
-				t:        nodeTypeFloat,
-				array:    true,
-				required: true,
+				root:       true,
+				key:        baseTypeName,
+				t:          nodeTypeFloat,
+				arrayLevel: 1,
+				required:   true,
 			},
 		},
 		{
@@ -269,11 +311,11 @@ func TestJSONNodeRepr(t *testing.T) {
 				[]interface{}{"1.1"},
 			},
 			expected: &node{
-				root:     true,
-				key:      baseTypeName,
-				t:        nodeTypeString,
-				array:    true,
-				required: true,
+				root:       true,
+				key:        baseTypeName,
+				t:          nodeTypeString,
+				arrayLevel: 1,
+				required:   true,
 			},
 		},
 		{
@@ -283,11 +325,45 @@ func TestJSONNodeRepr(t *testing.T) {
 				[]interface{}{true, 1},
 			},
 			expected: &node{
-				root:     true,
-				key:      baseTypeName,
-				t:        nodeTypeInterface,
-				array:    true,
-				required: true,
+				root:       true,
+				key:        baseTypeName,
+				t:          nodeTypeInterface,
+				arrayLevel: 1,
+				required:   true,
+			},
+		},
+		{
+			name:        "[][]bool",
+			startAsRoot: true,
+			expands: []interface{}{
+				[]interface{}{
+					[]interface{}{true},
+				},
+			},
+			expected: &node{
+				root:       true,
+				key:        baseTypeName,
+				t:          nodeTypeBool,
+				arrayLevel: 2,
+				required:   true,
+			},
+		},
+		{
+			name:        "[][][]bool",
+			startAsRoot: true,
+			expands: []interface{}{
+				[]interface{}{
+					[]interface{}{
+						[]interface{}{true},
+					},
+				},
+			},
+			expected: &node{
+				root:       true,
+				key:        baseTypeName,
+				t:          nodeTypeBool,
+				arrayLevel: 3,
+				required:   true,
 			},
 		},
 
@@ -374,10 +450,10 @@ func TestJSONNodeRepr(t *testing.T) {
 				required: true,
 				children: []*node{
 					{
-						key:      "slice",
-						t:        nodeTypeInt,
-						array:    true,
-						required: true,
+						key:        "slice",
+						t:          nodeTypeInt,
+						arrayLevel: 1,
+						required:   true,
 					},
 				},
 			},
@@ -409,10 +485,10 @@ func TestJSONNodeRepr(t *testing.T) {
 						required: true,
 						children: []*node{
 							{
-								key:      "level2",
-								t:        nodeTypeFloat,
-								array:    true,
-								required: true,
+								key:        "level2",
+								t:          nodeTypeFloat,
+								arrayLevel: 1,
+								required:   true,
 							},
 						},
 					},
@@ -494,10 +570,10 @@ func TestJSONNodeRepr(t *testing.T) {
 						required: true,
 						children: []*node{
 							{
-								key:      "level2",
-								t:        nodeTypeObject,
-								array:    true,
-								required: true,
+								key:        "level2",
+								t:          nodeTypeObject,
+								arrayLevel: 1,
+								required:   true,
 								children: []*node{
 									{
 										key:      "x",
@@ -687,10 +763,10 @@ func TestJSONNodeRepr(t *testing.T) {
 						required: true,
 						children: []*node{
 							{
-								key:      "level2",
-								t:        nodeTypeObject,
-								array:    true,
-								required: true,
+								key:        "level2",
+								t:          nodeTypeObject,
+								arrayLevel: 1,
+								required:   true,
 								children: []*node{
 									{
 										key:      "x",
@@ -719,8 +795,12 @@ func TestJSONNodeRepr(t *testing.T) {
 				map[string]interface{}{
 					"x": false,
 					"y": []interface{}{
-						map[string]interface{}{"a": "yes"},
-						map[string]interface{}{"b": "no"},
+						map[string]interface{}{
+							"a": "yes",
+						},
+						map[string]interface{}{
+							"b": "no",
+						},
 					},
 				},
 			},
@@ -736,10 +816,10 @@ func TestJSONNodeRepr(t *testing.T) {
 						required: true,
 					},
 					{
-						key:      "y",
-						t:        nodeTypeObject,
-						array:    true,
-						required: false,
+						key:        "y",
+						t:          nodeTypeObject,
+						arrayLevel: 1,
+						required:   false,
 						children: []*node{
 							{
 								key:      "a",
@@ -754,6 +834,58 @@ func TestJSONNodeRepr(t *testing.T) {
 						},
 					},
 				},
+			},
+		},
+		{
+			name:        "object + []object",
+			startAsRoot: true,
+			expands: []interface{}{
+				map[string]interface{}{
+					"x": true,
+				},
+				[]interface{}{
+					map[string]interface{}{
+						"x": true,
+					},
+				},
+			},
+			expected: &node{
+				root:     true,
+				key:      baseTypeName,
+				t:        nodeTypeInterface,
+				required: true,
+			},
+		},
+		{
+			name:        "[]bool + bool",
+			startAsRoot: true,
+			expands: []interface{}{
+				true,
+				[]interface{}{true},
+			},
+			expected: &node{
+				root:       true,
+				key:        baseTypeName,
+				t:          nodeTypeInterface,
+				arrayLevel: 0,
+				required:   true,
+			},
+		},
+		{
+			name:        "[][]bool + []bool",
+			startAsRoot: true,
+			expands: []interface{}{
+				[]interface{}{true},
+				[]interface{}{
+					[]interface{}{true},
+				},
+			},
+			expected: &node{
+				root:       true,
+				key:        baseTypeName,
+				t:          nodeTypeInterface,
+				arrayLevel: 0,
+				required:   true,
 			},
 		},
 	}
@@ -772,7 +904,7 @@ func TestJSONNodeRepr(t *testing.T) {
 			f.sort()
 
 			if !f.compare(tc.expected) {
-				t.Errorf("invalid node. want:\n%s\ngot:\n%s", tc.expected.repr(""), f.repr(""))
+				t.Errorf("invalid node\nwant:\n%s\ngot:\n%s", tc.expected.repr(""), f.repr(""))
 			}
 		})
 	}
@@ -1347,10 +1479,10 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 						},
 					},
 					{
-						key:      "pointsOther",
-						t:        nodeTypeObject,
-						required: true,
-						array:    true,
+						key:        "pointsOther",
+						t:          nodeTypeObject,
+						required:   true,
+						arrayLevel: 1,
 						children: []*node{
 							{
 								key:      "x",
@@ -1384,7 +1516,7 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 							t:              nodeTypeExternal,
 							externalTypeID: "Point",
 							required:       true,
-							array:          true,
+							arrayLevel:     1,
 						},
 					},
 				},
@@ -1431,6 +1563,91 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 
 			if !ok {
 				t.Logf("\n%s\n\n", astPrintDecls(astMakeDecls(nodes)))
+			}
+		})
+	}
+}
+
+func TestArrayDepth(t *testing.T) {
+	testCases := []struct {
+		name          string
+		in            []interface{}
+		inNodeType    nodeType
+		expectedDepth int
+		expectedType  nodeType
+	}{
+		{
+			name:          "empty array",
+			in:            []interface{}{},
+			expectedDepth: 1,
+			expectedType:  nodeTypeInterface,
+		},
+		{
+			name:          "flat array",
+			in:            []interface{}{1, 2, 3},
+			expectedDepth: 1,
+			expectedType:  nodeTypeInt,
+		},
+		{
+			name:          "flat array, variable types",
+			in:            []interface{}{1, "2", true},
+			expectedDepth: 1,
+			expectedType:  nodeTypeInterface,
+		},
+		{
+			name:          "subarrays, variable structure",
+			in:            []interface{}{1, 2, []interface{}{3, 4}},
+			expectedDepth: -1,
+			expectedType:  nodeTypeInterface,
+		},
+		{
+			name: "subarrays, variable structure #2",
+			in: []interface{}{
+				[]interface{}{true, false},
+				[]interface{}{
+					[]interface{}{true, false},
+					[]interface{}{true, false},
+				},
+			},
+			expectedDepth: -1,
+			expectedType:  nodeTypeInterface,
+		},
+		{
+			name:          "subarrays, variable structure, variable types",
+			in:            []interface{}{1, true, []interface{}{3, "4"}},
+			expectedDepth: -1,
+			expectedType:  nodeTypeInterface,
+		},
+		{
+			name:          "subarrays, same structure, same types",
+			in:            []interface{}{[]interface{}{1, 2}, []interface{}{3, 4}},
+			expectedDepth: 2,
+			expectedType:  nodeTypeInt,
+		},
+		{
+			name:          "subarrays, same structure, variable types",
+			in:            []interface{}{[]interface{}{1, "2"}, []interface{}{3, true}},
+			expectedDepth: 2,
+			expectedType:  nodeTypeInterface,
+		},
+		{
+			name:          "flat array, different in type",
+			in:            []interface{}{1, 2, 3},
+			inNodeType:    nodeTypeBool,
+			expectedDepth: 1,
+			expectedType:  nodeTypeInterface,
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+			d, tp := arrayStructure(tc.in, tc.inNodeType)
+			if d != tc.expectedDepth {
+				t.Errorf("want: %d, got %d", tc.expectedDepth, d)
+			}
+			if tp != tc.expectedType {
+				t.Errorf("want: %v, got %v", tc.expectedType, tp)
 			}
 		})
 	}

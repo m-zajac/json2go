@@ -140,6 +140,20 @@ func TestTypeExpand(t *testing.T) {
 			},
 			resultTypeID: nodeTypeInterface.id(),
 		},
+		{
+			name: "input to interface - []object + object",
+			inputs: []interface{}{
+				[]interface{}{
+					map[string]interface{}{
+						"x": 1,
+					},
+				},
+				map[string]interface{}{
+					"x": 1,
+				},
+			},
+			resultTypeID: nodeTypeInterface.id(),
+		},
 	}
 
 	for i := range testCases {

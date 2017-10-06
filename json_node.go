@@ -14,7 +14,7 @@ const (
 
 type node struct {
 	root           bool
-	array          bool
+	arrayLevel     int
 	key            string
 	t              nodeType
 	externalTypeID string
@@ -36,45 +36,31 @@ func (n *node) grow(input interface{}) {
 		return
 	}
 
-	startType := n.t
-	handleObject := func(obj map[string]interface{}) {
-		usedKeys := make(map[string]struct{})
-		for k, v := range obj {
-			child, created := n.getOrCreateChild(k)
-			if created && startType != nodeTypeInit {
-				child.required = false
-			}
-			child.grow(v)
-			usedKeys[k] = struct{}{}
-		}
-
-		for _, child := range n.children {
-			if _, used := usedKeys[child.key]; !used {
-				child.required = false
-			}
-		}
-	}
-
 	if n.t.id() == nodeTypeInterface.id() {
 		return //nothing to do now
 	}
 
+	n.growChildrenFromData(input)
+
 	switch typedInput := input.(type) {
-	case map[string]interface{}:
-		n.t = growType(n.t, typedInput)
-		handleObject(typedInput)
 	case []interface{}:
-		if n.t != nodeTypeInit && !n.array {
+		if n.t != nodeTypeInit && n.arrayLevel == 0 {
 			n.t = nodeTypeInterface
+			n.children = nil
 			break
 		}
 
-		n.array = true
-		for _, iv := range typedInput {
-			n.grow(iv)
+		localLevel, localType := arrayStructure(typedInput, n.t)
+		if n.t == nodeTypeInit {
+			n.t = localType
+			n.arrayLevel = localLevel
+		} else if n.arrayLevel != localLevel || n.t != localType {
+			n.t = nodeTypeInterface
+			n.arrayLevel = 0
 		}
 	default:
 		n.t = growType(n.t, typedInput)
+		n.arrayLevel = 0
 	}
 }
 
@@ -98,6 +84,42 @@ func (n *node) getChild(key string) *node {
 	return nil
 }
 
+func (n *node) growChildrenFromData(in interface{}) {
+	if n.t == nodeTypeInterface {
+		return
+	}
+
+	if ar, ok := in.([]interface{}); ok {
+		for i := range ar {
+			n.growChildrenFromData(ar[i])
+		}
+		return
+	}
+
+	obj, ok := in.(map[string]interface{})
+	if !ok {
+		n.children = nil
+		return
+	}
+
+	alreadyHasChildren := (n.children != nil)
+	usedKeys := make(map[string]struct{})
+	for k, v := range obj {
+		child, created := n.getOrCreateChild(k)
+		if created && alreadyHasChildren {
+			child.required = false
+		}
+		child.grow(v)
+		usedKeys[k] = struct{}{}
+	}
+
+	for _, child := range n.children {
+		if _, used := usedKeys[child.key]; !used {
+			child.required = false
+		}
+	}
+}
+
 func (n *node) sort() {
 	sort.Slice(n.children, func(i int, j int) bool {
 		return n.children[i].key < n.children[j].key
@@ -119,6 +141,9 @@ func (n *node) compare(n2 *node) bool {
 		return false
 	}
 	if n.externalTypeID != n2.externalTypeID {
+		return false
+	}
+	if n.arrayLevel != n2.arrayLevel {
 		return false
 	}
 	if len(n.children) != len(n2.children) {
@@ -200,8 +225,8 @@ func (n *node) repr(prefix string) string {
 
 	buf.WriteString(fmt.Sprintf("%s{\n", prefix))
 	buf.WriteString(fmt.Sprintf("%s  key: %s\n", prefix, n.key))
-	if n.array {
-		buf.WriteString(fmt.Sprintf("%s  type: []%s\n", prefix, n.t.id()))
+	if n.arrayLevel > 0 {
+		buf.WriteString(fmt.Sprintf("%s  type: [%d]%s\n", prefix, n.arrayLevel, n.t.id()))
 	} else {
 		buf.WriteString(fmt.Sprintf("%s  type: %s\n", prefix, n.t.id()))
 	}
@@ -219,6 +244,52 @@ func (n *node) repr(prefix string) string {
 	buf.WriteString(fmt.Sprintf("%s}", prefix))
 
 	return buf.String()
+}
+
+// arrayStructure returns array depth and elements type. If array is nested and has no consistent structure, level -1 is returned.
+func arrayStructure(in []interface{}, inType nodeType) (int, nodeType) {
+	if len(in) == 0 {
+		return 1, nodeTypeInterface
+	}
+
+	if inType == nil {
+		inType = nodeTypeInit
+	}
+
+	depth := 0
+	for _, el := range in {
+		switch typedEl := el.(type) {
+		case []interface{}:
+			localDepth, localType := arrayStructure(typedEl, inType)
+			localDepth++
+
+			if inType == nodeTypeInit {
+				inType = localType
+			} else if localType != inType {
+				inType = nodeTypeInterface
+			}
+
+			switch depth {
+			case 0:
+				depth = localDepth
+			case localDepth:
+			default:
+				return -1, nodeTypeInterface
+			}
+		default:
+			localType := inType.fit(typedEl)
+
+			if inType == nodeTypeInit {
+				inType = localType
+			} else if localType != inType {
+				inType = nodeTypeInterface
+			}
+
+			depth = 1
+		}
+	}
+
+	return depth, inType
 }
 
 // extractCommonSubtree extracts at most one common subtree to new root node

@@ -79,12 +79,12 @@ func TestParserRepr(t *testing.T) {
 			expectedRepr: fmt.Sprintf("type %s int", baseTypeName),
 		},
 		{
-			name: "int arrays (should produce just int type)",
+			name: "int arrays",
 			inputs: []string{
 				"[1, 2.0]",
 				"[3, 4]",
 			},
-			expectedRepr: fmt.Sprintf("type %s int", baseTypeName),
+			expectedRepr: fmt.Sprintf("type %s []int", baseTypeName),
 		},
 		{
 			name: "simple object",
@@ -118,7 +118,7 @@ type %s struct {
 				`[{"x": true, "y": "str"}, {"x": false}]`,
 			},
 			expectedRepr: fmt.Sprintf(`
-type %s struct {
+type %s []struct {
 	X	bool	`+"`json:\"x\"`"+`
 	Y	*string	`+"`json:\"y,omitempty\"`"+`
 }
@@ -179,6 +179,28 @@ type %s struct {
 		A	*string	`+"`json:\"a,omitempty\"`"+`
 		B	*string	`+"`json:\"b,omitempty\"`"+`
 	}	`+"`json:\"y,omitempty\"`"+`
+}
+					`, baseTypeName),
+		},
+		{
+			name: "nested array of ints",
+			inputs: []string{
+				`[[1, 2, 3]]`,
+				`[[4, 5, 6]]`,
+			},
+			expectedRepr: fmt.Sprintf("type %s [][]int", baseTypeName),
+		},
+		{
+			name: "nested array of objects",
+			inputs: []string{
+				`[[{"x": false}, {"x": true}]]`,
+				`[[{"x": true, "y": true}, {"x": false, "z": true}]]`,
+			},
+			expectedRepr: fmt.Sprintf(`
+type %s [][]struct {
+	X	bool	`+"`json:\"x\"`"+`
+	Y	*bool	`+"`json:\"y,omitempty\"`"+`
+	Z	*bool	`+"`json:\"z,omitempty\"`"+`
 }
 					`, baseTypeName),
 		},

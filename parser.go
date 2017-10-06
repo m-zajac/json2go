@@ -41,13 +41,6 @@ func (p *JSONParser) FeedBytes(input []byte) error {
 //
 // json.Unmarshal to empty interface value provides perfect input (see example)
 func (p *JSONParser) FeedValue(input interface{}) {
-	if slice, ok := input.([]interface{}); ok {
-		for _, v := range slice {
-			p.rootNode.grow(v)
-		}
-		return
-	}
-
 	p.rootNode.grow(input)
 }
 

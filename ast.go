@@ -65,16 +65,18 @@ func astTypeFromNode(n *node) ast.Expr {
 		}
 	}
 
-	if pointable && !n.required && !n.root && !n.array {
+	if pointable && !n.required && !n.root && n.arrayLevel == 0 {
 		resultType = &ast.StarExpr{
 			X: resultType,
 		}
 	}
-	if n.array {
+
+	for i := n.arrayLevel; i > 0; i-- {
 		resultType = &ast.ArrayType{
 			Elt: resultType,
 		}
 	}
+
 	return resultType
 }
 

@@ -110,7 +110,7 @@ type Point struct {
 ]
 ```
 ```go
-type Document struct {
+type Document []struct {
 	BoilingPoint *UnitsValue `json:"boiling_point,omitempty"`
 	Dangerous    *bool       `json:"dangerous,omitempty"`
 	Density      *UnitsValue `json:"density,omitempty"`
