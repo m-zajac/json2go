@@ -2,6 +2,7 @@ language: go
 go_import_path: github.com/m-zajac/json2go
 go:
   - 1.8.x
+  - 1.9.x
 
 script:
   - go test -race -v ./...
