@@ -31,31 +31,27 @@ func astMakeDecls(rootNodes []*node) []ast.Decl {
 
 func astTypeFromNode(n *node) ast.Expr {
 	var resultType ast.Expr
-	var pointable bool
+	notRequiredAsPointer := true
+	allowPointer := true
 
 	switch n.t.(type) {
 	case nodeBoolType:
 		resultType = ast.NewIdent("bool")
-		pointable = true
 	case nodeIntType:
 		resultType = ast.NewIdent("int")
-		pointable = true
 	case nodeFloatType:
 		resultType = ast.NewIdent("float64")
-		pointable = true
 	case nodeStringType:
 		resultType = ast.NewIdent("string")
-		pointable = false
+		notRequiredAsPointer = false
 	case nodeObjectType:
 		resultType = astStructTypeFromNode(n)
-		pointable = true
 	case nodeExternalType:
 		extName := n.externalTypeID
 		if extName == "" {
 			extName = attrName(n.key)
 		}
 		resultType = ast.NewIdent(extName)
-		pointable = true
 	default:
 		resultType = &ast.InterfaceType{
 			Methods: &ast.FieldList{
@@ -63,11 +59,14 @@ func astTypeFromNode(n *node) ast.Expr {
 				Closing: token.Pos(2),
 			},
 		}
+		allowPointer = false
 	}
 
-	if pointable && !n.required && !n.root && n.arrayLevel == 0 {
-		resultType = &ast.StarExpr{
-			X: resultType,
+	if !n.root && n.arrayLevel == 0 && allowPointer {
+		if n.nullable || (!n.required && notRequiredAsPointer) {
+			resultType = &ast.StarExpr{
+				X: resultType,
+			}
 		}
 	}
 

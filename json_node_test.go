@@ -3,6 +3,8 @@ package json2go
 import "testing"
 
 func TestJSONNodeCompare(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name          string
 		n1            *node
@@ -44,6 +46,20 @@ func TestJSONNodeCompare(t *testing.T) {
 				key:      "n",
 				t:        nodeTypeBool,
 				required: false,
+			},
+			expectedEqual: false,
+		},
+		{
+			name: "nullable not equal",
+			n1: &node{
+				key:      "n",
+				t:        nodeTypeBool,
+				nullable: true,
+			},
+			n2: &node{
+				key:      "n",
+				t:        nodeTypeBool,
+				nullable: false,
 			},
 			expectedEqual: false,
 		},
@@ -198,6 +214,8 @@ func TestJSONNodeCompare(t *testing.T) {
 }
 
 func TestJSONNodeRepr(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name        string
 		startAsRoot bool
@@ -213,6 +231,7 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeBool,
+				nullable: false,
 				required: true,
 			},
 		},
@@ -224,6 +243,7 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeInt,
+				nullable: false,
 				required: true,
 			},
 		},
@@ -235,6 +255,7 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeFloat,
+				nullable: false,
 				required: true,
 			},
 		},
@@ -246,6 +267,7 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeString,
+				nullable: false,
 				required: true,
 			},
 		},
@@ -257,6 +279,7 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeInterface,
+				nullable: false,
 				required: true,
 			},
 		},
@@ -273,6 +296,7 @@ func TestJSONNodeRepr(t *testing.T) {
 				key:        baseTypeName,
 				t:          nodeTypeBool,
 				arrayLevel: 1,
+				nullable:   false,
 				required:   true,
 			},
 		},
@@ -287,6 +311,7 @@ func TestJSONNodeRepr(t *testing.T) {
 				key:        baseTypeName,
 				t:          nodeTypeInt,
 				arrayLevel: 1,
+				nullable:   false,
 				required:   true,
 			},
 		},
@@ -301,6 +326,7 @@ func TestJSONNodeRepr(t *testing.T) {
 				key:        baseTypeName,
 				t:          nodeTypeFloat,
 				arrayLevel: 1,
+				nullable:   false,
 				required:   true,
 			},
 		},
@@ -315,6 +341,7 @@ func TestJSONNodeRepr(t *testing.T) {
 				key:        baseTypeName,
 				t:          nodeTypeString,
 				arrayLevel: 1,
+				nullable:   false,
 				required:   true,
 			},
 		},
@@ -329,6 +356,7 @@ func TestJSONNodeRepr(t *testing.T) {
 				key:        baseTypeName,
 				t:          nodeTypeInterface,
 				arrayLevel: 1,
+				nullable:   false,
 				required:   true,
 			},
 		},
@@ -345,6 +373,7 @@ func TestJSONNodeRepr(t *testing.T) {
 				key:        baseTypeName,
 				t:          nodeTypeBool,
 				arrayLevel: 2,
+				nullable:   false,
 				required:   true,
 			},
 		},
@@ -363,6 +392,7 @@ func TestJSONNodeRepr(t *testing.T) {
 				key:        baseTypeName,
 				t:          nodeTypeBool,
 				arrayLevel: 3,
+				nullable:   false,
 				required:   true,
 			},
 		},
@@ -383,11 +413,13 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
+				nullable: false,
 				required: true,
 				children: []*node{
 					{
 						key:      "x",
 						t:        nodeTypeInt,
+						nullable: false,
 						required: true,
 					},
 				},
@@ -412,21 +444,25 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
+				nullable: false,
 				required: true,
 				children: []*node{
 					{
 						key:      "a",
 						t:        nodeTypeString,
+						nullable: false,
 						required: true,
 					},
 					{
 						key:      "b",
 						t:        nodeTypeInterface,
+						nullable: false,
 						required: true,
 					},
 					{
 						key:      "c",
 						t:        nodeTypeFloat,
+						nullable: false,
 						required: true,
 					},
 				},
@@ -447,13 +483,102 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
+				nullable: false,
 				required: true,
 				children: []*node{
 					{
 						key:        "slice",
 						t:          nodeTypeInt,
 						arrayLevel: 1,
+						nullable:   false,
 						required:   true,
+					},
+				},
+			},
+		},
+		{
+			name:        "object with required string attr",
+			startAsRoot: true,
+			expands: []interface{}{
+				map[string]interface{}{
+					"x": "stringx1",
+				},
+				map[string]interface{}{
+					"x": "stringx2",
+				},
+			},
+			expected: &node{
+				root:     true,
+				key:      baseTypeName,
+				t:        nodeTypeObject,
+				nullable: false,
+				required: true,
+				children: []*node{
+					{
+						key:      "x",
+						t:        nodeTypeString,
+						nullable: false,
+						required: true,
+					},
+				},
+			},
+		},
+		{
+			name:        "object with not required string attr",
+			startAsRoot: true,
+			expands: []interface{}{
+				map[string]interface{}{
+					"x": "stringx1",
+				},
+				map[string]interface{}{
+					"y": "stringy1",
+				},
+			},
+			expected: &node{
+				root:     true,
+				key:      baseTypeName,
+				t:        nodeTypeObject,
+				nullable: false,
+				required: true,
+				children: []*node{
+					{
+						key:      "x",
+						t:        nodeTypeString,
+						nullable: false,
+						required: false,
+					},
+					{
+						key:      "y",
+						t:        nodeTypeString,
+						nullable: false,
+						required: false,
+					},
+				},
+			},
+		},
+		{
+			name:        "object with nullable attr",
+			startAsRoot: true,
+			expands: []interface{}{
+				map[string]interface{}{
+					"x": "stringx1",
+				},
+				map[string]interface{}{
+					"x": nil,
+				},
+			},
+			expected: &node{
+				root:     true,
+				key:      baseTypeName,
+				t:        nodeTypeObject,
+				nullable: false,
+				required: true,
+				children: []*node{
+					{
+						key:      "x",
+						t:        nodeTypeString,
+						nullable: true,
+						required: true,
 					},
 				},
 			},
@@ -477,17 +602,20 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
+				nullable: false,
 				required: true,
 				children: []*node{
 					{
 						key:      "level1",
 						t:        nodeTypeObject,
+						nullable: false,
 						required: true,
 						children: []*node{
 							{
 								key:        "level2",
 								t:          nodeTypeFloat,
 								arrayLevel: 1,
+								nullable:   false,
 								required:   true,
 							},
 						},
@@ -510,16 +638,19 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
+				nullable: false,
 				required: true,
 				children: []*node{
 					{
 						key:      "x",
 						t:        nodeTypeInt,
+						nullable: false,
 						required: false,
 					},
 					{
 						key:      "y",
 						t:        nodeTypeString,
+						nullable: false,
 						required: false,
 					},
 				},
@@ -562,27 +693,32 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
+				nullable: false,
 				required: true,
 				children: []*node{
 					{
 						key:      "level1",
 						t:        nodeTypeObject,
+						nullable: false,
 						required: true,
 						children: []*node{
 							{
 								key:        "level2",
 								t:          nodeTypeObject,
 								arrayLevel: 1,
+								nullable:   false,
 								required:   true,
 								children: []*node{
 									{
 										key:      "x",
 										t:        nodeTypeInt,
+										nullable: false,
 										required: true,
 									},
 									{
 										key:      "y",
 										t:        nodeTypeInt,
+										nullable: false,
 										required: true,
 									},
 								},
@@ -611,16 +747,19 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
+				nullable: false,
 				required: true,
 				children: []*node{
 					{
 						key:      "level1",
 						t:        nodeTypeObject,
+						nullable: false,
 						required: true,
 						children: []*node{
 							{
 								key:      "level2",
 								t:        nodeTypeUnknownObject,
+								nullable: false,
 								required: true,
 							},
 						},
@@ -650,26 +789,31 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
+				nullable: false,
 				required: true,
 				children: []*node{
 					{
 						key:      "level1",
 						t:        nodeTypeObject,
+						nullable: false,
 						required: true,
 						children: []*node{
 							{
 								key:      "level2",
 								t:        nodeTypeObject,
-								required: false,
+								nullable: true,
+								required: true,
 								children: []*node{
 									{
 										key:      "x",
 										t:        nodeTypeInt,
+										nullable: false,
 										required: true,
 									},
 									{
 										key:      "y",
 										t:        nodeTypeInt,
+										nullable: false,
 										required: true,
 									},
 								},
@@ -701,26 +845,31 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
+				nullable: false,
 				required: true,
 				children: []*node{
 					{
 						key:      "level1",
 						t:        nodeTypeObject,
+						nullable: false,
 						required: true,
 						children: []*node{
 							{
 								key:      "level2",
 								t:        nodeTypeObject,
-								required: false,
+								nullable: true,
+								required: true,
 								children: []*node{
 									{
 										key:      "x",
 										t:        nodeTypeInt,
+										nullable: false,
 										required: true,
 									},
 									{
 										key:      "y",
 										t:        nodeTypeInt,
+										nullable: false,
 										required: true,
 									},
 								},
@@ -731,7 +880,7 @@ func TestJSONNodeRepr(t *testing.T) {
 			},
 		},
 		{
-			name:        "nested object slice with nullable attrs",
+			name:        "nested object slice with not required attrs",
 			startAsRoot: true,
 			expands: []interface{}{
 				map[string]interface{}{
@@ -755,27 +904,32 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
+				nullable: false,
 				required: true,
 				children: []*node{
 					{
 						key:      "level1",
 						t:        nodeTypeObject,
+						nullable: false,
 						required: true,
 						children: []*node{
 							{
 								key:        "level2",
 								t:          nodeTypeObject,
 								arrayLevel: 1,
+								nullable:   false,
 								required:   true,
 								children: []*node{
 									{
 										key:      "x",
 										t:        nodeTypeInt,
+										nullable: false,
 										required: false,
 									},
 									{
 										key:      "y",
 										t:        nodeTypeString,
+										nullable: false,
 										required: false,
 									},
 								},
@@ -786,7 +940,7 @@ func TestJSONNodeRepr(t *testing.T) {
 			},
 		},
 		{
-			name:        "nested object slice with nullable attrs #2",
+			name:        "nested object slice with not required attrs #2",
 			startAsRoot: true,
 			expands: []interface{}{
 				map[string]interface{}{
@@ -808,30 +962,62 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
+				nullable: false,
 				required: true,
 				children: []*node{
 					{
 						key:      "x",
 						t:        nodeTypeBool,
+						nullable: false,
 						required: true,
 					},
 					{
 						key:        "y",
 						t:          nodeTypeObject,
 						arrayLevel: 1,
+						nullable:   false,
 						required:   false,
 						children: []*node{
 							{
 								key:      "a",
 								t:        nodeTypeString,
+								nullable: false,
 								required: false,
 							},
 							{
 								key:      "b",
 								t:        nodeTypeString,
+								nullable: false,
 								required: false,
 							},
 						},
+					},
+				},
+			},
+		},
+		{
+			name:        "list of objects with only null attr values",
+			startAsRoot: true,
+			expands: []interface{}{
+				map[string]interface{}{
+					"x": nil,
+				},
+				map[string]interface{}{
+					"x": nil,
+				},
+			},
+			expected: &node{
+				root:     true,
+				key:      baseTypeName,
+				t:        nodeTypeObject,
+				nullable: false,
+				required: true,
+				children: []*node{
+					{
+						key:      "x",
+						t:        nodeTypeInit, // only null values wont expand type
+						nullable: true,
+						required: true,
 					},
 				},
 			},
@@ -853,6 +1039,7 @@ func TestJSONNodeRepr(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeInterface,
+				nullable: false,
 				required: true,
 			},
 		},
@@ -868,6 +1055,7 @@ func TestJSONNodeRepr(t *testing.T) {
 				key:        baseTypeName,
 				t:          nodeTypeInterface,
 				arrayLevel: 0,
+				nullable:   false,
 				required:   true,
 			},
 		},
@@ -885,6 +1073,7 @@ func TestJSONNodeRepr(t *testing.T) {
 				key:        baseTypeName,
 				t:          nodeTypeInterface,
 				arrayLevel: 0,
+				nullable:   false,
 				required:   true,
 			},
 		},
@@ -893,8 +1082,6 @@ func TestJSONNodeRepr(t *testing.T) {
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			f := newNode(baseTypeName)
 			f.root = tc.startAsRoot
 
@@ -911,6 +1098,8 @@ func TestJSONNodeRepr(t *testing.T) {
 }
 
 func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		root     *node
@@ -922,29 +1111,29 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
-				required: true,
+				nullable: true,
 				children: []*node{
 					{
 						key:      "fieldA",
 						t:        nodeTypeObject,
-						required: true,
+						nullable: true,
 						children: []*node{
 							{
 								key:      "x",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 						},
 					},
 					{
 						key:      "fieldB",
 						t:        nodeTypeObject,
-						required: false,
+						nullable: false,
 						children: []*node{
 							{
 								key:      "y",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 						},
 					},
@@ -955,29 +1144,29 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					root:     true,
 					key:      baseTypeName,
 					t:        nodeTypeObject,
-					required: true,
+					nullable: true,
 					children: []*node{
 						{
 							key:      "fieldA",
 							t:        nodeTypeObject,
-							required: true,
+							nullable: true,
 							children: []*node{
 								{
 									key:      "x",
 									t:        nodeTypeFloat,
-									required: true,
+									nullable: true,
 								},
 							},
 						},
 						{
 							key:      "fieldB",
 							t:        nodeTypeObject,
-							required: false,
+							nullable: false,
 							children: []*node{
 								{
 									key:      "y",
 									t:        nodeTypeFloat,
-									required: true,
+									nullable: true,
 								},
 							},
 						},
@@ -991,39 +1180,39 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
-				required: true,
+				nullable: true,
 				children: []*node{
 					{
 						key:      "pointA",
 						t:        nodeTypeObject,
-						required: true,
+						nullable: true,
 						children: []*node{
 							{
 								key:      "x",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 							{
 								key:      "y",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 						},
 					},
 					{
 						key:      "pointB",
 						t:        nodeTypeObject,
-						required: true,
+						nullable: true,
 						children: []*node{
 							{
 								key:      "x",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 							{
 								key:      "y",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 						},
 					},
@@ -1034,19 +1223,19 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					root:     true,
 					key:      baseTypeName,
 					t:        nodeTypeObject,
-					required: true,
+					nullable: true,
 					children: []*node{
 						{
 							key:            "pointA",
 							t:              nodeTypeExternal,
 							externalTypeID: "Point",
-							required:       true,
+							nullable:       true,
 						},
 						{
 							key:            "pointB",
 							t:              nodeTypeExternal,
 							externalTypeID: "Point",
-							required:       true,
+							nullable:       true,
 						},
 					},
 				},
@@ -1054,61 +1243,61 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					root:     true,
 					key:      "point",
 					t:        nodeTypeObject,
-					required: true,
+					nullable: true,
 					children: []*node{
 						{
 							key:      "x",
 							t:        nodeTypeFloat,
-							required: true,
+							nullable: true,
 						},
 						{
 							key:      "y",
 							t:        nodeTypeFloat,
-							required: true,
+							nullable: true,
 						},
 					},
 				},
 			},
 		},
 		{
-			name: "extract one required, one not required",
+			name: "extract one not required, one required",
 			root: &node{
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
-				required: true,
+				nullable: true,
 				children: []*node{
 					{
 						key:      "pointA",
 						t:        nodeTypeObject,
-						required: true,
+						nullable: true,
 						children: []*node{
 							{
 								key:      "x",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 							{
 								key:      "y",
 								t:        nodeTypeFloat,
-								required: false,
+								nullable: false,
 							},
 						},
 					},
 					{
 						key:      "pointB",
 						t:        nodeTypeObject,
-						required: false,
+						nullable: false,
 						children: []*node{
 							{
 								key:      "x",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 							{
 								key:      "y",
 								t:        nodeTypeFloat,
-								required: false,
+								nullable: false,
 							},
 						},
 					},
@@ -1119,19 +1308,19 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					root:     true,
 					key:      baseTypeName,
 					t:        nodeTypeObject,
-					required: true,
+					nullable: true,
 					children: []*node{
 						{
 							key:            "pointA",
 							t:              nodeTypeExternal,
 							externalTypeID: "Point",
-							required:       true,
+							nullable:       true,
 						},
 						{
 							key:            "pointB",
 							t:              nodeTypeExternal,
 							externalTypeID: "Point",
-							required:       false,
+							nullable:       false,
 						},
 					},
 				},
@@ -1139,17 +1328,17 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					root:     true,
 					key:      "point",
 					t:        nodeTypeObject,
-					required: true,
+					nullable: true,
 					children: []*node{
 						{
 							key:      "x",
 							t:        nodeTypeFloat,
-							required: true,
+							nullable: true,
 						},
 						{
 							key:      "y",
 							t:        nodeTypeFloat,
-							required: false,
+							nullable: false,
 						},
 					},
 				},
@@ -1161,73 +1350,73 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
-				required: true,
+				nullable: true,
 				children: []*node{
 					{
 						key:      "pointA",
 						t:        nodeTypeObject,
-						required: true,
+						nullable: true,
 						children: []*node{
 							{
 								key:      "x",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 							{
 								key:      "y",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 						},
 					},
 					{
 						key:      "pointB",
 						t:        nodeTypeObject,
-						required: true,
+						nullable: true,
 						children: []*node{
 							{
 								key:      "x",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 							{
 								key:      "y",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 						},
 					},
 					{
 						key:      "size1",
 						t:        nodeTypeObject,
-						required: true,
+						nullable: true,
 						children: []*node{
 							{
 								key:      "width",
 								t:        nodeTypeInt,
-								required: true,
+								nullable: true,
 							},
 							{
 								key:      "height",
 								t:        nodeTypeInt,
-								required: true,
+								nullable: true,
 							},
 						},
 					},
 					{
 						key:      "size2",
 						t:        nodeTypeObject,
-						required: true,
+						nullable: true,
 						children: []*node{
 							{
 								key:      "width",
 								t:        nodeTypeInt,
-								required: true,
+								nullable: true,
 							},
 							{
 								key:      "height",
 								t:        nodeTypeInt,
-								required: true,
+								nullable: true,
 							},
 						},
 					},
@@ -1238,31 +1427,31 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					root:     true,
 					key:      baseTypeName,
 					t:        nodeTypeObject,
-					required: true,
+					nullable: true,
 					children: []*node{
 						{
 							key:            "pointA",
 							t:              nodeTypeExternal,
 							externalTypeID: "Point",
-							required:       true,
+							nullable:       true,
 						},
 						{
 							key:            "pointB",
 							t:              nodeTypeExternal,
 							externalTypeID: "Point",
-							required:       true,
+							nullable:       true,
 						},
 						{
 							key:            "size1",
 							t:              nodeTypeExternal,
 							externalTypeID: "Size",
-							required:       true,
+							nullable:       true,
 						},
 						{
 							key:            "size2",
 							t:              nodeTypeExternal,
 							externalTypeID: "Size",
-							required:       true,
+							nullable:       true,
 						},
 					},
 				},
@@ -1270,17 +1459,17 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					root:     true,
 					key:      "point",
 					t:        nodeTypeObject,
-					required: true,
+					nullable: true,
 					children: []*node{
 						{
 							key:      "x",
 							t:        nodeTypeFloat,
-							required: true,
+							nullable: true,
 						},
 						{
 							key:      "y",
 							t:        nodeTypeFloat,
-							required: true,
+							nullable: true,
 						},
 					},
 				},
@@ -1288,17 +1477,17 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					root:     true,
 					key:      "size",
 					t:        nodeTypeObject,
-					required: true,
+					nullable: true,
 					children: []*node{
 						{
 							key:      "height",
 							t:        nodeTypeInt,
-							required: true,
+							nullable: true,
 						},
 						{
 							key:      "width",
 							t:        nodeTypeInt,
-							required: true,
+							nullable: true,
 						},
 					},
 				},
@@ -1310,73 +1499,73 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
-				required: true,
+				nullable: true,
 				children: []*node{
 					{
 						key:      "pointA",
 						t:        nodeTypeObject,
-						required: true,
+						nullable: true,
 						children: []*node{
 							{
 								key:      "x",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 							{
 								key:      "y",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 						},
 					},
 					{
 						key:      "pointB",
 						t:        nodeTypeObject,
-						required: true,
+						nullable: true,
 						children: []*node{
 							{
 								key:      "x",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 							{
 								key:      "y",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 						},
 					},
 					{
 						key:      "pointC",
 						t:        nodeTypeObject,
-						required: true,
+						nullable: true,
 						children: []*node{
 							{
 								key:      "x",
 								t:        nodeTypeInt,
-								required: true,
+								nullable: true,
 							},
 							{
 								key:      "y",
 								t:        nodeTypeInt,
-								required: true,
+								nullable: true,
 							},
 						},
 					},
 					{
 						key:      "pointD",
 						t:        nodeTypeObject,
-						required: true,
+						nullable: true,
 						children: []*node{
 							{
 								key:      "x",
 								t:        nodeTypeInt,
-								required: true,
+								nullable: true,
 							},
 							{
 								key:      "y",
 								t:        nodeTypeInt,
-								required: true,
+								nullable: true,
 							},
 						},
 					},
@@ -1387,31 +1576,31 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					root:     true,
 					key:      baseTypeName,
 					t:        nodeTypeObject,
-					required: true,
+					nullable: true,
 					children: []*node{
 						{
 							key:            "pointA",
 							t:              nodeTypeExternal,
 							externalTypeID: "Point",
-							required:       true,
+							nullable:       true,
 						},
 						{
 							key:            "pointB",
 							t:              nodeTypeExternal,
 							externalTypeID: "Point",
-							required:       true,
+							nullable:       true,
 						},
 						{
 							key:            "pointC",
 							t:              nodeTypeExternal,
 							externalTypeID: "Point2",
-							required:       true,
+							nullable:       true,
 						},
 						{
 							key:            "pointD",
 							t:              nodeTypeExternal,
 							externalTypeID: "Point2",
-							required:       true,
+							nullable:       true,
 						},
 					},
 				},
@@ -1419,17 +1608,17 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					root:     true,
 					key:      "point",
 					t:        nodeTypeObject,
-					required: true,
+					nullable: true,
 					children: []*node{
 						{
 							key:      "x",
 							t:        nodeTypeFloat,
-							required: true,
+							nullable: true,
 						},
 						{
 							key:      "y",
 							t:        nodeTypeFloat,
-							required: true,
+							nullable: true,
 						},
 					},
 				},
@@ -1437,17 +1626,17 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					root:     true,
 					key:      "point2",
 					t:        nodeTypeObject,
-					required: true,
+					nullable: true,
 					children: []*node{
 						{
 							key:      "x",
 							t:        nodeTypeInt,
-							required: true,
+							nullable: true,
 						},
 						{
 							key:      "y",
 							t:        nodeTypeInt,
-							required: true,
+							nullable: true,
 						},
 					},
 				},
@@ -1459,40 +1648,40 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 				root:     true,
 				key:      baseTypeName,
 				t:        nodeTypeObject,
-				required: true,
+				nullable: true,
 				children: []*node{
 					{
 						key:      "pointA",
 						t:        nodeTypeObject,
-						required: true,
+						nullable: true,
 						children: []*node{
 							{
 								key:      "x",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 							{
 								key:      "y",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 						},
 					},
 					{
 						key:        "pointsOther",
 						t:          nodeTypeObject,
-						required:   true,
+						nullable:   true,
 						arrayLevel: 1,
 						children: []*node{
 							{
 								key:      "x",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 							{
 								key:      "y",
 								t:        nodeTypeFloat,
-								required: true,
+								nullable: true,
 							},
 						},
 					},
@@ -1503,19 +1692,19 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					root:     true,
 					key:      baseTypeName,
 					t:        nodeTypeObject,
-					required: true,
+					nullable: true,
 					children: []*node{
 						{
 							key:            "pointA",
 							t:              nodeTypeExternal,
 							externalTypeID: "Point",
-							required:       true,
+							nullable:       true,
 						},
 						{
 							key:            "pointsOther",
 							t:              nodeTypeExternal,
 							externalTypeID: "Point",
-							required:       true,
+							nullable:       true,
 							arrayLevel:     1,
 						},
 					},
@@ -1524,17 +1713,17 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					root:     true,
 					key:      "point",
 					t:        nodeTypeObject,
-					required: true,
+					nullable: true,
 					children: []*node{
 						{
 							key:      "x",
 							t:        nodeTypeFloat,
-							required: true,
+							nullable: true,
 						},
 						{
 							key:      "y",
 							t:        nodeTypeFloat,
-							required: true,
+							nullable: true,
 						},
 					},
 				},
@@ -1569,6 +1758,8 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 }
 
 func TestArrayDepth(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name          string
 		in            []interface{}

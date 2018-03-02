@@ -18,6 +18,7 @@ type node struct {
 	key            string
 	t              nodeType
 	externalTypeID string
+	nullable       bool
 	required       bool
 	children       []*node
 }
@@ -26,13 +27,14 @@ func newNode(name string) *node {
 	return &node{
 		key:      name,
 		t:        nodeTypeInit,
+		nullable: false,
 		required: true,
 	}
 }
 
 func (n *node) grow(input interface{}) {
 	if input == nil {
-		n.required = false
+		n.nullable = true
 		return
 	}
 
@@ -137,6 +139,9 @@ func (n *node) compare(n2 *node) bool {
 	if n.t.id() != n2.t.id() {
 		return false
 	}
+	if n.nullable != n2.nullable {
+		return false
+	}
 	if n.required != n2.required {
 		return false
 	}
@@ -161,13 +166,13 @@ func (n *node) compare(n2 *node) bool {
 }
 
 // structureID returns identifier unique for this nodes structure
-// if `asRoot` is true, this node id does not depend on "required" property
+// if `asRoot` is true, this node id does not depend on "nullable" or "required" property
 func (n *node) structureID(asRoot bool) string {
 	var id string
 	if asRoot {
 		id = string(n.t.id())
 	} else {
-		id = fmt.Sprintf("%s.%s.%t", n.key, n.t.id(), n.required)
+		id = fmt.Sprintf("%s.%s.%t", n.key, n.t.id(), n.nullable)
 	}
 
 	var parts []string
@@ -230,6 +235,7 @@ func (n *node) repr(prefix string) string {
 	} else {
 		buf.WriteString(fmt.Sprintf("%s  type: %s\n", prefix, n.t.id()))
 	}
+	buf.WriteString(fmt.Sprintf("%s  nullable: %t\n", prefix, n.nullable))
 	buf.WriteString(fmt.Sprintf("%s  required: %t\n", prefix, n.required))
 	if n.externalTypeID != "" {
 		buf.WriteString(fmt.Sprintf("%s  extType: %s\n", prefix, n.externalTypeID))

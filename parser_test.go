@@ -60,6 +60,8 @@ func ExampleJSONParser_FeedValue() {
 }
 
 func TestParserRepr(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name         string
 		inputs       []string
@@ -100,7 +102,7 @@ type %s struct {
 					`, baseTypeName),
 		},
 		{
-			name: "simple object, one attr nullable",
+			name: "simple object, one attr not required",
 			inputs: []string{
 				`{"x": true, "y": "str"}`,
 				`{"x": false}`,
@@ -113,7 +115,43 @@ type %s struct {
 					`, baseTypeName),
 		},
 		{
-			name: "array of objects, one attr nullable",
+			name: "simple object with string attr nullable",
+			inputs: []string{
+				`{"x": "ok"}`,
+				`{"x": null}`,
+			},
+			expectedRepr: fmt.Sprintf(`
+type %s struct {
+	X *string `+"`json:\"x\"`"+`
+}
+					`, baseTypeName),
+		},
+		{
+			name: "simple object with string attr not required",
+			inputs: []string{
+				`{"x": "ok"}`,
+				`{}`,
+			},
+			expectedRepr: fmt.Sprintf(`
+type %s struct {
+	X string `+"`json:\"x,omitempty\"`"+`
+}
+					`, baseTypeName),
+		},
+		{
+			name: "simple object with attr with only null values",
+			inputs: []string{
+				`{"x": null}`,
+				`{"x": null}`,
+			},
+			expectedRepr: fmt.Sprintf(`
+type %s struct {
+	X interface{} `+"`json:\"x\"`"+`
+}
+					`, baseTypeName),
+		},
+		{
+			name: "array of objects, one attr not required",
 			inputs: []string{
 				`[{"x": true, "y": "str"}, {"x": false}]`,
 			},
@@ -125,7 +163,7 @@ type %s []struct {
 			`, baseTypeName),
 		},
 		{
-			name: "object, with nested object nullable slice",
+			name: "object, with nested object not required slice",
 			inputs: []string{
 				`{
 					"x": true,
@@ -159,7 +197,7 @@ type %s struct {
 					`, baseTypeName),
 		},
 		{
-			name: "object, attr with object slice with nullable attributes",
+			name: "object, attr with object slice with not required attributes",
 			inputs: []string{
 				`{
 					"x": true

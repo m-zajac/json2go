@@ -3,6 +3,8 @@ package json2go
 import "testing"
 
 func TestNames(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name         string
 		fieldName    string
@@ -86,6 +88,8 @@ func TestNames(t *testing.T) {
 }
 
 func TestExtractCommonName(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		inputs   []string
@@ -124,6 +128,8 @@ func TestExtractCommonName(t *testing.T) {
 }
 
 func TestKeynameFromKeys(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		inputs   []string
@@ -162,6 +168,8 @@ func TestKeynameFromKeys(t *testing.T) {
 }
 
 func TestNextName(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		input    string
