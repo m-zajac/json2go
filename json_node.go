@@ -14,12 +14,12 @@ const (
 
 type node struct {
 	root           bool
+	nullable       bool
+	required       bool
 	arrayLevel     int
 	key            string
 	t              nodeType
 	externalTypeID string
-	nullable       bool
-	required       bool
 	children       []*node
 }
 
@@ -170,7 +170,7 @@ func (n *node) compare(n2 *node) bool {
 func (n *node) structureID(asRoot bool) string {
 	var id string
 	if asRoot {
-		id = string(n.t.id())
+		id = n.t.id()
 	} else {
 		id = fmt.Sprintf("%s.%s.%t", n.key, n.t.id(), n.nullable)
 	}

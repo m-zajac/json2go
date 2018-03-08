@@ -119,7 +119,7 @@ func nextName(name string) string {
 		return "1"
 	}
 
-	re := regexp.MustCompile("\\d+$")
+	re := regexp.MustCompile(`\d+$`)
 	subs := re.FindStringSubmatch(name)
 	if len(subs) == 0 {
 		return name + "2"
