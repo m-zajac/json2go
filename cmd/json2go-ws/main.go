@@ -34,7 +34,7 @@ func main() {
 		return nil
 	})
 
-	js.Global().Get("document").Call("getElementById", "run").Call("addEventListener", "click", cb)
+	in.Call("addEventListener", "input", cb)
 
 	select {}
 }
