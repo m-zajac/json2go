@@ -1,14 +1,15 @@
 appname := json2go
 
 sources := $(wildcard *.go)
+goroot := $(shell go env GOROOT)
 
 build = GOOS=$(1) GOARCH=$(2) go build -o build/$(appname)$(3) ./cmd/json2go/*.go && chmod gu+x build/$(appname)$(3)
 tar = cd build && tar -cvzf $(1)_$(2).tar.gz $(appname)$(3) && rm $(appname)$(3)
 zip = cd build && zip $(1)_$(2).zip $(appname)$(3) && rm $(appname)$(3)
 
-.PHONY: all windows darwin linux clean
+.PHONY: all windows darwin linux wasm clean
 
-all: windows darwin linux
+all: windows darwin linux wasm
 
 clean:
 	rm -rf build/
@@ -41,3 +42,10 @@ build/windows_386.zip: $(sources)
 build/windows_amd64.zip: $(sources)
 	$(call build,windows,amd64,.exe)
 	$(call zip,windows,amd64,.exe)
+
+##### WEB ASM #####
+wasm: $(sources)
+	@mkdir -p build/web
+	@cp "$(goroot)/misc/wasm/wasm_exec.js" build/web
+	@cp web/index.html build/web
+	GOOS=js GOARCH=wasm go build -o build/web/json2go.wasm ./cmd/json2go-ws/*.go

@@ -1,0 +1,48 @@
+<html>
+	<head>
+        <meta charset="utf-8">
+        
+        <link rel="stylesheet" href="https://unpkg.com/chota@latest">
+	</head>
+	<body>
+        <div class="container">
+            <h1>json2go web parser</h1>
+
+            <div class="row">
+                <p>
+                    For source code see <a href="https://github.com/m-zajac/json2go">https://github.com/m-zajac/json2go</a>
+                </p>
+            </div>
+
+            <div class="row">
+                <textarea id="input" cols="30" rows="10" placeholder="Paste json here"></textarea>
+            </div>
+            <div class="row">
+                <button id="run">Convert to go!</button>
+            </div>
+            <div class="row">
+                <pre id="out"></pre>
+            </div>
+        </div>
+
+        <script src="wasm_exec.js"></script>
+        <script>
+            if (!WebAssembly.instantiateStreaming) { // polyfill
+                WebAssembly.instantiateStreaming = async (resp, importObject) => {
+                    const source = await (await resp).arrayBuffer();
+                    return await WebAssembly.instantiate(source, importObject);
+                };
+            }
+    
+            const go = new Go();
+            let mod, inst;
+            WebAssembly.instantiateStreaming(fetch("json2go.wasm"), go.importObject).then(async (result) => {
+                mod = result.module;
+                inst = result.instance;
+                await go.run(inst);
+            }).catch((err) => {
+                console.error(err);
+            });
+        </script>
+    </body>
+</html>
