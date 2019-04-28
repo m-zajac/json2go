@@ -1,9 +1,7 @@
 language: go
 go_import_path: github.com/m-zajac/json2go
 go:
-  - 1.8.x
-  - 1.9.x
-  - 1.10.x
+  - 1.12.x
 
 script:
-  - go test -race -v ./...
+  - GOOS=linux GOARCH=amd64 go test -race -v ./...
