@@ -2,6 +2,12 @@
 
 Package json2go provides utilities for creating well formated go type representation from json inputs.
 
+## Demo page
+
+Simple web page with webassembly json2go parser
+
+[https://m-zajac.github.io/json2go](https://m-zajac.github.io/json2go)
+
 ## Installation
 
     go get github.com/m-zajac/json2go/...
