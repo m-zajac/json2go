@@ -16,10 +16,16 @@
             </div>
 
             <div class="row">
-                <textarea id="input" cols="30" rows="10" placeholder="Paste json here"></textarea>
+                <textarea id="input" class="json2go" cols="30" rows="10" placeholder="Paste json here"></textarea>
             </div>
             <div class="row">
-                <pre id="out" class="is-full-width">waiting for input ...</pre>
+                <label class="card is-center">
+                    <input id="extractCommon" class="json2go" type="checkbox" checked="true" />
+                    Extract common types
+                </label>
+            </div>
+            <div class="row">
+                <pre id="output" class="is-full-width"></pre>
             </div>
         </div>
 
@@ -34,10 +40,32 @@
     
             const go = new Go();
             let mod, inst;
-            WebAssembly.instantiateStreaming(fetch("json2go.wasm"), go.importObject).then(async (result) => {
+            WebAssembly.instantiateStreaming(fetch("json2go.wasm"), go.importObject).then((result) => {
                 mod = result.module;
                 inst = result.instance;
-                await go.run(inst);
+                go.run(inst);
+            }).then(() => {
+                let waitMsg = "waiting for valid json ...";
+                let outEl = document.getElementById("output");
+
+                let onChange = () => {
+                    let json = document.getElementById("input").value;
+                    let opts = {
+                        extractCommonTypes: document.getElementById("extractCommon").checked,
+                    };
+                    let out = json2go(json, opts);
+
+                    if (out) {
+                        outEl.innerHTML = out;
+                    } else {
+                        outEl.innerHTML = waitMsg;
+                    }
+                }
+                for (let el of document.getElementsByClassName("json2go")) {
+                    el.addEventListener("input", onChange);
+                    el.addEventListener("change", onChange);
+                }
+                onChange();
             }).catch((err) => {
                 console.error(err);
             });

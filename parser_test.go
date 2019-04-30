@@ -14,7 +14,7 @@ func ExampleNewJSONParser() {
 	}
 
 	parser := NewJSONParser("Document")
-	parser.ExtractCommonStructs = true
+	parser.ExtractCommonTypes = true
 
 	for _, in := range inputs {
 		parser.FeedBytes([]byte(in))

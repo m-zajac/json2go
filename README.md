@@ -133,6 +133,6 @@ type UnitsValue struct {
 
 ## TODO
 
-- extract common structs (working, but every nested struct had to have same fields)
+- extract common types (working, but every nested struct had to have same fields)
 - try decoding to map if resulting struct has many attributes with same type
 - convert json schema to go type

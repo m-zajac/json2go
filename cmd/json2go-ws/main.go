@@ -4,37 +4,37 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"syscall/js"
 
 	"github.com/m-zajac/json2go"
 )
 
 func main() {
-	in := js.Global().Get("document").Call("getElementById", "input")
-	out := js.Global().Get("document").Call("getElementById", "out")
-	cb := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		input := in.Get("value").String()
+	js.Global().Set("json2go", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		if len(args) < 1 {
+			return ""
+		}
+		input := args[0].String()
+
+		parser := json2go.NewJSONParser("document")
+		parser.ExtractCommonTypes = true
+
+		if len(args) > 1 {
+			opts := args[1]
+			if opts.Type() == js.TypeObject {
+				parser.ExtractCommonTypes = opts.Get("extractCommonTypes").Truthy()
+			}
+		}
 
 		var data interface{}
 		if err := json.Unmarshal([]byte(input), &data); err != nil {
-			out.Set(
-				"innerHTML",
-				fmt.Sprintf("json decoding error: %v", err),
-			)
-			return nil
+			return ""
 		}
 
-		parser := json2go.NewJSONParser("root")
-		parser.ExtractCommonStructs = true
 		parser.FeedValue(data)
 
-		out.Set("innerHTML", parser.String())
-
-		return nil
-	})
-
-	in.Call("addEventListener", "input", cb)
+		return parser.String()
+	}))
 
 	select {}
 }

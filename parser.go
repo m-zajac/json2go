@@ -9,7 +9,7 @@ import (
 type JSONParser struct {
 	rootNode *node
 
-	ExtractCommonStructs bool
+	ExtractCommonTypes bool
 }
 
 // NewJSONParser creates new json Parser
@@ -48,7 +48,7 @@ func (p *JSONParser) FeedValue(input interface{}) {
 func (p *JSONParser) String() string {
 	p.rootNode.sort()
 	nodes := []*node{p.rootNode}
-	if p.ExtractCommonStructs {
+	if p.ExtractCommonTypes {
 		nodes = extractCommonSubtrees(p.rootNode)
 	}
 	return astPrintDecls(astMakeDecls(nodes))

@@ -23,7 +23,7 @@ func main() {
 	}
 
 	parser := json2go.NewJSONParser(*rootTypeName)
-	parser.ExtractCommonStructs = *extractCommonNodes
+	parser.ExtractCommonTypes = *extractCommonNodes
 
 	parser.FeedValue(data)
 
