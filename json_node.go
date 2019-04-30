@@ -254,12 +254,11 @@ func (n *node) repr(prefix string) string {
 
 // arrayStructure returns array depth and elements type. If array is nested and has no consistent structure, level -1 is returned.
 func arrayStructure(in []interface{}, inType nodeType) (int, nodeType) {
-	if len(in) == 0 {
-		return 1, nodeTypeInterface
-	}
-
 	if inType == nil {
 		inType = nodeTypeInit
+	}
+	if len(in) == 0 {
+		return 1, inType
 	}
 
 	depth := 0
@@ -272,7 +271,11 @@ func arrayStructure(in []interface{}, inType nodeType) (int, nodeType) {
 			if inType == nodeTypeInit {
 				inType = localType
 			} else if localType != inType {
-				inType = nodeTypeInterface
+				if localType.expands(inType) {
+					inType = localType
+				} else {
+					inType = nodeTypeInterface
+				}
 			}
 
 			switch depth {
@@ -288,7 +291,11 @@ func arrayStructure(in []interface{}, inType nodeType) (int, nodeType) {
 			if inType == nodeTypeInit {
 				inType = localType
 			} else if localType != inType {
-				inType = nodeTypeInterface
+				if localType.expands(inType) {
+					inType = localType
+				} else {
+					inType = nodeTypeInterface
+				}
 			}
 
 			depth = 1

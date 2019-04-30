@@ -1,15 +1,14 @@
 package json2go
 
 const (
-	nodeTypeInit          = nodeInitType(".")
-	nodeTypeBool          = nodeBoolType("bool")
-	nodeTypeInt           = nodeIntType("int")
-	nodeTypeFloat         = nodeFloatType("float")
-	nodeTypeString        = nodeStringType("string")
-	nodeTypeUnknownObject = nodeUnknownObjectType("object?")
-	nodeTypeObject        = nodeObjectType("object")
-	nodeTypeInterface     = nodeInterfaceType("interface")
-	nodeTypeExternal      = nodeExternalType("node")
+	nodeTypeInit      = nodeInitType(".")
+	nodeTypeBool      = nodeBoolType("bool")
+	nodeTypeInt       = nodeIntType("int")
+	nodeTypeFloat     = nodeFloatType("float")
+	nodeTypeString    = nodeStringType("string")
+	nodeTypeObject    = nodeObjectType("object")
+	nodeTypeInterface = nodeInterfaceType("interface")
+	nodeTypeExternal  = nodeExternalType("node")
 )
 
 type nodeType interface {
@@ -128,27 +127,6 @@ func (n nodeStringType) fit(v interface{}) nodeType {
 		return n
 	}
 
-	return nodeTypeUnknownObject.fit(v)
-}
-
-type nodeUnknownObjectType string
-
-func (n nodeUnknownObjectType) id() string {
-	return string(n)
-}
-
-func (n nodeUnknownObjectType) expands(n2 nodeType) bool {
-	return n == n2
-}
-
-func (n nodeUnknownObjectType) fit(v interface{}) nodeType {
-	switch typedValue := v.(type) {
-	case map[string]interface{}:
-		if len(typedValue) == 0 {
-			return n
-		}
-	}
-
 	return nodeTypeObject.fit(v)
 }
 
@@ -159,7 +137,7 @@ func (n nodeObjectType) id() string {
 }
 
 func (n nodeObjectType) expands(n2 nodeType) bool {
-	return n == n2 || n2 == nodeTypeUnknownObject
+	return n == n2
 }
 
 func (n nodeObjectType) fit(v interface{}) nodeType {

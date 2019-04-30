@@ -1,6 +1,8 @@
 package json2go
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestJSONNodeCompare(t *testing.T) {
 	t.Parallel()
@@ -758,7 +760,7 @@ func TestJSONNodeRepr(t *testing.T) {
 						children: []*node{
 							{
 								key:      "level2",
-								t:        nodeTypeUnknownObject,
+								t:        nodeTypeObject,
 								nullable: false,
 								required: true,
 							},
@@ -1757,7 +1759,7 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 	}
 }
 
-func TestArrayDepth(t *testing.T) {
+func TestArrayStructureDepth(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -1771,7 +1773,7 @@ func TestArrayDepth(t *testing.T) {
 			name:          "empty array",
 			in:            []interface{}{},
 			expectedDepth: 1,
-			expectedType:  nodeTypeInterface,
+			expectedType:  nodeTypeInit,
 		},
 		{
 			name:          "flat array",
@@ -1839,6 +1841,81 @@ func TestArrayDepth(t *testing.T) {
 			}
 			if tp != tc.expectedType {
 				t.Errorf("want: %v, got %v", tc.expectedType, tp)
+			}
+		})
+	}
+}
+
+func TestArrayStructureType(t *testing.T) {
+	tests := []struct {
+		name     string
+		in       []interface{}
+		inType   nodeType
+		wantType nodeType
+	}{
+		{
+			name:     "no data",
+			in:       []interface{}{},
+			inType:   nil,
+			wantType: nodeTypeInit,
+		},
+		{
+			name:     "empty array, type set already",
+			in:       []interface{}{},
+			inType:   nodeTypeString,
+			wantType: nodeTypeString,
+		},
+		{
+			name:     "not empty array, type matches",
+			in:       []interface{}{"a", "b"},
+			inType:   nodeTypeString,
+			wantType: nodeTypeString,
+		},
+		{
+			name: "not empty array, type matches, depth 2",
+			in: []interface{}{
+				[]interface{}{"a", "b"},
+				[]interface{}{"a", "b"},
+			},
+			inType:   nodeTypeString,
+			wantType: nodeTypeString,
+		},
+		{
+			name:     "not empty array, type not match",
+			in:       []interface{}{"a", "b"},
+			inType:   nodeTypeInt,
+			wantType: nodeTypeInterface,
+		},
+		{
+			name: "not empty array, type not match, depth 2",
+			in: []interface{}{
+				[]interface{}{"a", "b"},
+				[]interface{}{"a", "b"},
+			},
+			inType:   nodeTypeInt,
+			wantType: nodeTypeInterface,
+		},
+		{
+			name:     "ints + floats",
+			in:       []interface{}{1, 2, 3.14},
+			inType:   nil,
+			wantType: nodeTypeFloat,
+		},
+		{
+			name: "ints + floats, depth 2",
+			in: []interface{}{
+				[]interface{}{1, 2, 3.14},
+				[]interface{}{1, 2, 3.14},
+			},
+			inType:   nil,
+			wantType: nodeTypeFloat,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, gotType := arrayStructure(tt.in, tt.inType)
+			if gotType.id() != tt.wantType.id() {
+				t.Errorf("arrayStructure() got type = %s, want %s", gotType.id(), tt.wantType.id())
 			}
 		})
 	}
