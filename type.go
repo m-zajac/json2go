@@ -8,7 +8,7 @@ const (
 	nodeTypeString    = nodeStringType("string")
 	nodeTypeObject    = nodeObjectType("object")
 	nodeTypeInterface = nodeInterfaceType("interface")
-	nodeTypeExternal  = nodeExternalType("node")
+	nodeTypeExtracted = nodeExtractedType("extracted")
 )
 
 type nodeType interface {
@@ -163,16 +163,16 @@ func (n nodeInterfaceType) fit(v interface{}) nodeType {
 	return n
 }
 
-type nodeExternalType string
+type nodeExtractedType string
 
-func (n nodeExternalType) id() string {
+func (n nodeExtractedType) id() string {
 	return string(n)
 }
 
-func (n nodeExternalType) expands(n2 nodeType) bool {
+func (n nodeExtractedType) expands(n2 nodeType) bool {
 	return n == n2
 }
 
-func (n nodeExternalType) fit(v interface{}) nodeType {
+func (n nodeExtractedType) fit(v interface{}) nodeType {
 	return n
 }

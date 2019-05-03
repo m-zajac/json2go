@@ -98,13 +98,13 @@ func extractCommonName(names ...string) string {
 	return string(result)
 }
 
-func keynameFromKeys(keys ...string) string {
-	if len(keys) == 0 {
+func nameFromNames(names ...string) string {
+	if len(names) == 0 {
 		return ""
 	}
 
-	result := keys[0]
-	for i, k := range keys[1:] {
+	result := names[0]
+	for i, k := range names[1:] {
 		result = result + "_" + k
 		if i > 0 && len(result) > 3 {
 			return result

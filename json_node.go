@@ -18,14 +18,16 @@ type node struct {
 	required       bool
 	arrayLevel     int
 	key            string
+	name           string
 	t              nodeType
 	externalTypeID string
 	children       []*node
 }
 
-func newNode(name string) *node {
+func newNode(key string) *node {
 	return &node{
-		key:      name,
+		key:      key,
+		name:     attrName(key),
 		t:        nodeTypeInit,
 		nullable: false,
 		required: true,
@@ -71,7 +73,17 @@ func (n *node) getOrCreateChild(key string) (*node, bool) {
 		return child, false
 	}
 
+	childrenNames := make(map[string]bool)
+	for _, c := range n.children {
+		childrenNames[c.name] = true
+	}
+
 	child := newNode(key)
+
+	for childrenNames[child.name] {
+		child.name = nextName(child.name)
+	}
+
 	n.children = append(n.children, child)
 	return child, true
 }
@@ -105,18 +117,18 @@ func (n *node) growChildrenFromData(in interface{}) {
 	}
 
 	alreadyHasChildren := (n.children != nil)
-	usedKeys := make(map[string]struct{})
+	usedKeys := make(map[string]bool)
 	for k, v := range obj {
 		child, created := n.getOrCreateChild(k)
 		if created && alreadyHasChildren {
 			child.required = false
 		}
 		child.grow(v)
-		usedKeys[k] = struct{}{}
+		usedKeys[k] = true
 	}
 
 	for _, child := range n.children {
-		if _, used := usedKeys[child.key]; !used {
+		if !usedKeys[child.key] {
 			child.required = false
 		}
 	}
@@ -306,7 +318,7 @@ func arrayStructure(in []interface{}, inType nodeType) (int, nodeType) {
 }
 
 // extractCommonSubtree extracts at most one common subtree to new root node
-func extractCommonSubtree(root *node, rootKeys map[string]struct{}) *node {
+func extractCommonSubtree(root *node, rootNames map[string]bool) *node {
 	infos := make(map[string]nodeStructureInfo)
 
 	root.treeInfo(infos)
@@ -333,33 +345,37 @@ func extractCommonSubtree(root *node, rootKeys map[string]struct{}) *node {
 		extractedNode := *info.nodes[0]
 
 		var names []string
+		var keys []string
 		for _, in := range info.nodes {
-			names = append(names, in.key)
+			names = append(names, in.name)
+			keys = append(keys, in.key)
 		}
-		extractedKey := extractCommonName(names...)
-		if extractedKey == "" {
+		extractedName := extractCommonName(names...)
+		extractedKey := extractCommonName(keys...)
+		if extractedName == "" {
 			var keys []string
 			for _, child := range extractedNode.children {
 				keys = append(keys, child.key)
 			}
-			extractedKey = keynameFromKeys(keys...)
+			extractedKey = nameFromNames(keys...)
+			extractedName = attrName(extractedKey)
 		}
-		if extractedKey == "" {
+		if extractedName == "" {
 			continue
 		}
-
-		_, exists := rootKeys[extractedKey]
-		for exists {
+		for rootNames[extractedName] {
+			extractedName = nextName(extractedName)
 			extractedKey = nextName(extractedKey)
-			_, exists = rootKeys[extractedKey]
 		}
-		rootKeys[extractedKey] = struct{}{}
+		rootNames[extractedName] = true
+
+		extractedNode.name = extractedName
 		extractedNode.key = extractedKey
 		extractedNode.root = true
 
 		root.modify(info.structureID, func(modNode *node) {
-			modNode.t = nodeTypeExternal
-			modNode.externalTypeID = attrName(extractedKey)
+			modNode.t = nodeTypeExtracted
+			modNode.externalTypeID = extractedName
 			modNode.children = nil
 		})
 
@@ -370,8 +386,8 @@ func extractCommonSubtree(root *node, rootKeys map[string]struct{}) *node {
 }
 
 func extractCommonSubtrees(root *node) []*node {
-	rootKeys := map[string]struct{}{
-		root.key: {},
+	rootNames := map[string]bool{
+		root.name: true,
 	}
 
 	extractedSize := 0
@@ -380,7 +396,7 @@ func extractCommonSubtrees(root *node) []*node {
 		extractedSize = len(nodes)
 		result := nodes
 		for _, n := range nodes {
-			extNode := extractCommonSubtree(n, rootKeys)
+			extNode := extractCommonSubtree(n, rootNames)
 			if extNode != nil {
 				result = append(result, extNode)
 			}

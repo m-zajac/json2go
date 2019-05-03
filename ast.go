@@ -1,26 +1,23 @@
 package json2go
 
 import (
-	"bytes"
+	"fmt"
 	"go/ast"
 	"go/token"
 	"sort"
+	"strings"
 )
 
 func astMakeDecls(rootNodes []*node) []ast.Decl {
 	var decls []ast.Decl
 
-	for _, rootNode := range rootNodes {
-		name := attrName(rootNode.key)
-		if name == "" {
-			continue
-		}
+	for _, node := range rootNodes {
 		decls = append(decls, &ast.GenDecl{
 			Tok: token.TYPE,
 			Specs: []ast.Spec{
 				&ast.TypeSpec{
-					Name: ast.NewIdent(name),
-					Type: astTypeFromNode(rootNode),
+					Name: ast.NewIdent(node.name),
+					Type: astTypeFromNode(node),
 				},
 			},
 		})
@@ -46,10 +43,10 @@ func astTypeFromNode(n *node) ast.Expr {
 		notRequiredAsPointer = false
 	case nodeObjectType:
 		resultType = astStructTypeFromNode(n)
-	case nodeExternalType:
+	case nodeExtractedType:
 		extName := n.externalTypeID
 		if extName == "" {
-			extName = attrName(n.key)
+			extName = n.name
 		}
 		resultType = ast.NewIdent(extName)
 	default:
@@ -88,30 +85,25 @@ func astStructTypeFromNode(n *node) *ast.StructType {
 
 	// sort children by name
 	type nodeWithName struct {
-		key  string
+		name string
 		node *node
 	}
 	var sortedChildren []nodeWithName
 	for _, child := range n.children {
 		sortedChildren = append(sortedChildren, nodeWithName{
-			key:  child.key,
+			name: child.name,
 			node: child,
 		})
 	}
 	sort.Slice(sortedChildren, func(i, j int) bool {
-		return sortedChildren[i].key < sortedChildren[j].key
+		return sortedChildren[i].name < sortedChildren[j].name
 	})
 
 	for _, child := range sortedChildren {
-		childName := attrName(child.key)
-		if childName == "" {
-			continue
-		}
-
 		typeDesc.Fields.List = append(typeDesc.Fields.List, &ast.Field{
-			Names: []*ast.Ident{ast.NewIdent(childName)},
+			Names: []*ast.Ident{ast.NewIdent(child.name)},
 			Type:  astTypeFromNode(child.node),
-			Tag:   astJSONTag(child.key, !child.node.required),
+			Tag:   astJSONTag(child.node.key, !child.node.required),
 		})
 	}
 
@@ -119,15 +111,15 @@ func astStructTypeFromNode(n *node) *ast.StructType {
 }
 
 func astJSONTag(key string, omitempty bool) *ast.BasicLit {
-	var buf bytes.Buffer
-	buf.WriteString("`json:\"")
-	buf.WriteString(key)
+	tag := fmt.Sprintf("%#v", key)
+	tag = strings.Trim(tag, `"`)
 	if omitempty {
-		buf.WriteString(",omitempty")
+		tag = fmt.Sprintf("`json:\"%s,omitempty\"`", tag)
+	} else {
+		tag = fmt.Sprintf("`json:\"%s\"`", tag)
 	}
-	buf.WriteString("\"`")
 
 	return &ast.BasicLit{
-		Value: buf.String(),
+		Value: tag,
 	}
 }

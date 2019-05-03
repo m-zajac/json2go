@@ -127,7 +127,7 @@ func TestExtractCommonName(t *testing.T) {
 	}
 }
 
-func TestKeynameFromKeys(t *testing.T) {
+func TestNameFromNames(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -160,7 +160,7 @@ func TestKeynameFromKeys(t *testing.T) {
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			if result := keynameFromKeys(tc.inputs...); result != tc.expected {
+			if result := nameFromNames(tc.inputs...); result != tc.expected {
 				t.Errorf("invalid result, want `%s`, got `%s`", tc.expected, result)
 			}
 		})

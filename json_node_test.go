@@ -1,6 +1,7 @@
 package json2go
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -1099,6 +1100,53 @@ func TestJSONNodeRepr(t *testing.T) {
 	}
 }
 
+func TestJSONNodeTreeKeysNames(t *testing.T) {
+	testCases := []struct {
+		name          string
+		growInput     interface{}
+		expectedKeys  map[string]bool
+		expectedNames map[string]bool
+	}{
+		{
+			name: "",
+			growInput: map[string]interface{}{
+				"x_": 1,
+				"x$": 2,
+			},
+			expectedKeys: map[string]bool{
+				"x_": true,
+				"x$": true,
+			},
+			expectedNames: map[string]bool{
+				"X":  true,
+				"X2": true,
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+			f := newNode(baseTypeName)
+			f.root = true
+			f.grow(tc.growInput)
+
+			keys := make(map[string]bool)
+			names := make(map[string]bool)
+			for _, c := range f.children {
+				keys[c.key] = true
+				names[c.name] = true
+			}
+			if !reflect.DeepEqual(keys, tc.expectedKeys) {
+				t.Errorf("invalid keys, want %+v, got %+v", tc.expectedKeys, keys)
+			}
+			if !reflect.DeepEqual(names, tc.expectedNames) {
+				t.Errorf("invalid names, want %+v, got %+v", tc.expectedNames, names)
+			}
+		})
+	}
+}
+
 func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 	t.Parallel()
 
@@ -1229,13 +1277,13 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					children: []*node{
 						{
 							key:            "pointA",
-							t:              nodeTypeExternal,
+							t:              nodeTypeExtracted,
 							externalTypeID: "Point",
 							nullable:       true,
 						},
 						{
 							key:            "pointB",
-							t:              nodeTypeExternal,
+							t:              nodeTypeExtracted,
 							externalTypeID: "Point",
 							nullable:       true,
 						},
@@ -1314,13 +1362,13 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					children: []*node{
 						{
 							key:            "pointA",
-							t:              nodeTypeExternal,
+							t:              nodeTypeExtracted,
 							externalTypeID: "Point",
 							nullable:       true,
 						},
 						{
 							key:            "pointB",
-							t:              nodeTypeExternal,
+							t:              nodeTypeExtracted,
 							externalTypeID: "Point",
 							nullable:       false,
 						},
@@ -1433,25 +1481,25 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					children: []*node{
 						{
 							key:            "pointA",
-							t:              nodeTypeExternal,
+							t:              nodeTypeExtracted,
 							externalTypeID: "Point",
 							nullable:       true,
 						},
 						{
 							key:            "pointB",
-							t:              nodeTypeExternal,
+							t:              nodeTypeExtracted,
 							externalTypeID: "Point",
 							nullable:       true,
 						},
 						{
 							key:            "size1",
-							t:              nodeTypeExternal,
+							t:              nodeTypeExtracted,
 							externalTypeID: "Size",
 							nullable:       true,
 						},
 						{
 							key:            "size2",
-							t:              nodeTypeExternal,
+							t:              nodeTypeExtracted,
 							externalTypeID: "Size",
 							nullable:       true,
 						},
@@ -1582,25 +1630,25 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					children: []*node{
 						{
 							key:            "pointA",
-							t:              nodeTypeExternal,
+							t:              nodeTypeExtracted,
 							externalTypeID: "Point",
 							nullable:       true,
 						},
 						{
 							key:            "pointB",
-							t:              nodeTypeExternal,
+							t:              nodeTypeExtracted,
 							externalTypeID: "Point",
 							nullable:       true,
 						},
 						{
 							key:            "pointC",
-							t:              nodeTypeExternal,
+							t:              nodeTypeExtracted,
 							externalTypeID: "Point2",
 							nullable:       true,
 						},
 						{
 							key:            "pointD",
-							t:              nodeTypeExternal,
+							t:              nodeTypeExtracted,
 							externalTypeID: "Point2",
 							nullable:       true,
 						},
@@ -1698,13 +1746,13 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 					children: []*node{
 						{
 							key:            "pointA",
-							t:              nodeTypeExternal,
+							t:              nodeTypeExtracted,
 							externalTypeID: "Point",
 							nullable:       true,
 						},
 						{
 							key:            "pointsOther",
-							t:              nodeTypeExternal,
+							t:              nodeTypeExtracted,
 							externalTypeID: "Point",
 							nullable:       true,
 							arrayLevel:     1,
@@ -1733,9 +1781,23 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 		},
 	}
 
+	var setupNames func(n *node)
+	setupNames = func(n *node) {
+		n.name = attrName(n.key)
+		for _, c := range n.children {
+			setupNames(c)
+		}
+	}
+
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
+			// setup names here to skip making them by hand in test cases
+			setupNames(tc.root)
+			for _, n := range tc.expected {
+				setupNames(n)
+			}
+
 			tc.root.sort()
 
 			nodes := extractCommonSubtrees(tc.root)
