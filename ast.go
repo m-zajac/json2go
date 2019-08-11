@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func astMakeDecls(rootNodes []*node) []ast.Decl {
+func astMakeDecls(rootNodes []*node, opts options) []ast.Decl {
 	var decls []ast.Decl
 
 	for _, node := range rootNodes {
@@ -17,7 +17,7 @@ func astMakeDecls(rootNodes []*node) []ast.Decl {
 			Specs: []ast.Spec{
 				&ast.TypeSpec{
 					Name: ast.NewIdent(node.name),
-					Type: astTypeFromNode(node),
+					Type: astTypeFromNode(node, opts),
 				},
 			},
 		})
@@ -26,7 +26,7 @@ func astMakeDecls(rootNodes []*node) []ast.Decl {
 	return decls
 }
 
-func astTypeFromNode(n *node) ast.Expr {
+func astTypeFromNode(n *node, opts options) ast.Expr {
 	var resultType ast.Expr
 	notRequiredAsPointer := true
 	allowPointer := true
@@ -40,9 +40,9 @@ func astTypeFromNode(n *node) ast.Expr {
 		resultType = ast.NewIdent("float64")
 	case nodeStringType:
 		resultType = ast.NewIdent("string")
-		notRequiredAsPointer = false
+		notRequiredAsPointer = opts.stringPointersWhenKeyMissing
 	case nodeObjectType:
-		resultType = astStructTypeFromNode(n)
+		resultType = astStructTypeFromNode(n, opts)
 	case nodeExtractedType:
 		extName := n.externalTypeID
 		if extName == "" {
@@ -76,7 +76,7 @@ func astTypeFromNode(n *node) ast.Expr {
 	return resultType
 }
 
-func astStructTypeFromNode(n *node) *ast.StructType {
+func astStructTypeFromNode(n *node, opts options) *ast.StructType {
 	typeDesc := &ast.StructType{
 		Fields: &ast.FieldList{
 			List: []*ast.Field{},
@@ -102,7 +102,7 @@ func astStructTypeFromNode(n *node) *ast.StructType {
 	for _, child := range sortedChildren {
 		typeDesc.Fields.List = append(typeDesc.Fields.List, &ast.Field{
 			Names: []*ast.Ident{ast.NewIdent(child.name)},
-			Type:  astTypeFromNode(child.node),
+			Type:  astTypeFromNode(child.node, opts),
 			Tag:   astJSONTag(child.node.key, !child.node.required),
 		})
 	}

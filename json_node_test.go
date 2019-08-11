@@ -1800,9 +1800,11 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 
 			tc.root.sort()
 
+			opts := options{}
+
 			nodes := extractCommonSubtrees(tc.root)
 			if len(nodes) != len(tc.expected) {
-				t.Logf("\n%s\n\n", astPrintDecls(astMakeDecls(nodes)))
+				t.Logf("\n%s\n\n", astPrintDecls(astMakeDecls(nodes, opts)))
 				t.Fatalf("got invalid num of nodes, want %d, got %d", len(tc.expected), len(nodes))
 			}
 
@@ -1815,7 +1817,7 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 			}
 
 			if !ok {
-				t.Logf("\n%s\n\n", astPrintDecls(astMakeDecls(nodes)))
+				t.Logf("\n%s\n\n", astPrintDecls(astMakeDecls(nodes, opts)))
 			}
 		})
 	}

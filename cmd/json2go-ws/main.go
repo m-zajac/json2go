@@ -16,15 +16,31 @@ func main() {
 		}
 		input := args[0].String()
 
-		parser := json2go.NewJSONParser("document")
-		parser.ExtractCommonTypes = true
-
+		rootName := "document"
+		var parserOpts []json2go.JSONParserOpt
 		if len(args) > 1 {
 			opts := args[1]
 			if opts.Type() == js.TypeObject {
-				parser.ExtractCommonTypes = opts.Get("extractCommonTypes").Truthy()
+				parserOpts = append(
+					parserOpts,
+					json2go.OptExtractCommonTypes(
+						opts.Get("extractCommonTypes").Truthy(),
+					),
+					json2go.OptStringPointersWhenKeyMissing(
+						opts.Get("stringPointersWhenKeyMissing").Truthy(),
+					),
+				)
+
+				ro := opts.Get("rootName")
+				if ro.Type() == js.TypeString {
+					if v := ro.String(); v != "" {
+						rootName = v
+					}
+				}
 			}
 		}
+
+		parser := json2go.NewJSONParser(rootName, parserOpts...)
 
 		var data interface{}
 		if err := json.Unmarshal([]byte(input), &data); err != nil {

@@ -11,6 +11,7 @@ import (
 
 func main() {
 	extractCommonNodes := flag.Bool("c", true, "Extract common nodes as top level struct definitions")
+	stringPointers := flag.Bool("sp", true, "Allow string pointers when string key is missing in one of documents")
 	rootTypeName := flag.String("n", "Document", "Type name")
 
 	flag.Parse()
@@ -22,8 +23,11 @@ func main() {
 		log.Fatalf("json decoding error: %v", err)
 	}
 
-	parser := json2go.NewJSONParser(*rootTypeName)
-	parser.ExtractCommonTypes = *extractCommonNodes
+	parser := json2go.NewJSONParser(
+		*rootTypeName,
+		json2go.OptExtractCommonTypes(*extractCommonNodes),
+		json2go.OptStringPointersWhenKeyMissing(*stringPointers),
+	)
 
 	parser.FeedValue(data)
 

@@ -13,8 +13,10 @@ func ExampleNewJSONParser() {
 		`{"triangle":[{"x":2.34,"y":2.1}, {"x":45.1,"y":6.7}, {"x":4,"y":94.6}]}`,
 	}
 
-	parser := NewJSONParser("Document")
-	parser.ExtractCommonTypes = true
+	parser := NewJSONParser(
+		"Document",
+		OptExtractCommonTypes(true),
+	)
 
 	for _, in := range inputs {
 		parser.FeedBytes([]byte(in))
@@ -64,6 +66,7 @@ func TestParserRepr(t *testing.T) {
 
 	testCases := []struct {
 		name         string
+		opts         options
 		inputs       []string
 		expectedRepr string
 	}{
@@ -242,12 +245,94 @@ type %s [][]struct {
 }
 					`, baseTypeName),
 		},
+		{
+			name: "don't extract common type",
+			inputs: []string{
+				`{
+					"x": {"z": 1}
+				}`,
+				`{
+					"y": {"z": 2}
+				}`,
+			},
+			expectedRepr: fmt.Sprintf(`
+type %s struct {
+	X	*struct {
+		Z int `+"`json:\"z\"`"+`
+	}	`+"`json:\"x,omitempty\"`"+`
+	Y	*struct {
+		Z int `+"`json:\"z\"`"+`
+	}	`+"`json:\"y,omitempty\"`"+`
+}
+					`, baseTypeName),
+		},
+		{
+			name: "extract common type",
+			opts: options{
+				extractCommonTypes: true,
+			},
+			inputs: []string{
+				`{
+					"x": {"z": 1}
+				}`,
+				`{
+					"y": {"z": 2}
+				}`,
+			},
+			expectedRepr: fmt.Sprintf(`
+type %s struct {
+	X	*Z	`+"`json:\"x,omitempty\"`"+`
+	Y	*Z	`+"`json:\"y,omitempty\"`"+`
+}
+type Z struct {
+	Z int `+"`json:\"z\"`"+`
+}
+					`, baseTypeName),
+		},
+		{
+			name: "no pointer strings",
+			inputs: []string{
+				`{
+					"x": "ok"
+				}`,
+				`{
+					"y": "ok"
+				}`,
+			},
+			expectedRepr: fmt.Sprintf(`
+type %s struct {
+	X	string	`+"`json:\"x,omitempty\"`"+`
+	Y	string	`+"`json:\"y,omitempty\"`"+`
+}
+					`, baseTypeName),
+		},
+		{
+			name: "pointer strings",
+			opts: options{
+				stringPointersWhenKeyMissing: true,
+			},
+			inputs: []string{
+				`{
+					"x": "ok"
+				}`,
+				`{
+					"y": "ok"
+				}`,
+			},
+			expectedRepr: fmt.Sprintf(`
+type %s struct {
+	X	*string	`+"`json:\"x,omitempty\"`"+`
+	Y	*string	`+"`json:\"y,omitempty\"`"+`
+}
+					`, baseTypeName),
+		},
 	}
 
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			p := NewJSONParser(baseTypeName)
+			p.opts = tc.opts
 			for _, v := range tc.inputs {
 				if err := p.FeedBytes([]byte(v)); err != nil {
 					t.Fatalf("feed error: %v", err)

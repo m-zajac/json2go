@@ -5,20 +5,47 @@ import (
 	"go/ast"
 )
 
+type options struct {
+	extractCommonTypes           bool
+	stringPointersWhenKeyMissing bool
+}
+
+// JSONParserOpt is a type for setting parser options.
+type JSONParserOpt func(*options)
+
+// OptExtractCommonTypes toggles extracting common json nodes as separate types.
+func OptExtractCommonTypes(v bool) JSONParserOpt {
+	return func(o *options) {
+		o.extractCommonTypes = v
+	}
+}
+
+// OptStringPointersWhenKeyMissing toggles wether missing string key in one of documents should result in pointer string.
+func OptStringPointersWhenKeyMissing(v bool) JSONParserOpt {
+	return func(o *options) {
+		o.stringPointersWhenKeyMissing = v
+	}
+}
+
 // JSONParser parses successive json inputs and returns go representation as string
 type JSONParser struct {
 	rootNode *node
-
-	ExtractCommonTypes bool
+	opts     options
 }
 
 // NewJSONParser creates new json Parser
-func NewJSONParser(rootTypeName string) *JSONParser {
+func NewJSONParser(rootTypeName string, opts ...JSONParserOpt) *JSONParser {
 	rootNode := newNode(rootTypeName)
 	rootNode.root = true
-	return &JSONParser{
+	p := JSONParser{
 		rootNode: rootNode,
+		opts:     options{},
 	}
+	for _, o := range opts {
+		o(&p.opts)
+	}
+
+	return &p
 }
 
 // FeedBytes consumes json input as bytes. If input is invalid, json unmarshalling error is returned
@@ -48,14 +75,19 @@ func (p *JSONParser) FeedValue(input interface{}) {
 func (p *JSONParser) String() string {
 	p.rootNode.sort()
 	nodes := []*node{p.rootNode}
-	if p.ExtractCommonTypes {
+	if p.opts.extractCommonTypes {
 		nodes = extractCommonSubtrees(p.rootNode)
 	}
-	return astPrintDecls(astMakeDecls(nodes))
+	return astPrintDecls(
+		astMakeDecls(nodes, p.opts),
+	)
 }
 
 // ASTDecls returns ast type declarations
 func (p *JSONParser) ASTDecls() []ast.Decl {
 	p.rootNode.sort()
-	return astMakeDecls([]*node{p.rootNode})
+	return astMakeDecls(
+		[]*node{p.rootNode},
+		p.opts,
+	)
 }
