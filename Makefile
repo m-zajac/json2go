@@ -47,5 +47,4 @@ build/windows_amd64.zip: $(sources)
 wasm: $(sources)
 	@mkdir -p build/web
 	@cp "$(goroot)/misc/wasm/wasm_exec.js" build/web
-	@cp web/index.html build/web
 	GOOS=js GOARCH=wasm go build -o build/web/json2go.wasm ./cmd/json2go-ws/*.go
