@@ -1,4 +1,4 @@
-# json2go [![Build Status](https://travis-ci.org/m-zajac/json2go.svg?branch=master)](https://travis-ci.org/m-zajac/json2go) [![Go Report Card](https://goreportcard.com/badge/github.com/m-zajac/json2go)](https://goreportcard.com/report/github.com/m-zajac/json2go) [![GoDoc](https://godoc.org/github.com/m-zajac/json2go?status.svg)](http://godoc.org/github.com/m-zajac/json2go) [![Coverage](https://img.shields.io/badge/coverage-gocover.io-blue)](https://gocover.io/github.com/m-zajac/json2go)
+# json2go [![Build Status](https://travis-ci.org/m-zajac/json2go.svg?branch=master)](https://travis-ci.org/m-zajac/json2go) [![Go Report Card](https://goreportcard.com/badge/github.com/m-zajac/json2go)](https://goreportcard.com/report/github.com/m-zajac/json2go) [![GoDoc](https://godoc.org/github.com/m-zajac/json2go?status.svg)](http://godoc.org/github.com/m-zajac/json2go) [![Coverage](https://img.shields.io/badge/coverage-gocover.io-blue)](https://gocover.io/github.com/m-zajac/json2go) [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)
 
 Package json2go provides utilities for creating well formated go type representation from json inputs.
 
@@ -131,8 +131,8 @@ type UnitsValue struct {
 ```
 
 
-## TODO
+## Future ideas
 
-- extract common types (working, but every nested struct had to have same fields)
+- option to extract common types more aggresively
 - try decoding to map if resulting struct has many attributes with same type
-- convert json schema to go type
+- ability to parse json schema
