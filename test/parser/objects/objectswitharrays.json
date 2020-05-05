@@ -1,0 +1,104 @@
+[
+    {
+        "alwaysPresentStr": ["test1", "test2"],
+        "sometimesMissingStr": ["test1", "test2"],
+        "nullableStr": null,
+        "nullableOrMissingStr": null,
+
+        "alwaysPresentInt": [123, 234],
+        "sometimesMissingInt": [123, 234],
+        "nullableInt": null,
+        "nullableOrMissingInt": null,
+
+        "alwaysPresentFloat": [123.12, 3.678],
+        "sometimesMissingFloat": [123.12, 3.678],
+        "nullableFloat": null,
+        "nullableOrMissingFloat": null,
+
+        "alwaysPresentBool": [true, false],
+        "sometimesMissingBool": [true, false],
+        "nullableBool": null,
+        "nullableOrMissingBool": null,
+
+        "alwaysPresentMixed": [true, false],
+        "sometimesMissingMixed": [true, false],
+        "nullableMixed": null,
+        "nullableOrMissingMixed": null,
+
+        "alwaysPresentObject": [{"ok": true}],
+        "sometimesMissingObject": [{"ok": true}],
+        "nullableObject": null,
+        "nullableOrMissingObject": null
+    },
+    {
+        "alwaysPresentStr": ["test1", "test2"],
+        "nullableStr": null,
+
+        "alwaysPresentInt": [123, 234],
+        "nullableInt": null,
+
+        "alwaysPresentFloat": [123.12, 3.678],
+        "nullableFloat": null,
+
+        "alwaysPresentBool": [true, false],
+        "nullableBool": null,
+
+        "alwaysPresentMixed": [123, 234],
+        "nullableMixed": null,
+
+        "alwaysPresentObject": [{"ok": true}],
+        "nullableObject": null
+    },
+    {
+        "alwaysPresentStr": ["test1", "test2"],
+        "sometimesMissingStr": ["test1", "test2"],
+        "nullableStr": ["test1", "test2"],
+        "nullableOrMissingStr": ["test1", "test2"],
+
+        "alwaysPresentInt": [123, 234],
+        "sometimesMissingInt": [123, 234],
+        "nullableInt": [123, 234],
+        "nullableOrMissingInt": [123, 234],
+
+        "alwaysPresentFloat": [123.12, 3.678],
+        "sometimesMissingFloat": [123.12, 3.678],
+        "nullableFloat": [123.12, 3.678],
+        "nullableOrMissingFloat": [123.12, 3.678],
+        
+        "alwaysPresentBool": [true, false],
+        "sometimesMissingBool": [true, false],
+        "nullableBool": [true, false],
+        "nullableOrMissingBool": [true, false],
+
+        "alwaysPresentMixed": [123.12, 3.678],
+        "sometimesMissingMixed": [123.12, 3.678],
+        "nullableMixed": [123.12, 3.678],
+        "nullableOrMissingMixed": [123.12, 3.678],
+
+        "alwaysPresentObject": [{"ok": true}],
+        "sometimesMissingObject": [{"ok": true}],
+        "nullableObject": [{"ok": true}],
+        "nullableOrMissingObject": [{"ok": true}]
+    },
+    {
+        "alwaysPresentStr": ["test1", "test2"],
+        "nullableStr": null,
+
+        "alwaysPresentInt": [123, 234],
+        "nullableInt": null,
+
+        "alwaysPresentFloat": [123.12, 3.678],
+        "nullableFloat": null,
+
+        "alwaysPresentBool": [true, false],
+        "nullableBool": null,
+
+        "alwaysPresentMixed": ["mix", "mix"],
+        "nullableMixed": ["mix", "mix"],
+        "nullableOrMissingMixed": ["mix", "mix"],
+
+        "alwaysPresentObject": [{"ok": true}],
+        "nullableObject": [{"ok": true}],
+        "nullableOrMissingObject": [{"ok": true}]
+    }
+]

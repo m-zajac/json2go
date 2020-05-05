@@ -1,0 +1,3 @@
+- options: {}
+  out: |
+    type Document []interface{}

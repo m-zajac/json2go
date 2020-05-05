@@ -1,0 +1,104 @@
+[
+    {
+        "alwaysPresentStr": "test1",
+        "sometimesMissingStr": "test2",
+        "nullableStr": null,
+        "nullableOrMissingStr": null,
+
+        "alwaysPresentInt": 123,
+        "sometimesMissingInt": 45,
+        "nullableInt": null,
+        "nullableOrMissingInt": null,
+
+        "alwaysPresentFloat": 123.12,
+        "sometimesMissingFloat": 45.12,
+        "nullableFloat": null,
+        "nullableOrMissingFloat": null,
+
+        "alwaysPresentBool": true,
+        "sometimesMissingBool": false,
+        "nullableBool": null,
+        "nullableOrMissingBool": null,
+
+        "alwaysPresentMixed": true,
+        "sometimesMissingMixed": false,
+        "nullableMixed": null,
+        "nullableOrMissingMixed": null,
+
+        "alwaysPresentObject": {"ok": true},
+        "sometimesMissingObject": {"ok": true},
+        "nullableObject": null,
+        "nullableOrMissingObject": null
+    },
+    {
+        "alwaysPresentStr": "test1",
+        "nullableStr": null,
+
+        "alwaysPresentInt": 123,
+        "nullableInt": null,
+
+        "alwaysPresentFloat": 123.12,
+        "nullableFloat": null,
+
+        "alwaysPresentBool": false,
+        "nullableBool": null,
+
+        "alwaysPresentMixed": 123,
+        "nullableMixed": null,
+
+        "alwaysPresentObject": {"ok": true},
+        "nullableObject": null
+    },
+    {
+        "alwaysPresentStr": "test1",
+        "sometimesMissingStr": "test2",
+        "nullableStr": "test3",
+        "nullableOrMissingStr": "test4",
+
+        "alwaysPresentInt": 123,
+        "sometimesMissingInt": 45,
+        "nullableInt": 678,
+        "nullableOrMissingInt": 345,
+
+        "alwaysPresentFloat": 123.12,
+        "sometimesMissingFloat": 45.12,
+        "nullableFloat": 678.12,
+        "nullableOrMissingFloat": 34.125,
+        
+        "alwaysPresentBool": true,
+        "sometimesMissingBool": false,
+        "nullableBool": true,
+        "nullableOrMissingBool": false,
+
+        "alwaysPresentMixed": 123.456,
+        "sometimesMissingMixed": 123.456,
+        "nullableMixed": 123.456,
+        "nullableOrMissingMixed": 123.456,
+
+        "alwaysPresentObject": {"ok": true},
+        "sometimesMissingObject": {"ok": true},
+        "nullableObject": {"ok": true},
+        "nullableOrMissingObject": {"ok": true}
+    },
+    {
+        "alwaysPresentStr": "test1",
+        "nullableStr": null,
+
+        "alwaysPresentInt": 123,
+        "nullableInt": null,
+
+        "alwaysPresentFloat": 123.12,
+        "nullableFloat": null,
+
+        "alwaysPresentBool": true,
+        "nullableBool": null,
+
+        "alwaysPresentMixed": "mix",
+        "nullableMixed": "mix",
+        "nullableOrMissingMixed": "mix",
+
+        "alwaysPresentObject": {"ok": true},
+        "nullableObject": {"ok": true},
+        "nullableOrMissingObject": {"ok": true}
+    }
+]
