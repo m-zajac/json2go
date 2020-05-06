@@ -1,0 +1,26 @@
+- options:
+    extractCommonTypes: false
+  out: |
+    type Document []struct {
+      A *struct {
+        Bool bool `json:"bool"`
+        Num float64 `json:"num"`
+      } `json:"a,omitempty"`
+      B *struct {
+        Bool *bool `json:"bool,omitempty"`
+        Num float64 `json:"num"`
+      } `json:"b,omitempty"`
+    }
+
+- options:
+    extractCommonTypes: true
+  out: |
+    type Document []struct {
+      A *BoolNum `json:"a,omitempty"`
+      B *BoolNum `json:"b,omitempty"`
+    }
+
+    type BoolNum struct {
+      Bool *bool `json:"bool,omitempty"`
+      Num float64 `json:"num"`
+    }

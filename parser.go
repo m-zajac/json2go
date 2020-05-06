@@ -8,6 +8,7 @@ import (
 type options struct {
 	extractCommonTypes           bool
 	stringPointersWhenKeyMissing bool
+	skipEmptyKeys                bool
 }
 
 // JSONParserOpt is a type for setting parser options.
@@ -24,6 +25,13 @@ func OptExtractCommonTypes(v bool) JSONParserOpt {
 func OptStringPointersWhenKeyMissing(v bool) JSONParserOpt {
 	return func(o *options) {
 		o.stringPointersWhenKeyMissing = v
+	}
+}
+
+// OptSkipEmptyKeys toggles skipping keys in input that were only nulls.
+func OptSkipEmptyKeys(v bool) JSONParserOpt {
+	return func(o *options) {
+		o.skipEmptyKeys = v
 	}
 }
 
@@ -73,6 +81,10 @@ func (p *JSONParser) FeedValue(input interface{}) {
 
 // String returns string representation of go struct fitting parsed json values
 func (p *JSONParser) String() string {
+	if p.opts.skipEmptyKeys {
+		p.stripEmptyKeys(p.rootNode)
+	}
+
 	p.rootNode.sort()
 	nodes := []*node{p.rootNode}
 	if p.opts.extractCommonTypes {
@@ -90,4 +102,19 @@ func (p *JSONParser) ASTDecls() []ast.Decl {
 		[]*node{p.rootNode},
 		p.opts,
 	)
+}
+
+func (p *JSONParser) stripEmptyKeys(n *node) {
+	if len(n.children) == 0 {
+		return
+	}
+
+	newChildren := make([]*node, 0, len(n.children))
+	for i, c := range n.children {
+		if c.t.id() != nodeTypeInit.id() {
+			p.stripEmptyKeys(c)
+			newChildren = append(newChildren, n.children[i])
+		}
+	}
+	n.children = newChildren
 }

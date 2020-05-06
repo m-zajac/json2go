@@ -12,6 +12,7 @@ import (
 func main() {
 	extractCommonNodes := flag.Bool("c", true, "Extract common nodes as top level struct definitions")
 	stringPointers := flag.Bool("sp", true, "Allow string pointers when string key is missing in one of documents")
+	skipEmptyKeys := flag.Bool("k", true, "Ignore keys that were only nulls")
 	rootTypeName := flag.String("n", "Document", "Type name")
 
 	flag.Parse()
@@ -27,6 +28,7 @@ func main() {
 		*rootTypeName,
 		json2go.OptExtractCommonTypes(*extractCommonNodes),
 		json2go.OptStringPointersWhenKeyMissing(*stringPointers),
+		json2go.OptSkipEmptyKeys(*skipEmptyKeys),
 	)
 
 	parser.FeedValue(data)

@@ -102,6 +102,7 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 		Options struct {
 			ExtractCommonTypes           bool `yaml:"extractCommonTypes"`
 			StringPointersWhenKeyMissing bool `yaml:"stringPointersWhenKeyMissing"`
+			SkipEmptyKeys                bool `yaml:"skipEmptyKeys"`
 		} `yaml:"options"`
 		Out string `yaml:"out"`
 	}
@@ -120,6 +121,7 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 			parserOpts := []JSONParserOpt{
 				OptExtractCommonTypes(tc.Options.ExtractCommonTypes),
 				OptStringPointersWhenKeyMissing(tc.Options.StringPointersWhenKeyMissing),
+				OptSkipEmptyKeys(tc.Options.SkipEmptyKeys),
 			}
 			parser := NewJSONParser(baseTypeName, parserOpts...)
 			err = parser.FeedBytes(input)

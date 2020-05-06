@@ -29,6 +29,9 @@ func main() {
 					json2go.OptStringPointersWhenKeyMissing(
 						opts.Get("stringPointersWhenKeyMissing").Truthy(),
 					),
+					json2go.OptSkipEmptyKeys(
+						opts.Get("skipEmptyKeys").Truthy(),
+					),
 				)
 
 				ro := opts.Get("rootName")

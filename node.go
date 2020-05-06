@@ -184,7 +184,7 @@ func (n *node) structureID(asRoot bool) string {
 	if asRoot {
 		id = n.t.id()
 	} else {
-		id = fmt.Sprintf("%s.%s.%t", n.key, n.t.id(), n.nullable)
+		id = fmt.Sprintf("%s.%s", n.key, n.t.id())
 	}
 
 	var parts []string
@@ -323,12 +323,18 @@ func extractCommonSubtree(root *node, rootNames map[string]bool) *node {
 
 	root.treeInfo(infos)
 
+	// Find all objects with at least 2 children nodes.
 	infosForExtraction := make([]nodeStructureInfo, 0, len(infos))
 	for _, info := range infos {
 		if len(info.nodes) > 1 && info.typeID == nodeTypeObject.id() {
 			infosForExtraction = append(infosForExtraction, info)
 		}
 	}
+	if len(infosForExtraction) == 0 {
+		return nil
+	}
+
+	// Sort by tree depth, asceding. We want to start extracting from simpliest subtrees.
 	sort.Slice(infosForExtraction, func(i int, j int) bool {
 		l1 := strings.Count(infosForExtraction[i].structureID, structIDlevelSeparator)
 		l2 := strings.Count(infosForExtraction[j].structureID, structIDlevelSeparator)
@@ -337,38 +343,23 @@ func extractCommonSubtree(root *node, rootNames map[string]bool) *node {
 			return infosForExtraction[i].nodes[0].key < infosForExtraction[j].nodes[0].key
 		}
 
-		// compare by struct depth
+		// Compare by struct depth.
 		return l1 < l2
 	})
 
 	for _, info := range infosForExtraction {
-		extractedNode := *info.nodes[0]
-
-		var names []string
-		var keys []string
-		for _, in := range info.nodes {
-			names = append(names, in.name)
-			keys = append(keys, in.key)
-		}
-		extractedName := extractCommonName(names...)
-		extractedKey := extractCommonName(keys...)
-		if extractedName == "" {
-			var keys []string
-			for _, child := range extractedNode.children {
-				keys = append(keys, child.key)
-			}
-			extractedKey = nameFromNames(keys...)
-			extractedName = attrName(extractedKey)
-		}
+		extractedKey, extractedName := makeNameFromNodes(info.nodes)
 		if extractedName == "" {
 			continue
 		}
+
 		for rootNames[extractedName] {
 			extractedName = nextName(extractedName)
 			extractedKey = nextName(extractedKey)
 		}
 		rootNames[extractedName] = true
 
+		extractedNode := mergeNodes(info.nodes)
 		extractedNode.name = extractedName
 		extractedNode.key = extractedKey
 		extractedNode.root = true
@@ -379,7 +370,7 @@ func extractCommonSubtree(root *node, rootNames map[string]bool) *node {
 			modNode.children = nil
 		})
 
-		return &extractedNode // exit after first successful extract
+		return extractedNode // exit after first successful extract
 	}
 
 	return nil
@@ -405,4 +396,76 @@ func extractCommonSubtrees(root *node) []*node {
 	}
 
 	return nodes
+}
+
+// makeNameFromNodes is helper function trying to find the best name (and key) from list of nodes.
+func makeNameFromNodes(nodes []*node) (key, name string) {
+	if len(nodes) == 0 {
+		return "", ""
+	}
+
+	// Try to create name from all node names.
+	var names []string
+	var keys []string
+	for _, in := range nodes {
+		names = append(names, in.name)
+		keys = append(keys, in.key)
+	}
+	name = extractCommonName(names...)
+	key = extractCommonName(keys...)
+
+	// If unsuccessful, try to create name from first node's attribute names.
+	if name == "" {
+		var keys []string
+		for _, child := range nodes[0].children {
+			keys = append(keys, child.key)
+		}
+		key = nameFromNames(keys...)
+		name = attrName(key)
+	}
+
+	return key, name
+}
+
+// mergeNodes merges multiple nodes into one.
+// If any of nodes is not required, merged node is also not required.
+// If any of nodes is nullable, merged node is also nullable.
+// Children of merged nodes are also merged by the same rules.
+func mergeNodes(nodes []*node) *node {
+	if len(nodes) == 0 { // This should never happen
+		panic("mergeNodes called with empty node list!")
+	}
+	if len(nodes) == 1 {
+		return nodes[0]
+	}
+
+	// Set main attributes of merged node.
+	merged := *nodes[0]
+	for _, n := range nodes {
+		if !n.required {
+			merged.required = false
+		}
+		if n.nullable {
+			merged.nullable = true
+		}
+	}
+
+	// Set attributes of merged node's children recurently.
+	if len(merged.children) > 0 {
+		for i, cn := range merged.children {
+			cnodes := make([]*node, 0, len(nodes))
+			for _, n := range nodes {
+				v := n.getChild(cn.key)
+				if v == nil {
+					continue
+				}
+				cnodes = append(cnodes, v)
+			}
+			if len(cnodes) > 1 {
+				merged.children[i] = mergeNodes(cnodes)
+			}
+		}
+	}
+
+	return &merged
 }
