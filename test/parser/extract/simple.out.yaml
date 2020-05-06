@@ -1,0 +1,23 @@
+- options:
+    extractCommonTypes: false
+  out: |
+    type Document []struct {
+      X *struct {
+        Z int `json:"z"`
+      } `json:"x,omitempty"`
+      Y *struct {
+        Z int `json:"z"`
+      } `json:"y,omitempty"`
+    }
+
+- options:
+    extractCommonTypes: true
+  out: |
+    type Document []struct {
+      X *Z `json:"x,omitempty"`
+      Y *Z `json:"y,omitempty"`
+    }
+
+    type Z struct {
+      Z int `json:"z"`
+    }

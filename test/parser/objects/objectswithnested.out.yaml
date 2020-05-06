@@ -1,0 +1,58 @@
+- options: {}
+  out: |
+    type Document []struct {
+      Zinner1 struct {
+        AlwaysPresentArray     []string `json:"alwaysPresentArray"`
+        AlwaysPresentBool      bool `json:"alwaysPresentBool"`
+        AlwaysPresentFloat     float64 `json:"alwaysPresentFloat"`
+        AlwaysPresentInt       int `json:"alwaysPresentInt"`
+        AlwaysPresentMixed     interface{} `json:"alwaysPresentMixed"`
+        AlwaysPresentStr       string `json:"alwaysPresentStr"`
+        NullableArray          []string `json:"nullableArray"`
+        NullableBool           *bool `json:"nullableBool"`
+        NullableFloat          *float64 `json:"nullableFloat"`
+        NullableInt            *int `json:"nullableInt"`
+        NullableMixed          interface{} `json:"nullableMixed"`
+        NullableOrMissingArray []string `json:"nullableOrMissingArray,omitempty"`
+        NullableOrMissingBool  *bool `json:"nullableOrMissingBool,omitempty"`
+        NullableOrMissingFloat *float64 `json:"nullableOrMissingFloat,omitempty"`
+        NullableOrMissingInt   *int `json:"nullableOrMissingInt,omitempty"`
+        NullableOrMissingMixed interface{} `json:"nullableOrMissingMixed,omitempty"`
+        NullableOrMissingStr   *string `json:"nullableOrMissingStr,omitempty"`
+        NullableStr            *string `json:"nullableStr"`
+        SometimesMissingArray  []string `json:"sometimesMissingArray,omitempty"`
+        SometimesMissingBool   *bool `json:"sometimesMissingBool,omitempty"`
+        SometimesMissingFloat  *float64 `json:"sometimesMissingFloat,omitempty"`
+        SometimesMissingInt    *int `json:"sometimesMissingInt,omitempty"`
+        SometimesMissingMixed  interface{} `json:"sometimesMissingMixed,omitempty"`
+        SometimesMissingStr    string `json:"sometimesMissingStr,omitempty"`
+
+        Zinner12 struct {
+          AlwaysPresentArray     []string `json:"alwaysPresentArray"`
+          AlwaysPresentBool      bool `json:"alwaysPresentBool"`
+          AlwaysPresentFloat     float64 `json:"alwaysPresentFloat"`
+          AlwaysPresentInt       int `json:"alwaysPresentInt"`
+          AlwaysPresentMixed     interface{} `json:"alwaysPresentMixed"`
+          AlwaysPresentStr       string `json:"alwaysPresentStr"`
+          NullableArray          []string `json:"nullableArray"`
+          NullableBool           *bool `json:"nullableBool"`
+          NullableFloat          *float64 `json:"nullableFloat"`
+          NullableInt            *int `json:"nullableInt"`
+          NullableMixed          interface{} `json:"nullableMixed"`
+          NullableOrMissingArray []string `json:"nullableOrMissingArray,omitempty"`
+          NullableOrMissingBool  *bool `json:"nullableOrMissingBool,omitempty"`
+          NullableOrMissingFloat *float64 `json:"nullableOrMissingFloat,omitempty"`
+          NullableOrMissingInt   *int `json:"nullableOrMissingInt,omitempty"`
+          NullableOrMissingMixed interface{} `json:"nullableOrMissingMixed,omitempty"`
+          NullableOrMissingStr   *string `json:"nullableOrMissingStr,omitempty"`
+          NullableStr            *string `json:"nullableStr"`
+          SometimesMissingArray  []string `json:"sometimesMissingArray,omitempty"`
+          SometimesMissingBool   *bool `json:"sometimesMissingBool,omitempty"`
+          SometimesMissingFloat  *float64 `json:"sometimesMissingFloat,omitempty"`
+          SometimesMissingInt    *int `json:"sometimesMissingInt,omitempty"`
+          SometimesMissingMixed  interface{} `json:"sometimesMissingMixed,omitempty"`
+          SometimesMissingStr    string `json:"sometimesMissingStr,omitempty"`
+        } `json:"zinner1_2"`
+      } `json:"zinner1"`
+      Zinner2 *bool `json:"zinner2,omitempty"`
+    }

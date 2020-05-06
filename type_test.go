@@ -1,6 +1,10 @@
 package json2go
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestTypeExpand(t *testing.T) {
 	testCases := []struct {
@@ -163,9 +167,8 @@ func TestTypeExpand(t *testing.T) {
 			for _, in := range tc.inputs {
 				k = growType(k, in)
 			}
-			if k.id() != tc.resultTypeID {
-				t.Errorf("invalid result type, want %s, got %s", tc.resultTypeID, k.id())
-			}
+
+			assert.Equal(t, tc.resultTypeID, k.id())
 		})
 	}
 }

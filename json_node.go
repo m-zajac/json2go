@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	baseTypeName           = "Object"
+	baseTypeName           = "Document"
 	structIDlevelSeparator = "|"
 )
 

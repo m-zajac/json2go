@@ -1,8 +1,9 @@
 package json2go
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestJSONNodeCompare(t *testing.T) {
@@ -1137,12 +1138,8 @@ func TestJSONNodeTreeKeysNames(t *testing.T) {
 				keys[c.key] = true
 				names[c.name] = true
 			}
-			if !reflect.DeepEqual(keys, tc.expectedKeys) {
-				t.Errorf("invalid keys, want %+v, got %+v", tc.expectedKeys, keys)
-			}
-			if !reflect.DeepEqual(names, tc.expectedNames) {
-				t.Errorf("invalid names, want %+v, got %+v", tc.expectedNames, names)
-			}
+			assert.Equal(t, tc.expectedKeys, keys)
+			assert.Equal(t, tc.expectedNames, names)
 		})
 	}
 }
@@ -1803,9 +1800,9 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 			opts := options{}
 
 			nodes := extractCommonSubtrees(tc.root)
-			if len(nodes) != len(tc.expected) {
+			if !assert.Equal(t, len(tc.expected), len(nodes)) {
 				t.Logf("\n%s\n\n", astPrintDecls(astMakeDecls(nodes, opts)))
-				t.Fatalf("got invalid num of nodes, want %d, got %d", len(tc.expected), len(nodes))
+				t.FailNow()
 			}
 
 			ok := true
@@ -1900,12 +1897,8 @@ func TestArrayStructureDepth(t *testing.T) {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			d, tp := arrayStructure(tc.in, tc.inNodeType)
-			if d != tc.expectedDepth {
-				t.Errorf("want: %d, got %d", tc.expectedDepth, d)
-			}
-			if tp != tc.expectedType {
-				t.Errorf("want: %v, got %v", tc.expectedType, tp)
-			}
+			assert.Equal(t, tc.expectedDepth, d)
+			assert.Equal(t, tc.expectedType, tp)
 		})
 	}
 }
@@ -1978,9 +1971,7 @@ func TestArrayStructureType(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, gotType := arrayStructure(tt.in, tt.inType)
-			if gotType.id() != tt.wantType.id() {
-				t.Errorf("arrayStructure() got type = %s, want %s", gotType.id(), tt.wantType.id())
-			}
+			assert.Equal(t, tt.wantType.id(), gotType.id())
 		})
 	}
 }

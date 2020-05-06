@@ -1,0 +1,11 @@
+- options: {}
+  out: |
+    type Document struct {
+      A []int `json:"a"`
+      B [][]float64 `json:"b"`
+      C [][][]float64 `json:"c"`
+      D [][][][]interface{} `json:"d"`
+      E [][][][][]struct {
+        Ok bool `json:"ok"`
+      } `json:"e"`
+    }
