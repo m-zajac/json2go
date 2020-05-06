@@ -133,6 +133,5 @@ type UnitsValue struct {
 
 ## Future ideas
 
-- option to extract common types more aggresively
 - try decoding to map if resulting struct has many attributes with same type
 - ability to parse json schema
