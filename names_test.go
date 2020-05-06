@@ -1,6 +1,10 @@
 package json2go
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestNames(t *testing.T) {
 	t.Parallel()
@@ -80,9 +84,7 @@ func TestNames(t *testing.T) {
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			if name := attrName(tc.fieldName); name != tc.expectedName {
-				t.Errorf("invalid name, want `%s`, got `%s`", tc.expectedName, name)
-			}
+			assert.Equal(t, tc.expectedName, attrName(tc.fieldName))
 		})
 	}
 }
@@ -120,9 +122,7 @@ func TestExtractCommonName(t *testing.T) {
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			if result := extractCommonName(tc.inputs...); result != tc.expected {
-				t.Errorf("invalid result, want `%s`, got `%s`", tc.expected, result)
-			}
+			assert.Equal(t, tc.expected, extractCommonName(tc.inputs...))
 		})
 	}
 }
@@ -160,9 +160,7 @@ func TestNameFromNames(t *testing.T) {
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			if result := nameFromNames(tc.inputs...); result != tc.expected {
-				t.Errorf("invalid result, want `%s`, got `%s`", tc.expected, result)
-			}
+			assert.Equal(t, tc.expected, nameFromNames(tc.inputs...))
 		})
 	}
 }
@@ -200,9 +198,7 @@ func TestNextName(t *testing.T) {
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			if result := nextName(tc.input); result != tc.expected {
-				t.Errorf("invalid result, want `%s`, got `%s`", tc.expected, result)
-			}
+			assert.Equal(t, tc.expected, nextName(tc.input))
 		})
 	}
 }
