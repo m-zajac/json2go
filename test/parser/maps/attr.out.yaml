@@ -1,0 +1,70 @@
+- options:
+    makeMaps: false
+  out: |
+    type Document struct {
+      K1 struct {
+        A1 string `json:"a1"`
+        A2 string `json:"a2"`
+        A3 string `json:"a3"`
+        A4 string `json:"a4"`
+        A5 string `json:"a5"`
+      } `json:"k1"`
+      K2 struct {
+        A1 string `json:"a1"`
+        A2 string `json:"a2"`
+        A3 string `json:"a3"`
+        A4 string `json:"a4"`
+        A5 string `json:"a5"`
+      } `json:"k2"`
+      K3 struct {
+        A1 string `json:"a1"`
+        A2 string `json:"a2"`
+        A3 string `json:"a3"`
+        A4 string `json:"a4"`
+        A5 string `json:"a5"`
+      } `json:"k3"`
+    }
+
+- options:
+    makeMaps: true
+    makeMapsWhenMinAttributes: 6
+  out: |
+    type Document struct {
+      K1 struct {
+        A1 string `json:"a1"`
+        A2 string `json:"a2"`
+        A3 string `json:"a3"`
+        A4 string `json:"a4"`
+        A5 string `json:"a5"`
+      } `json:"k1"`
+      K2 struct {
+        A1 string `json:"a1"`
+        A2 string `json:"a2"`
+        A3 string `json:"a3"`
+        A4 string `json:"a4"`
+        A5 string `json:"a5"`
+      } `json:"k2"`
+      K3 struct {
+        A1 string `json:"a1"`
+        A2 string `json:"a2"`
+        A3 string `json:"a3"`
+        A4 string `json:"a4"`
+        A5 string `json:"a5"`
+      } `json:"k3"`
+    }
+
+- options:
+    makeMaps: true
+    makeMapsWhenMinAttributes: 5
+  out: |
+    type Document struct {
+      K1 map[string]string `json:"k1"`
+      K2 map[string]string `json:"k2"`
+      K3 map[string]string `json:"k3"`
+    }
+
+- options:
+    makeMaps: true
+    makeMapsWhenMinAttributes: 3
+  out: |
+    type Document map[string]map[string]string

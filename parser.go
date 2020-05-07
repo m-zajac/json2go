@@ -9,6 +9,8 @@ type options struct {
 	extractCommonTypes           bool
 	stringPointersWhenKeyMissing bool
 	skipEmptyKeys                bool
+	makeMaps                     bool
+	makeMapsWhenMinAttributes    uint
 }
 
 // JSONParserOpt is a type for setting parser options.
@@ -32,6 +34,15 @@ func OptStringPointersWhenKeyMissing(v bool) JSONParserOpt {
 func OptSkipEmptyKeys(v bool) JSONParserOpt {
 	return func(o *options) {
 		o.skipEmptyKeys = v
+	}
+}
+
+// OptMakeMaps allows creating maps instead of big structures, when possible.
+// minAttributes defines minimum number of object attributes, that turns it into map.
+func OptMakeMaps(v bool, minAttributes uint) JSONParserOpt {
+	return func(o *options) {
+		o.makeMaps = v
+		o.makeMapsWhenMinAttributes = minAttributes
 	}
 }
 
@@ -81,15 +92,20 @@ func (p *JSONParser) FeedValue(input interface{}) {
 
 // String returns string representation of go struct fitting parsed json values
 func (p *JSONParser) String() string {
+	p.rootNode.sort()
+
 	if p.opts.skipEmptyKeys {
 		p.stripEmptyKeys(p.rootNode)
 	}
+	if p.opts.makeMaps {
+		convertViableObjectsToMaps(p.rootNode, p.opts.makeMapsWhenMinAttributes)
+	}
 
-	p.rootNode.sort()
 	nodes := []*node{p.rootNode}
 	if p.opts.extractCommonTypes {
 		nodes = extractCommonSubtrees(p.rootNode)
 	}
+
 	return astPrintDecls(
 		astMakeDecls(nodes, p.opts),
 	)

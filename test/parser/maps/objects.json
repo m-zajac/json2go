@@ -1,0 +1,15 @@
+[
+    {
+        "a1": {"ok": true},
+        "a2": {"ok": false},
+        "a3": {"ok": true},
+        "a4": {"ok": true}
+    },
+    {
+        "a1": {"ok": true},
+        "a2": {"ok": true},
+        "a3": {"ok": true},
+        "a4": {"ok": false},
+        "a5": {"ok": true}
+    }
+]

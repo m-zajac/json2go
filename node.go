@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"sort"
-	"strings"
 )
 
 const (
@@ -16,12 +15,13 @@ type node struct {
 	root           bool
 	nullable       bool
 	required       bool
-	arrayLevel     int
 	key            string
 	name           string
 	t              nodeType
 	externalTypeID string
 	children       []*node
+	arrayLevel     int
+	mapLevel       int
 }
 
 func newNode(key string) *node {
@@ -177,66 +177,6 @@ func (n *node) compare(n2 *node) bool {
 	return true
 }
 
-// structureID returns identifier unique for this nodes structure
-// if `asRoot` is true, this node id does not depend on "nullable" or "required" property
-func (n *node) structureID(asRoot bool) string {
-	var id string
-	if asRoot {
-		id = n.t.id()
-	} else {
-		id = fmt.Sprintf("%s.%s", n.key, n.t.id())
-	}
-
-	var parts []string
-	for _, child := range n.children {
-		parts = append(parts, child.structureID(false))
-	}
-
-	result := id
-	if len(parts) > 0 {
-		result += structIDlevelSeparator + strings.Join(parts, ",")
-	}
-	return result
-}
-
-type nodeStructureInfo struct {
-	structureID string
-	typeID      string
-	nodes       []*node
-}
-
-func (n *node) treeInfo(infos map[string]nodeStructureInfo) {
-	var info nodeStructureInfo
-
-	id := n.structureID(true)
-	if ninfo, ok := infos[id]; ok {
-		info = ninfo
-		info.nodes = append(info.nodes, n)
-	} else {
-		info = nodeStructureInfo{
-			structureID: id,
-			typeID:      n.t.id(),
-			nodes:       []*node{n},
-		}
-	}
-	infos[id] = info
-
-	for _, child := range n.children {
-		child.treeInfo(infos)
-	}
-}
-
-// modify executes function f on all nodes in subtree with given structure id
-func (n *node) modify(structureID string, f func(*node)) {
-	for i, child := range n.children {
-		if child.structureID(true) == structureID {
-			f(n.children[i])
-		}
-
-		child.modify(structureID, f)
-	}
-}
-
 func (n *node) repr(prefix string) string {
 	var buf bytes.Buffer
 
@@ -315,157 +255,4 @@ func arrayStructure(in []interface{}, inType nodeType) (int, nodeType) {
 	}
 
 	return depth, inType
-}
-
-// extractCommonSubtree extracts at most one common subtree to new root node
-func extractCommonSubtree(root *node, rootNames map[string]bool) *node {
-	infos := make(map[string]nodeStructureInfo)
-
-	root.treeInfo(infos)
-
-	// Find all objects with at least 2 children nodes.
-	infosForExtraction := make([]nodeStructureInfo, 0, len(infos))
-	for _, info := range infos {
-		if len(info.nodes) > 1 && info.typeID == nodeTypeObject.id() {
-			infosForExtraction = append(infosForExtraction, info)
-		}
-	}
-	if len(infosForExtraction) == 0 {
-		return nil
-	}
-
-	// Sort by tree depth, asceding. We want to start extracting from simpliest subtrees.
-	sort.Slice(infosForExtraction, func(i int, j int) bool {
-		l1 := strings.Count(infosForExtraction[i].structureID, structIDlevelSeparator)
-		l2 := strings.Count(infosForExtraction[j].structureID, structIDlevelSeparator)
-
-		if l1 == l2 { // if struct depth is equal, compare by first node key
-			return infosForExtraction[i].nodes[0].key < infosForExtraction[j].nodes[0].key
-		}
-
-		// Compare by struct depth.
-		return l1 < l2
-	})
-
-	for _, info := range infosForExtraction {
-		extractedKey, extractedName := makeNameFromNodes(info.nodes)
-		if extractedName == "" {
-			continue
-		}
-
-		for rootNames[extractedName] {
-			extractedName = nextName(extractedName)
-			extractedKey = nextName(extractedKey)
-		}
-		rootNames[extractedName] = true
-
-		extractedNode := mergeNodes(info.nodes)
-		extractedNode.name = extractedName
-		extractedNode.key = extractedKey
-		extractedNode.root = true
-
-		root.modify(info.structureID, func(modNode *node) {
-			modNode.t = nodeTypeExtracted
-			modNode.externalTypeID = extractedName
-			modNode.children = nil
-		})
-
-		return extractedNode // exit after first successful extract
-	}
-
-	return nil
-}
-
-func extractCommonSubtrees(root *node) []*node {
-	rootNames := map[string]bool{
-		root.name: true,
-	}
-
-	extractedSize := 0
-	nodes := []*node{root}
-	for len(nodes) != extractedSize {
-		extractedSize = len(nodes)
-		result := nodes
-		for _, n := range nodes {
-			extNode := extractCommonSubtree(n, rootNames)
-			if extNode != nil {
-				result = append(result, extNode)
-			}
-		}
-		nodes = result
-	}
-
-	return nodes
-}
-
-// makeNameFromNodes is helper function trying to find the best name (and key) from list of nodes.
-func makeNameFromNodes(nodes []*node) (key, name string) {
-	if len(nodes) == 0 {
-		return "", ""
-	}
-
-	// Try to create name from all node names.
-	var names []string
-	var keys []string
-	for _, in := range nodes {
-		names = append(names, in.name)
-		keys = append(keys, in.key)
-	}
-	name = extractCommonName(names...)
-	key = extractCommonName(keys...)
-
-	// If unsuccessful, try to create name from first node's attribute names.
-	if name == "" {
-		var keys []string
-		for _, child := range nodes[0].children {
-			keys = append(keys, child.key)
-		}
-		key = nameFromNames(keys...)
-		name = attrName(key)
-	}
-
-	return key, name
-}
-
-// mergeNodes merges multiple nodes into one.
-// If any of nodes is not required, merged node is also not required.
-// If any of nodes is nullable, merged node is also nullable.
-// Children of merged nodes are also merged by the same rules.
-func mergeNodes(nodes []*node) *node {
-	if len(nodes) == 0 { // This should never happen
-		panic("mergeNodes called with empty node list!")
-	}
-	if len(nodes) == 1 {
-		return nodes[0]
-	}
-
-	// Set main attributes of merged node.
-	merged := *nodes[0]
-	for _, n := range nodes {
-		if !n.required {
-			merged.required = false
-		}
-		if n.nullable {
-			merged.nullable = true
-		}
-	}
-
-	// Set attributes of merged node's children recurently.
-	if len(merged.children) > 0 {
-		for i, cn := range merged.children {
-			cnodes := make([]*node, 0, len(nodes))
-			for _, n := range nodes {
-				v := n.getChild(cn.key)
-				if v == nil {
-					continue
-				}
-				cnodes = append(cnodes, v)
-			}
-			if len(cnodes) > 1 {
-				merged.children[i] = mergeNodes(cnodes)
-			}
-		}
-	}
-
-	return &merged
 }

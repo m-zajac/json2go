@@ -1,0 +1,16 @@
+{
+    "k1": {
+        "a1": {"ok": true},
+        "a2": {"ok": true},
+        "a3": {"ok": true},
+        "a4": {"ok": true},
+        "a5": {"ok": true}
+    },
+    "k2": {
+        "a1": {"ok": true},
+        "a2": {"ok": true},
+        "a3": {"ok": true},
+        "a4": {"ok": true},
+        "a5": {"ok": true}
+    }
+}

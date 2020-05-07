@@ -8,6 +8,8 @@ const (
 	nodeTypeString    = nodeStringType("string")
 	nodeTypeObject    = nodeObjectType("object")
 	nodeTypeInterface = nodeInterfaceType("interface")
+
+	// special types
 	nodeTypeExtracted = nodeExtractedType("extracted")
 )
 

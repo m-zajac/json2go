@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/json"
+	"strconv"
 	"syscall/js"
 
 	"github.com/m-zajac/json2go"
@@ -19,28 +20,7 @@ func main() {
 		rootName := "document"
 		var parserOpts []json2go.JSONParserOpt
 		if len(args) > 1 {
-			opts := args[1]
-			if opts.Type() == js.TypeObject {
-				parserOpts = append(
-					parserOpts,
-					json2go.OptExtractCommonTypes(
-						opts.Get("extractCommonTypes").Truthy(),
-					),
-					json2go.OptStringPointersWhenKeyMissing(
-						opts.Get("stringPointersWhenKeyMissing").Truthy(),
-					),
-					json2go.OptSkipEmptyKeys(
-						opts.Get("skipEmptyKeys").Truthy(),
-					),
-				)
-
-				ro := opts.Get("rootName")
-				if ro.Type() == js.TypeString {
-					if v := ro.String(); v != "" {
-						rootName = v
-					}
-				}
-			}
+			parserOpts, rootName = parseOpts(args[1])
 		}
 
 		parser := json2go.NewJSONParser(rootName, parserOpts...)
@@ -56,4 +36,48 @@ func main() {
 	}))
 
 	select {}
+}
+
+func parseOpts(jsVal js.Value) (opts []json2go.JSONParserOpt, rootName string) {
+	rootName = "document"
+
+	if jsVal.Type() != js.TypeObject {
+		return nil, rootName
+	}
+
+	var useMapsMinAttrs uint = 5
+	useMaps := jsVal.Get("useMaps").Truthy()
+	if useMaps {
+		if v := jsVal.Get("useMapsMinAttrs").String(); v != "" {
+			if w, err := strconv.ParseUint(v, 10, 64); err == nil {
+				useMapsMinAttrs = uint(w)
+			}
+		}
+	}
+
+	opts = append(
+		opts,
+		json2go.OptExtractCommonTypes(
+			jsVal.Get("extractCommonTypes").Truthy(),
+		),
+		json2go.OptStringPointersWhenKeyMissing(
+			jsVal.Get("stringPointersWhenKeyMissing").Truthy(),
+		),
+		json2go.OptSkipEmptyKeys(
+			jsVal.Get("skipEmptyKeys").Truthy(),
+		),
+		json2go.OptMakeMaps(
+			jsVal.Get("useMaps").Truthy(),
+			useMapsMinAttrs,
+		),
+	)
+
+	ro := jsVal.Get("rootName")
+	if ro.Type() == js.TypeString {
+		if v := ro.String(); v != "" {
+			rootName = v
+		}
+	}
+
+	return opts, rootName
 }
