@@ -1,0 +1,27 @@
+- options:
+    makeMaps: true
+    makeMapsWhenMinAttributes: 5
+    extractCommonTypes: false
+  out: |
+    type Document struct {
+      K1 map[string]struct {
+        Ok bool `json:"ok"`
+      } `json:"k1"`
+      K2 map[string]struct {
+        Ok bool `json:"ok"`
+      } `json:"k2"`
+    }
+
+- options:
+    makeMaps: true
+    makeMapsWhenMinAttributes: 5
+    extractCommonTypes: true
+  out: |
+    type Document struct {
+      K1 map[string]Ok `json:"k1"`
+      K2 map[string]Ok `json:"k2"`
+    }
+
+    type Ok struct {
+      Ok bool `json:"ok"`
+    }

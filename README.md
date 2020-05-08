@@ -129,9 +129,3 @@ type UnitsValue struct {
 }
 
 ```
-
-
-## Future ideas
-
-- try decoding to map if resulting struct has many attributes with same type
-- ability to parse json schema

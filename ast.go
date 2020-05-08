@@ -49,14 +49,23 @@ func astTypeFromNode(n *node, opts options) ast.Expr {
 			extName = n.name
 		}
 		resultType = ast.NewIdent(extName)
-	default:
-		resultType = &ast.InterfaceType{
-			Methods: &ast.FieldList{
-				Opening: token.Pos(1),
-				Closing: token.Pos(2),
-			},
+	case nodeInterfaceType, nodeInitType:
+		resultType = newEmptyInterfaceExpr()
+		allowPointer = false
+	case nodeMapType:
+		var ve ast.Expr
+		if len(n.children) == 0 {
+			ve = newEmptyInterfaceExpr()
+		} else {
+			ve = astTypeFromNode(n.children[0], opts)
+		}
+		resultType = &ast.MapType{
+			Key:   ast.NewIdent("string"),
+			Value: ve,
 		}
 		allowPointer = false
+	default:
+		panic(fmt.Sprintf("unknown type: %v", n.t))
 	}
 
 	if !n.root && n.arrayLevel == 0 && allowPointer {
@@ -121,5 +130,14 @@ func astJSONTag(key string, omitempty bool) *ast.BasicLit {
 
 	return &ast.BasicLit{
 		Value: tag,
+	}
+}
+
+func newEmptyInterfaceExpr() ast.Expr {
+	return &ast.InterfaceType{
+		Methods: &ast.FieldList{
+			Opening: token.Pos(1),
+			Closing: token.Pos(2),
+		},
 	}
 }

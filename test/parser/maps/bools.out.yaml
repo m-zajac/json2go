@@ -1,0 +1,28 @@
+- options:
+    makeMaps: false
+  out: |
+    type Document struct {
+      A1 bool `json:"a1"`
+      A2 bool `json:"a2"`
+      A3 bool `json:"a3"`
+      A4 bool `json:"a4"`
+      A5 bool `json:"a5"`
+    }
+
+- options:
+    makeMaps: true
+    makeMapsWhenMinAttributes: 6
+  out: |
+    type Document struct {
+      A1 bool `json:"a1"`
+      A2 bool `json:"a2"`
+      A3 bool `json:"a3"`
+      A4 bool `json:"a4"`
+      A5 bool `json:"a5"`
+    }
+
+- options:
+    makeMaps: true
+    makeMapsWhenMinAttributes: 5
+  out: |
+    type Document map[string]bool
