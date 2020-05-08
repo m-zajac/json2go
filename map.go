@@ -28,30 +28,31 @@ func tryConvertToMap(n *node, minAttributes uint) bool {
 
 	// Children has to have same type and structure.
 	t := n.children[0].t
-	sid := mergeNumsStructureID(n.children[0], true)
+	sid := mergeNumsStructureID(n.children[0], false)
 	for _, c := range n.children {
 		if !t.expands(c.t) && !c.t.expands(t) {
 			return false
 		}
-		if mergeNumsStructureID(c, true) != sid {
+		if mergeNumsStructureID(c, false) != sid {
 			return false
 		}
 	}
 
 	// Convert this node to map.
+	n.t = nodeTypeMap
+
+	// Add child as map value type node
 	newNode := mergeNodes(n.children)
-	newNode.mapLevel = n.children[0].mapLevel + 1
-	newNode.key = n.key
-	newNode.name = n.name
-	newNode.arrayLevel = n.arrayLevel
-	newNode.root = n.root
-	*n = *newNode
+	newNode.key = ""
+	newNode.name = ""
+	newNode.required = true
+	n.children = []*node{newNode}
 
 	return true
 }
 
-func mergeNumsStructureID(n *node, asRoot bool) string {
-	sid := structureID(n, asRoot)
+func mergeNumsStructureID(n *node, withKey bool) string {
+	sid := structureID(n, withKey)
 	sid = strings.Replace(sid, nodeTypeInt.id(), "number", -1)
 	sid = strings.Replace(sid, nodeTypeFloat.id(), "number", -1)
 

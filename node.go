@@ -21,7 +21,6 @@ type node struct {
 	externalTypeID string
 	children       []*node
 	arrayLevel     int
-	mapLevel       int
 }
 
 func newNode(key string) *node {

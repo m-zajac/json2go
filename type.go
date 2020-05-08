@@ -11,6 +11,7 @@ const (
 
 	// special types
 	nodeTypeExtracted = nodeExtractedType("extracted")
+	nodeTypeMap       = nodeMapType("map")
 )
 
 type nodeType interface {
@@ -176,5 +177,19 @@ func (n nodeExtractedType) expands(n2 nodeType) bool {
 }
 
 func (n nodeExtractedType) fit(v interface{}) nodeType {
+	return n
+}
+
+type nodeMapType string
+
+func (n nodeMapType) id() string {
+	return string(n)
+}
+
+func (n nodeMapType) expands(n2 nodeType) bool {
+	return n == n2
+}
+
+func (n nodeMapType) fit(v interface{}) nodeType {
 	return n
 }

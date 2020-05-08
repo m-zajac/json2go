@@ -52,6 +52,18 @@ func astTypeFromNode(n *node, opts options) ast.Expr {
 	case nodeInterfaceType, nodeInitType:
 		resultType = newEmptyInterfaceExpr()
 		allowPointer = false
+	case nodeMapType:
+		var ve ast.Expr
+		if len(n.children) == 0 {
+			ve = newEmptyInterfaceExpr()
+		} else {
+			ve = astTypeFromNode(n.children[0], opts)
+		}
+		resultType = &ast.MapType{
+			Key:   ast.NewIdent("string"),
+			Value: ve,
+		}
+		allowPointer = false
 	default:
 		panic(fmt.Sprintf("unknown type: %v", n.t))
 	}
@@ -61,13 +73,6 @@ func astTypeFromNode(n *node, opts options) ast.Expr {
 			resultType = &ast.StarExpr{
 				X: resultType,
 			}
-		}
-	}
-
-	for i := n.mapLevel; i > 0; i-- {
-		resultType = &ast.MapType{
-			Key:   ast.NewIdent("string"),
-			Value: resultType,
 		}
 	}
 

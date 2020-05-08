@@ -34,10 +34,14 @@ func extractCommonSubtree(root *node, rootNames map[string]bool) *node {
 	structDataM := make(map[string]structNodes)
 	objectTreeInfo(root, structDataM)
 
-	// Filter all structures with at least 2 children nodes.
+	// Filter out structures that shouldn't be extracted.
 	var keysToDel []string
 	for k, info := range structDataM {
 		if len(info.nodes) < 2 {
+			// This structure occurs only once in document, so nothing to extract.
+			keysToDel = append(keysToDel, k)
+		} else if len(info.nodes) > 0 && info.nodes[0].t.id() == nodeTypeMap.id() {
+			// Don't extract maps!
 			keysToDel = append(keysToDel, k)
 		}
 	}
@@ -84,7 +88,6 @@ func extractCommonSubtree(root *node, rootNames map[string]bool) *node {
 			modNode.t = nodeTypeExtracted
 			modNode.externalTypeID = extractedName
 			modNode.children = nil
-			modNode.mapLevel = 0
 		})
 
 		return extractedNode // exit after first successful extract
@@ -99,13 +102,16 @@ type structNodes struct {
 }
 
 func objectTreeInfo(n *node, infos map[string]structNodes) {
-	if n.t.id() != nodeTypeObject.id() {
+	switch n.t.id() {
+	case nodeTypeObject.id():
+	case nodeTypeMap.id():
+	default:
 		return
 	}
 
 	var info structNodes
 
-	id := structureID(n, true)
+	id := structureID(n, false)
 	if ninfo, ok := infos[id]; ok {
 		info = ninfo
 		info.nodes = append(info.nodes, n)
@@ -123,18 +129,16 @@ func objectTreeInfo(n *node, infos map[string]structNodes) {
 }
 
 // structureID returns identifier unique for this nodes structure
-// if `asRoot` is true, this node id does not depend on "nullable" or "required" property
-func structureID(n *node, asRoot bool) string {
-	var id string
-	if asRoot {
-		id = n.t.id()
-	} else {
-		id = fmt.Sprintf("%s.%s", n.key, n.t.id())
+// if `withKey` is true, node's key name is added to id.
+func structureID(n *node, withKey bool) string {
+	id := n.t.id()
+	if withKey {
+		id = fmt.Sprintf("%s.%s", n.key, id)
 	}
 
 	var parts []string
 	for _, child := range n.children {
-		parts = append(parts, structureID(child, false))
+		parts = append(parts, structureID(child, true))
 	}
 
 	result := id
@@ -223,7 +227,7 @@ func mergeNodes(nodes []*node) *node {
 // modifyTree executes function f on all nodes in subtree with given structure id
 func modifyTree(root *node, structID string, f func(*node)) {
 	for i, child := range root.children {
-		if structureID(child, true) == structID {
+		if structureID(child, false) == structID {
 			f(root.children[i])
 		}
 

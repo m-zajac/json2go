@@ -37,8 +37,8 @@ func OptSkipEmptyKeys(v bool) JSONParserOpt {
 	}
 }
 
-// OptMakeMaps allows creating maps instead of big structures, when possible.
-// minAttributes defines minimum number of object attributes, that turns it into map.
+// OptMakeMaps defines if parser should try to use maps instead of structs when possible.
+// minAttributes defines minimum number of attributes in object to try converting it to a map.
 func OptMakeMaps(v bool, minAttributes uint) JSONParserOpt {
 	return func(o *options) {
 		o.makeMaps = v

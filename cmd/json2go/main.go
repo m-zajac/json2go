@@ -13,8 +13,8 @@ func main() {
 	extractCommonNodes := flag.Bool("c", true, "Extract common nodes as top level struct definitions")
 	stringPointers := flag.Bool("sp", true, "Allow string pointers when string key is missing in one of documents")
 	skipEmptyKeys := flag.Bool("k", true, "Ignore keys that were only nulls")
-	useMaps := flag.Bool("m", true, "Use map instead of struct if possible")
-	useMapsMinAttrs := flag.Int("mk", 5, "Minimum number of object attributes to represent is as a map")
+	useMaps := flag.Bool("m", true, "Try to use maps instead of structs where possible")
+	useMapsMinAttrs := flag.Int("mk", 5, "Minimum number of attributes in object to try converting it to a map.")
 	rootTypeName := flag.String("n", "Document", "Type name")
 
 	flag.Parse()

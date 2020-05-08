@@ -18,10 +18,10 @@
     extractCommonTypes: true
   out: |
     type Document struct {
-      K1 K `json:"k1"`
-      K2 K `json:"k2"`
+      K1 map[string]Ok `json:"k1"`
+      K2 map[string]Ok `json:"k2"`
     }
 
-    type K map[string]struct {
+    type Ok struct {
       Ok bool `json:"ok"`
     }
