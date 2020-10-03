@@ -34,6 +34,11 @@ func TestTypeExpand(t *testing.T) {
 			resultTypeID: nodeTypeString.id(),
 		},
 		{
+			name:         "input to time",
+			inputs:       []interface{}{"2006-01-02T15:04:05+07:00"},
+			resultTypeID: nodeTypeTime.id(),
+		},
+		{
 			name: "input to object",
 			inputs: []interface{}{
 				map[string]interface{}{
@@ -157,6 +162,16 @@ func TestTypeExpand(t *testing.T) {
 				},
 			},
 			resultTypeID: nodeTypeInterface.id(),
+		},
+		{
+			name:         "time + string",
+			inputs:       []interface{}{"2006-01-02T15:04:05+07:00", "some stirng"},
+			resultTypeID: nodeTypeString.id(),
+		},
+		{
+			name:         "string + time",
+			inputs:       []interface{}{"some stirng", "2006-01-02T15:04:05+07:00"},
+			resultTypeID: nodeTypeString.id(),
 		},
 	}
 

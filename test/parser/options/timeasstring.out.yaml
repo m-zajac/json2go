@@ -1,0 +1,25 @@
+- options:
+    timeAsStr: false
+  out: |
+    type Document []struct {
+      X *time.Time `json:"x,omitempty"`
+      Y *time.Time `json:"y,omitempty"`
+    }
+
+- options:
+    timeAsStr: true
+  out: |
+    type Document []struct {
+      X string `json:"x,omitempty"`
+      Y string `json:"y,omitempty"`
+    }
+
+- options:
+    timeAsStr: true
+    stringPointersWhenKeyMissing: true
+  out: |
+    type Document []struct {
+      X *string `json:"x,omitempty"`
+      Y *string `json:"y,omitempty"`
+    }
+

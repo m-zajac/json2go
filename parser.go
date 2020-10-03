@@ -11,6 +11,7 @@ type options struct {
 	skipEmptyKeys                bool
 	makeMaps                     bool
 	makeMapsWhenMinAttributes    uint
+	timeAsStr                    bool
 }
 
 // JSONParserOpt is a type for setting parser options.
@@ -43,6 +44,13 @@ func OptMakeMaps(v bool, minAttributes uint) JSONParserOpt {
 	return func(o *options) {
 		o.makeMaps = v
 		o.makeMapsWhenMinAttributes = minAttributes
+	}
+}
+
+// OptTimeAsString toggles using time.Time for valid time strings or just a string.
+func OptTimeAsString(v bool) JSONParserOpt {
+	return func(o *options) {
+		o.timeAsStr = v
 	}
 }
 

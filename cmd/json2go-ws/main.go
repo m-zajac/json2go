@@ -70,6 +70,9 @@ func parseOpts(jsVal js.Value) (opts []json2go.JSONParserOpt, rootName string) {
 			jsVal.Get("useMaps").Truthy(),
 			useMapsMinAttrs,
 		),
+		json2go.OptTimeAsString(
+			jsVal.Get("timeAsStr").Truthy(),
+		),
 	)
 
 	ro := jsVal.Get("rootName")

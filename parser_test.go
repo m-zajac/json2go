@@ -105,6 +105,7 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 			SkipEmptyKeys                bool `yaml:"skipEmptyKeys"`
 			MakeMaps                     bool `yaml:"makeMaps"`
 			MakeMapsWhenMinAttributes    uint `yaml:"makeMapsWhenMinAttributes"`
+			TimeAsStr                    bool `yaml:"timeAsStr"`
 		} `yaml:"options"`
 		Out string `yaml:"out"`
 	}
@@ -125,6 +126,7 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 				OptStringPointersWhenKeyMissing(tc.Options.StringPointersWhenKeyMissing),
 				OptSkipEmptyKeys(tc.Options.SkipEmptyKeys),
 				OptMakeMaps(tc.Options.MakeMaps, tc.Options.MakeMapsWhenMinAttributes),
+				OptTimeAsString(tc.Options.TimeAsStr),
 			}
 			parser := NewJSONParser(baseTypeName, parserOpts...)
 			err = parser.FeedBytes(input)

@@ -1,10 +1,13 @@
 package json2go
 
+import "time"
+
 const (
 	nodeTypeInit      = nodeInitType(".")
 	nodeTypeBool      = nodeBoolType("bool")
 	nodeTypeInt       = nodeIntType("int")
 	nodeTypeFloat     = nodeFloatType("float")
+	nodeTypeTime      = nodeTimeType("time")
 	nodeTypeString    = nodeStringType("string")
 	nodeTypeObject    = nodeObjectType("object")
 	nodeTypeInterface = nodeInterfaceType("interface")
@@ -111,6 +114,27 @@ func (n nodeFloatType) fit(v interface{}) nodeType {
 		return n
 	}
 
+	return nodeTypeTime.fit(v)
+}
+
+type nodeTimeType string
+
+func (n nodeTimeType) id() string {
+	return string(n)
+}
+
+func (n nodeTimeType) expands(n2 nodeType) bool {
+	return n == n2
+}
+
+func (n nodeTimeType) fit(v interface{}) nodeType {
+	switch vt := v.(type) {
+	case string:
+		if _, err := time.Parse(time.RFC3339, vt); err == nil {
+			return n
+		}
+	}
+
 	return nodeTypeString.fit(v)
 }
 
@@ -121,7 +145,7 @@ func (n nodeStringType) id() string {
 }
 
 func (n nodeStringType) expands(n2 nodeType) bool {
-	return n == n2
+	return n == n2 || n2 == nodeTypeTime
 }
 
 func (n nodeStringType) fit(v interface{}) nodeType {
