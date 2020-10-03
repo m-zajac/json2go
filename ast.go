@@ -41,6 +41,13 @@ func astTypeFromNode(n *node, opts options) ast.Expr {
 	case nodeStringType:
 		resultType = ast.NewIdent("string")
 		notRequiredAsPointer = opts.stringPointersWhenKeyMissing
+	case nodeTimeType:
+		if opts.timeAsStr {
+			resultType = ast.NewIdent("string")
+			notRequiredAsPointer = opts.stringPointersWhenKeyMissing
+		} else {
+			resultType = ast.NewIdent("time.Time")
+		}
 	case nodeObjectType:
 		resultType = astStructTypeFromNode(n, opts)
 	case nodeExtractedType:

@@ -19,7 +19,9 @@
         NullableOrMissingInt   *int `json:"nullableOrMissingInt,omitempty"`
         NullableOrMissingMixed interface{} `json:"nullableOrMissingMixed,omitempty"`
         NullableOrMissingStr   *string `json:"nullableOrMissingStr,omitempty"`
+        NullableOrMissingTime  *time.Time `json:"nullableOrMissingTime,omitempty"`
         NullableStr            *string `json:"nullableStr"`
+        NullableTime           *time.Time `json:"nullableTime"`
         SometimesMissingArray  []string `json:"sometimesMissingArray,omitempty"`
         SometimesMissingBool   *bool `json:"sometimesMissingBool,omitempty"`
         SometimesMissingFloat  *float64 `json:"sometimesMissingFloat,omitempty"`
@@ -45,7 +47,9 @@
           NullableOrMissingInt   *int `json:"nullableOrMissingInt,omitempty"`
           NullableOrMissingMixed interface{} `json:"nullableOrMissingMixed,omitempty"`
           NullableOrMissingStr   *string `json:"nullableOrMissingStr,omitempty"`
+          NullableOrMissingTime  *time.Time `json:"nullableOrMissingTime,omitempty"`
           NullableStr            *string `json:"nullableStr"`
+          NullableTime           *time.Time `json:"nullableTime"`
           SometimesMissingArray  []string `json:"sometimesMissingArray,omitempty"`
           SometimesMissingBool   *bool `json:"sometimesMissingBool,omitempty"`
           SometimesMissingFloat  *float64 `json:"sometimesMissingFloat,omitempty"`

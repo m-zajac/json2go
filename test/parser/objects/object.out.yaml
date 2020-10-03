@@ -16,4 +16,6 @@
       N struct {
         Ok bool `json:"ok"`
       } `json:"n"`
+      O []time.Time `json:"o"`
+      P []string `json:"p"`
     }
