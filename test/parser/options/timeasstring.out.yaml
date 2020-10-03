@@ -1,5 +1,5 @@
 - options:
-    dontUseTimeType: false
+    timeAsStr: false
   out: |
     type Document []struct {
       X *time.Time `json:"x,omitempty"`
@@ -7,7 +7,7 @@
     }
 
 - options:
-    dontUseTimeType: true
+    timeAsStr: true
   out: |
     type Document []struct {
       X string `json:"x,omitempty"`
@@ -15,7 +15,7 @@
     }
 
 - options:
-    dontUseTimeType: true
+    timeAsStr: true
     stringPointersWhenKeyMissing: true
   out: |
     type Document []struct {
