@@ -21,6 +21,7 @@ type node struct {
 	externalTypeID string
 	children       []*node
 	arrayLevel     int
+	arrayWithNulls bool
 }
 
 func newNode(key string) *node {
@@ -53,7 +54,7 @@ func (n *node) grow(input interface{}) {
 			break
 		}
 
-		localLevel, localType := arrayStructure(typedInput, n.t)
+		localLevel, localType, nullable := arrayStructure(typedInput, n.t)
 		if n.t == nodeTypeInit {
 			n.t = localType
 			n.arrayLevel = localLevel
@@ -61,6 +62,7 @@ func (n *node) grow(input interface{}) {
 			n.t = nodeTypeInterface
 			n.arrayLevel = 0
 		}
+		n.arrayWithNulls = nullable
 	default:
 		n.t = growType(n.t, typedInput)
 		n.arrayLevel = 0
@@ -204,20 +206,22 @@ func (n *node) repr(prefix string) string {
 }
 
 // arrayStructure returns array depth and elements type. If array is nested and has no consistent structure, level -1 is returned.
-func arrayStructure(in []interface{}, inType nodeType) (int, nodeType) {
+func arrayStructure(in []interface{}, inType nodeType) (depth int, outType nodeType, nullable bool) {
 	if inType == nil {
 		inType = nodeTypeInit
 	}
 	if len(in) == 0 {
-		return 1, inType
+		return 1, inType, false
 	}
 
-	depth := 0
 	for _, el := range in {
 		switch typedEl := el.(type) {
 		case []interface{}:
-			localDepth, localType := arrayStructure(typedEl, inType)
+			localDepth, localType, localNullable := arrayStructure(typedEl, inType)
 			localDepth++
+			if localNullable {
+				nullable = true
+			}
 
 			if inType == nodeTypeInit {
 				inType = localType
@@ -234,11 +238,17 @@ func arrayStructure(in []interface{}, inType nodeType) (int, nodeType) {
 				depth = localDepth
 			case localDepth:
 			default:
-				return -1, nodeTypeInterface
+				return -1, nodeTypeInterface, false
 			}
 		default:
-			localType := inType.fit(typedEl)
+			depth = 1
 
+			if el == nil {
+				nullable = true
+				continue
+			}
+
+			localType := inType.fit(typedEl)
 			if inType == nodeTypeInit {
 				inType = localType
 			} else if localType != inType {
@@ -248,10 +258,8 @@ func arrayStructure(in []interface{}, inType nodeType) (int, nodeType) {
 					inType = nodeTypeInterface
 				}
 			}
-
-			depth = 1
 		}
 	}
 
-	return depth, inType
+	return depth, inType, nullable
 }

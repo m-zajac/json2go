@@ -28,7 +28,9 @@
         "alwaysPresentObject": [{"ok": true}],
         "sometimesMissingObject": [{"ok": true}],
         "nullableObject": null,
-        "nullableOrMissingObject": null
+        "nullableOrMissingObject": null,
+
+        "alwaysPresentFloatWithNull": [123.12, null, 3.678, null]
     },
     {
         "alwaysPresentStr": ["test1", "test2"],
@@ -47,7 +49,9 @@
         "nullableMixed": null,
 
         "alwaysPresentObject": [{"ok": true}],
-        "nullableObject": null
+        "nullableObject": null,
+
+        "alwaysPresentFloatWithNull": [null, null, 3.678, null]
     },
     {
         "alwaysPresentStr": ["test1", "test2"],
@@ -78,7 +82,9 @@
         "alwaysPresentObject": [{"ok": true}],
         "sometimesMissingObject": [{"ok": true}],
         "nullableObject": [{"ok": true}],
-        "nullableOrMissingObject": [{"ok": true}]
+        "nullableOrMissingObject": [{"ok": true}],
+
+        "alwaysPresentFloatWithNull": []
     },
     {
         "alwaysPresentStr": ["test1", "test2"],
@@ -99,6 +105,8 @@
 
         "alwaysPresentObject": [{"ok": true}],
         "nullableObject": [{"ok": true}],
-        "nullableOrMissingObject": [{"ok": true}]
+        "nullableOrMissingObject": [{"ok": true}],
+
+        "alwaysPresentFloatWithNull": [123.12, 3.678, null]
     }
 ]

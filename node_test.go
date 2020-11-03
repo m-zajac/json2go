@@ -1824,11 +1824,12 @@ func TestArrayStructureDepth(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name          string
-		in            []interface{}
-		inNodeType    nodeType
-		expectedDepth int
-		expectedType  nodeType
+		name             string
+		in               []interface{}
+		inNodeType       nodeType
+		expectedDepth    int
+		expectedType     nodeType
+		expectedNullable bool
 	}{
 		{
 			name:          "empty array",
@@ -1896,37 +1897,42 @@ func TestArrayStructureDepth(t *testing.T) {
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			d, tp := arrayStructure(tc.in, tc.inNodeType)
+			d, tp, nullable := arrayStructure(tc.in, tc.inNodeType)
 			assert.Equal(t, tc.expectedDepth, d)
 			assert.Equal(t, tc.expectedType, tp)
+			assert.Equal(t, tc.expectedNullable, nullable)
 		})
 	}
 }
 
 func TestArrayStructureType(t *testing.T) {
 	tests := []struct {
-		name     string
-		in       []interface{}
-		inType   nodeType
-		wantType nodeType
+		name         string
+		in           []interface{}
+		inType       nodeType
+		wantType     nodeType
+		wantNullable bool
 	}{
 		{
-			name:     "no data",
-			in:       []interface{}{},
-			inType:   nil,
-			wantType: nodeTypeInit,
+			name:         "no data",
+			in:           []interface{}{},
+			inType:       nil,
+			wantType:     nodeTypeInit,
+			wantNullable: false,
 		},
 		{
-			name:     "empty array, type set already",
-			in:       []interface{}{},
-			inType:   nodeTypeString,
-			wantType: nodeTypeString,
+			name:         "empty array, type set already",
+			in:           []interface{}{},
+			inType:       nodeTypeString,
+			wantType:     nodeTypeString,
+			wantNullable: false,
 		},
 		{
-			name:     "not empty array, type matches",
-			in:       []interface{}{"a", "b"},
-			inType:   nodeTypeString,
-			wantType: nodeTypeString,
+			name:         "not empty array, type matches",
+			in:           []interface{}{"a", "b"},
+			inType:       nodeTypeString,
+			wantType:     nodeTypeString,
+			wantNullable: false,
 		},
 		{
 			name: "not empty array, type matches, depth 2",
@@ -1934,14 +1940,16 @@ func TestArrayStructureType(t *testing.T) {
 				[]interface{}{"a", "b"},
 				[]interface{}{"a", "b"},
 			},
-			inType:   nodeTypeString,
-			wantType: nodeTypeString,
+			inType:       nodeTypeString,
+			wantType:     nodeTypeString,
+			wantNullable: false,
 		},
 		{
-			name:     "not empty array, type not match",
-			in:       []interface{}{"a", "b"},
-			inType:   nodeTypeInt,
-			wantType: nodeTypeInterface,
+			name:         "not empty array, type not match",
+			in:           []interface{}{"a", "b"},
+			inType:       nodeTypeInt,
+			wantType:     nodeTypeInterface,
+			wantNullable: false,
 		},
 		{
 			name: "not empty array, type not match, depth 2",
@@ -1949,14 +1957,16 @@ func TestArrayStructureType(t *testing.T) {
 				[]interface{}{"a", "b"},
 				[]interface{}{"a", "b"},
 			},
-			inType:   nodeTypeInt,
-			wantType: nodeTypeInterface,
+			inType:       nodeTypeInt,
+			wantType:     nodeTypeInterface,
+			wantNullable: false,
 		},
 		{
-			name:     "ints + floats",
-			in:       []interface{}{1, 2, 3.14},
-			inType:   nil,
-			wantType: nodeTypeFloat,
+			name:         "ints + floats",
+			in:           []interface{}{1, 2, 3.14},
+			inType:       nil,
+			wantType:     nodeTypeFloat,
+			wantNullable: false,
 		},
 		{
 			name: "ints + floats, depth 2",
@@ -1964,14 +1974,37 @@ func TestArrayStructureType(t *testing.T) {
 				[]interface{}{1, 2, 3.14},
 				[]interface{}{1, 2, 3.14},
 			},
-			inType:   nil,
-			wantType: nodeTypeFloat,
+			inType:       nil,
+			wantType:     nodeTypeFloat,
+			wantNullable: false,
+		},
+		{
+			name:         "ints + null",
+			in:           []interface{}{1, 2, 3, nil},
+			inType:       nil,
+			wantType:     nodeTypeInt,
+			wantNullable: true,
+		},
+		{
+			name:         "null + ints",
+			in:           []interface{}{nil, 1, 2, 3},
+			inType:       nil,
+			wantType:     nodeTypeInt,
+			wantNullable: true,
+		},
+		{
+			name:         "nums + null",
+			in:           []interface{}{1.45, nil, 1, 2.2, 3},
+			inType:       nil,
+			wantType:     nodeTypeFloat,
+			wantNullable: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, gotType := arrayStructure(tt.in, tt.inType)
+			_, gotType, nullable := arrayStructure(tt.in, tt.inType)
 			assert.Equal(t, tt.wantType.id(), gotType.id())
+			assert.Equal(t, tt.wantNullable, nullable)
 		})
 	}
 }

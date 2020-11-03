@@ -1,8 +1,10 @@
 package json2go
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
+	"go/printer"
 	"go/token"
 	"sort"
 	"strings"
@@ -24,6 +26,23 @@ func astMakeDecls(rootNodes []*node, opts options) []ast.Decl {
 	}
 
 	return decls
+}
+
+func astPrintDecls(decls []ast.Decl) string {
+	file := &ast.File{
+		Name:  ast.NewIdent("main"),
+		Decls: decls,
+	}
+
+	var buf bytes.Buffer
+	printer.Fprint(&buf, token.NewFileSet(), file)
+
+	// remove go file header
+	repr := buf.String()
+	repr = strings.TrimPrefix(repr, "package main")
+	repr = strings.TrimSpace(repr)
+
+	return repr
 }
 
 func astTypeFromNode(n *node, opts options) ast.Expr {
@@ -77,6 +96,12 @@ func astTypeFromNode(n *node, opts options) ast.Expr {
 
 	if !n.root && n.arrayLevel == 0 && allowPointer {
 		if n.nullable || (!n.required && notRequiredAsPointer) {
+			resultType = &ast.StarExpr{
+				X: resultType,
+			}
+		}
+	} else if n.arrayLevel > 0 {
+		if n.arrayWithNulls && allowPointer {
 			resultType = &ast.StarExpr{
 				X: resultType,
 			}
