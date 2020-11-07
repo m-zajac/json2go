@@ -61,53 +61,27 @@ func astTypeFromNode(n *node, opts options) ast.Expr {
 		resultType = ast.NewIdent("string")
 		notRequiredAsPointer = opts.stringPointersWhenKeyMissing
 	case nodeTimeType:
+		resultType = astTypeFromTimeNode(n, opts)
 		if opts.timeAsStr {
-			resultType = ast.NewIdent("string")
 			notRequiredAsPointer = opts.stringPointersWhenKeyMissing
-		} else if n.root {
-			// We have to use type alias here to preserve "UnmarshalJSON" method from time type.
-			resultType = ast.NewIdent("= time.Time")
-		} else {
-			resultType = ast.NewIdent("time.Time")
 		}
 	case nodeObjectType:
 		resultType = astStructTypeFromNode(n, opts)
 	case nodeExtractedType:
-		extName := n.externalTypeID
-		if extName == "" {
-			extName = n.name
-		}
-		resultType = ast.NewIdent(extName)
+		resultType = astTypeFromExtractedNode(n)
 	case nodeInterfaceType, nodeInitType:
 		resultType = newEmptyInterfaceExpr()
 		allowPointer = false
 	case nodeMapType:
-		var ve ast.Expr
-		if len(n.children) == 0 {
-			ve = newEmptyInterfaceExpr()
-		} else {
-			ve = astTypeFromNode(n.children[0], opts)
-		}
-		resultType = &ast.MapType{
-			Key:   ast.NewIdent("string"),
-			Value: ve,
-		}
+		resultType = astTypeFromMapNode(n, opts)
 		allowPointer = false
 	default:
 		panic(fmt.Sprintf("unknown type: %v", n.t))
 	}
 
-	if !n.root && n.arrayLevel == 0 && allowPointer {
-		if n.nullable || (!n.required && notRequiredAsPointer) {
-			resultType = &ast.StarExpr{
-				X: resultType,
-			}
-		}
-	} else if n.arrayLevel > 0 {
-		if n.arrayWithNulls && allowPointer {
-			resultType = &ast.StarExpr{
-				X: resultType,
-			}
+	if astTypeShouldBeAPointer(n, notRequiredAsPointer, allowPointer) {
+		resultType = &ast.StarExpr{
+			X: resultType,
 		}
 	}
 
@@ -118,6 +92,42 @@ func astTypeFromNode(n *node, opts options) ast.Expr {
 	}
 
 	return resultType
+}
+
+func astTypeFromTimeNode(n *node, opts options) ast.Expr {
+	var resultType ast.Expr
+
+	if opts.timeAsStr {
+		resultType = ast.NewIdent("string")
+	} else if n.root {
+		// We have to use type alias here to preserve "UnmarshalJSON" method from time type.
+		resultType = ast.NewIdent("= time.Time")
+	} else {
+		resultType = ast.NewIdent("time.Time")
+	}
+
+	return resultType
+}
+
+func astTypeFromMapNode(n *node, opts options) ast.Expr {
+	var ve ast.Expr
+	if len(n.children) == 0 {
+		ve = newEmptyInterfaceExpr()
+	} else {
+		ve = astTypeFromNode(n.children[0], opts)
+	}
+	return &ast.MapType{
+		Key:   ast.NewIdent("string"),
+		Value: ve,
+	}
+}
+
+func astTypeFromExtractedNode(n *node) ast.Expr {
+	extName := n.externalTypeID
+	if extName == "" {
+		extName = n.name
+	}
+	return ast.NewIdent(extName)
 }
 
 func astStructTypeFromNode(n *node, opts options) *ast.StructType {
@@ -166,6 +176,24 @@ func astJSONTag(key string, omitempty bool) *ast.BasicLit {
 	return &ast.BasicLit{
 		Value: tag,
 	}
+}
+
+func astTypeShouldBeAPointer(n *node, notRequiredAsPointer bool, allowPointer bool) bool {
+	if !allowPointer {
+		return false
+	}
+
+	if !n.root && n.arrayLevel == 0 {
+		if n.nullable || (!n.required && notRequiredAsPointer) {
+			return true
+		}
+	} else if n.arrayLevel > 0 {
+		if n.arrayWithNulls {
+			return true
+		}
+	}
+
+	return false
 }
 
 func newEmptyInterfaceExpr() ast.Expr {
