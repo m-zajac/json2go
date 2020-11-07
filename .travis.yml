@@ -1,7 +1,0 @@
-language: go
-go_import_path: github.com/m-zajac/json2go
-go:
-  - 1.15.x
-
-script:
-  - GOOS=linux GOARCH=amd64 go test -race -v ./...

@@ -126,8 +126,6 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 	for i, tc := range tests {
 		tn := fmt.Sprintf("%s-%d", name, i)
 		t.Run(tn, func(t *testing.T) {
-			t.Parallel()
-
 			parserOpts := []JSONParserOpt{
 				OptExtractCommonTypes(tc.Options.ExtractCommonTypes),
 				OptStringPointersWhenKeyMissing(tc.Options.StringPointersWhenKeyMissing),

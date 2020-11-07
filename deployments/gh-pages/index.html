@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!-- <link rel="icon" href="../../../../favicon.ico"> -->
+
+    <title>json2go web parser</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <style>
+        @media (min-width: 1200px) {
+            .container, .container-lg, .container-md, .container-sm, .container-xl {
+                max-width: 1600px;
+            }
+        }
+    </style>
+
+    <link href="jsoneditor/jsoneditor.min.css" rel="stylesheet" type="text/css">
+    <script defer src="jsoneditor/jsoneditor.min.js"></script>
+
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+</head>
+
+<body class="bg-light container px-5">
+    <div class="py-3 mb-4">
+        <div class="row justify-content-center">
+            <div class="col-md-auto align-self-center">
+                <img class="mx-4" src="gopher.svg" alt="" height="128">
+            </div>
+
+            <div class="col-md-auto">
+                <h1 class="display-3">json2go web parser</h1>
+                <p class="lead">
+                    Paste json to generate go struct.<br/>
+                    If you want to use this in your code, json2go can be imported as a go package.<br/>
+                    For source code and more details see <a href="https://github.com/m-zajac/json2go">https://github.com/m-zajac/json2go</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <form>
+        <div class="form-group row">
+            <label for="url" class="col-2 col-form-label">Load JSON from URL</label>
+            <div class="col-10">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-address-card">URL</i>
+                        </div>
+                    </div>
+                    <input id="url" type="text" class="form-control">
+                    <button type="button" class="btn btn-primary" id="loadurl">Load</button>
+                </div>
+            </div>
+        </div>
+        
+        <hr/>
+        
+        <div class="form-group row">
+            <label class="col-2 col-form-label">Options</label>
+            <div class="col-10">
+                <div class="">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-address-card">Root name</i>
+                            </div>
+                        </div>
+                        <input id="rootName" class="form-control json2go" type="text" value="Document"/>
+                    </div>
+                </div>
+
+                <div class="mt-1 form-inline">
+                    <div class="input-group mb-2 mr-sm-3">
+                        <div class="form-check">
+                            <input id="extractCommonTypes" name="checkbox" id="checkbox_0" type="checkbox" checked="checked" class="json2go form-check-input">
+                            <label for="extractCommonTypes" class="form-check-label">Extract common types</label>
+                        </div>
+                    </div>
+
+                    <div class="input-group mb-2 mr-sm-3">
+                        <div class="form-check">
+                            <input name="checkbox" id="stringPointersWhenKeyMissing" type="checkbox" class="json2go form-check-input" checked="checked">
+                            <label for="stringPointersWhenKeyMissing" class="form-check-label">
+                                String pointers when key is missing
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group mb-2 mr-sm-3">
+                        <div class="form-check">
+                            <input name="checkbox" id="skipEmptyKeys" type="checkbox" class="json2go form-check-input" checked="checked">
+                            <label for="skipEmptyKeys" class="form-check-label">
+                                Skip keys with only null values
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="input-group mb-2 mr-sm-3">
+                        <div class="form-check">
+                            <input name="checkbox" id="useMaps" type="checkbox" class="json2go form-check-input" checked="checked">
+                            <label for="useMaps" class="form-check-label">
+                                Try to use maps for objects with at least 
+                                <input class="json2go mx-2" style="width: 3rem;" type="number" value="5" id="useMapsMinAttrs">
+                                attributes
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="input-group mb-2 mr-sm-3">
+                        <div class="form-check">
+                            <input name="checkbox" id="timeAsStr" type="checkbox" class="json2go form-check-input">
+                            <label for="timeAsStr" class="form-check-label">
+                                Don't use time.Time, just strings
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr/>
+
+        <div class="form-group row">
+            <label for="editor" class="col-2 col-form-label">JSON input</label>
+            <div class="col-10">
+                <div id="editor" style="height: 400px;"></div>
+            </div>
+        </div>
+
+        <hr/>
+
+        <div class="form-group row">
+            <label for="output" class="col-2 col-form-label">Output</label>
+            <div class="col-10">
+                <pre id="output" class="border px-3 py-2" style="background: #FFD">loading...</pre>
+            </div>
+        </div>
+    </form>
+
+    <footer class="text-secondary font-weight-light text-right pb-3">
+        Build _VERSION_#_HASH_
+        <br/>
+        Thanks to <a href="https://github.com/MariaLetta/free-gophers-pack">Maria Letta</a> for awesome gopher image! :)
+    </footer>
+
+    <script src="wasm_exec.js"></script>
+    <script>
+        if (!WebAssembly.instantiateStreaming) { // polyfill
+            WebAssembly.instantiateStreaming = async (resp, importObject) => {
+                const source = await (await resp).arrayBuffer();
+                return await WebAssembly.instantiate(source, importObject);
+            };
+        }
+
+        const go = new Go();
+        let mod, inst;
+        WebAssembly.instantiateStreaming(fetch("json2go.wasm"), go.importObject).then((result) => {
+            mod = result.module;
+            inst = result.instance;
+            go.run(inst);
+        }).then(() => {
+            let onChange = () => { };
+            const container = document.getElementById("editor");
+            const options = {
+                "mode": "code",
+                "mainMenuBar": false,
+                "onChange": () => {
+                    onChange();
+                },
+            };
+            const editor = new JSONEditor(container, options);
+            editor.set([
+                {
+                    "created": "2020-10-03T15:04:05Z",
+                    "name": "water",
+                    "description": "quite common on earth",
+                    "type": "liquid",
+                    "boiling_point": {
+                        "units": "C",
+                        "value": 100
+                    },
+                    "secret": null,
+                    "properties": {
+                        "tasteless": true,
+                        "odorless": true,
+                        "abundant": true,
+                        "solid": false
+                    }
+                },
+                {
+                    "created": "2020-10-03T15:05:02Z",
+                    "name": "oxygen",
+                    "type": "gas",
+                    "density": {
+                        "units": "g/L",
+                        "value": 1.429
+                    },
+                    "properties": {
+                        "abundant": true,
+                        "odorless": true,
+                        "abundant": true,
+                        "solid": false
+                    }
+                },
+                {
+                    "created": "2020-10-03T17:12:37Z",
+                    "name": "carbon monoxide",
+                    "type": "gas",
+                    "dangerous": true,
+                    "boiling_point": {
+                        "units": "C",
+                        "value": -191.5
+                    },
+                    "density": {
+                        "units": "kg/m3",
+                        "value": 789
+                    },
+                    "secret": null,
+                    "properties": {
+                        "abundant": true,
+                        "flammable": true
+                    }
+                     
+                }
+            ]);
+
+            const waitMsg = "waiting for valid json ...";
+            const outEl = document.getElementById("output");
+
+            onChange = () => {
+                let json = editor.getText();
+                let rootName = document.getElementById("rootName").value || "Document";
+
+                let opts = {
+                    rootName: rootName,
+                    extractCommonTypes: document.getElementById("extractCommonTypes").checked,
+                    stringPointersWhenKeyMissing: document.getElementById("stringPointersWhenKeyMissing").checked,
+                    skipEmptyKeys: document.getElementById("skipEmptyKeys").checked,
+                    useMaps: document.getElementById("useMaps").checked,
+                    useMapsMinAttrs: document.getElementById("useMapsMinAttrs").value,
+                    timeAsStr: document.getElementById("timeAsStr").checked,
+                };
+                let out = json2go(json, opts);
+
+                if (out) {
+                    outEl.innerHTML = out;
+                } else {
+                    outEl.innerHTML = waitMsg;
+                }
+            }
+            for (let el of document.getElementsByClassName("json2go")) {
+                el.addEventListener("change", onChange);
+            }
+            onChange();
+
+            // load from url
+            let loadOk = () => {
+                document.getElementById("loadurl").classList.remove("error");
+                document.getElementById("loadurl").classList.add("primary");
+            }
+            let loadErr = () => {
+                document.getElementById("loadurl").classList.add("error");
+                document.getElementById("loadurl").classList.remove("primary");
+            }
+            document.getElementById("loadurl").addEventListener("click", () => {
+                const url = document.getElementById("url").value;
+
+                fetch(url).then((response) => {
+                    response.json().then((json) => {
+                        editor.set(json);
+                        loadOk();
+                        onChange();
+                    }).catch((err) => {
+                        loadErr();
+                        console.error(err);
+                    });
+                }).catch((err) => {
+                    console.error(err);
+                    loadErr();
+                })
+            })
+        }).catch((err) => {
+            console.error(err);
+        });
+    </script>
+</body>
+</html>
