@@ -29,6 +29,9 @@ jobs:
 
     - name: Check out code
       uses: actions/checkout@v2
+      with:
+        # preserve history to be able to see latest tag
+        fetch-depth: 0
 
     - name: Build pages
       run: make depl-pages
