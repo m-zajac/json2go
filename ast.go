@@ -64,6 +64,9 @@ func astTypeFromNode(n *node, opts options) ast.Expr {
 		if opts.timeAsStr {
 			resultType = ast.NewIdent("string")
 			notRequiredAsPointer = opts.stringPointersWhenKeyMissing
+		} else if n.root {
+			// We have to use type alias here to preserve "UnmarshalJSON" method from time type.
+			resultType = ast.NewIdent("= time.Time")
 		} else {
 			resultType = ast.NewIdent("time.Time")
 		}
