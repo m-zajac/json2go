@@ -8,9 +8,9 @@ zip = cd build && zip $(1)_$(2).zip $(appname)$(3) && rm $(appname)$(3)
 last_version = $(shell git describe --tags --abbrev=0)
 curr_hash = $(shell git rev-parse --short HEAD)
 
-.PHONY: all windows darwin linux wasm clean test lint lint-more depl-pages
+.PHONY: all windows darwin linux web clean test lint lint-more depl-pages
 
-all: windows darwin linux wasm
+all: windows darwin linux web
 
 clean:
 	rm -rf build/
@@ -40,7 +40,7 @@ $(shell go env GOPATH)/bin/golangci-lint:
 linux: build/linux_386.tar.gz build/linux_amd64.tar.gz
 darwin: build/darwin_amd64.tar.gz
 windows: build/windows_386.zip build/windows_amd64.zip
-wasm:
+web:
 	mkdir -p build/web
 	cp "$(goroot)/misc/wasm/wasm_exec.js" build/web
 	GOOS=js GOARCH=wasm go build -o build/web/json2go.wasm ./cmd/json2go-ws/*.go
@@ -68,7 +68,7 @@ build/windows_amd64.zip:
 
 ##### DEPLOYMENTS #####
 
-depl-pages: wasm
+depl-pages: web
 	mkdir -p build/gh-pages
 	cp -r deployments/gh-pages/* build/gh-pages
 	cp -r build/web/* build/gh-pages
