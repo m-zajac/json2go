@@ -6,7 +6,6 @@ build = GOOS=$(1) GOARCH=$(2) go build -o build/$(appname)$(3) ./cmd/json2go/*.g
 tar = cd build && tar -cvzf $(1)_$(2).tar.gz $(appname)$(3) && rm $(appname)$(3)
 zip = cd build && zip $(1)_$(2).zip $(appname)$(3) && rm $(appname)$(3)
 last_version = $(shell git describe --tags --abbrev=0)
-curr_hash = $(shell git rev-parse --short HEAD)
 
 .PHONY: all windows darwin linux web clean test lint lint-more depl-pages
 
@@ -73,4 +72,3 @@ depl-pages: web
 	cp -r deployments/gh-pages/* build/gh-pages
 	cp -r build/web/* build/gh-pages
 	sed -i 's!_VERSION_!'"$(last_version)"'!g' build/gh-pages/index.html
-	sed -i 's!_HASH_!'"$(curr_hash)"'!g' build/gh-pages/index.html
