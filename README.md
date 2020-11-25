@@ -2,15 +2,40 @@
 
 Package json2go provides utilities for creating go type representation from json inputs.
 
-## Online version
+Json2go can be used in various ways:
 
-Simple web page with webassembly json2go parser
+- CLI tool
+- Web page with conversion tool: [https://m-zajac.github.io/json2go](https://m-zajac.github.io/json2go)
+- Go package
+- VSCode extension: [vsc-json2go](https://marketplace.visualstudio.com/items?itemName=m-zajac.vsc-json2go)
 
-[https://m-zajac.github.io/json2go](https://m-zajac.github.io/json2go)
+## Why another conversion tool?
 
-## VSCode extension
+There are few tools for converting json to go types available already. But all of which I tried worked correctly with only basic documents. 
 
-[vsc-json2go](https://marketplace.visualstudio.com/items?itemName=m-zajac.vsc-json2go)
+The goal of this project is to create types, that are guaranteed to properly unmarshal input data. There are multiple test cases that check marshaling/unmarshaling both ways to ensure generated type is accurate.
+
+Here's the micro acid test if you want to check this or other conversion tools:
+
+```json
+[{"date":"2020-10-03T15:04:05Z","text":"txt1","doc":{"x":"x"}},{"date":"2020-10-03T15:05:02Z","_doc":false,"arr":[[1,null,1.23]]},{"bool":true,"doc":{"y":123}}]
+```
+
+And correct output with some comments:
+
+```go
+type Document []struct {
+        Arr  [][]*float64 `json:"arr,omitempty"` // Should be doubly nested array; should be a pointer type because there's null in values.
+        Bool *bool        `json:"bool,omitempty"` // Shouldn't be `bool` because when key is missing you'll get false information.
+        Date *time.Time   `json:"date,omitempty"` // Could be also `string` or `*string`.
+        Doc  *struct {
+                X *string `json:"x,omitempty"` // Should be pointer, because key is not present in all documents.
+                Y *int    `json:"y,omitempty"` // Should be pointer, because key is not present in all documents.
+        } `json:"doc,omitempty"` // Should be pointer, because key is not present in all documents in array.
+        Doc2 *bool   `json:"_doc,omitempty"` // Attribute for "_doc" key (other that for "doc"!). Type - the same as `Bool` attribute.
+        Text *string `json:"text,omitempty"` // Could be also `string`.
+}
+```
 
 ## CLI Installation
 
@@ -73,14 +98,14 @@ fmt.Println(res)
 ```
 ```go
 type Document struct {
-	Line struct {
-		Point1 Point `json:"point1"`
-		Point2 Point `json:"point2"`
-	} `json:"line"`
+        Line struct {
+                Point1 Point `json:"point1"`
+                Point2 Point `json:"point2"`
+        } `json:"line"`
 }
 type Point struct {
-	X float64 `json:"x"`
-	Y int     `json:"y"`
+        X float64 `json:"x"`
+        Y int     `json:"y"`
 }
 ```
 
@@ -121,15 +146,18 @@ type Point struct {
 ```
 ```go
 type Document []struct {
-	BoilingPoint *UnitsValue `json:"boiling_point,omitempty"`
-	Dangerous    *bool       `json:"dangerous,omitempty"`
-	Density      *UnitsValue `json:"density,omitempty"`
-	Name         string      `json:"name"`
-	Type         string      `json:"type"`
+        BoilingPoint *UnitsValue `json:"boiling_point,omitempty"`
+        Dangerous    *bool       `json:"dangerous,omitempty"`
+        Density      *UnitsValue `json:"density,omitempty"`
+        Name         string      `json:"name"`
+        Type         string      `json:"type"`
 }
 type UnitsValue struct {
-	Units string  `json:"units"`
-	Value float64 `json:"value"`
+        Units string  `json:"units"`
+        Value float64 `json:"value"`
 }
-
 ```
+
+## Contribution
+
+I'd love your input! Especially reporting bugs and proposing new features.

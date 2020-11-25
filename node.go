@@ -205,6 +205,16 @@ func (n *node) repr(prefix string) string {
 	return buf.String()
 }
 
+func (n *node) clone() *node {
+	n2 := *n
+	var children []*node
+	for _, c := range n.children {
+		children = append(children, c.clone())
+	}
+	n2.children = children
+	return &n2
+}
+
 // arrayStructure returns array depth and elements type. If array is nested and has no consistent structure, level -1 is returned.
 func arrayStructure(in []interface{}, inType nodeType) (depth int, outType nodeType, nullable bool) {
 	if inType == nil {

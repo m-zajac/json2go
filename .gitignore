@@ -1,3 +1,4 @@
 *.test
 build/
 /json2go
+.devcontainer/

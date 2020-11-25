@@ -37,17 +37,19 @@ func ExampleNewJSONParser() {
 	res := parser.String()
 	fmt.Println(res)
 
-	// Output: type Document struct {
-	// 	Line	*struct {
-	// 		End	XY	`json:"end"`
-	// 		Start	XY	`json:"start"`
-	// 	}	`json:"line,omitempty"`
-	// 	Triangle	[]XY	`json:"triangle,omitempty"`
+	// Output:
+	// type Document struct {
+	// 	Line *struct {
+	// 		End   XY `json:"end"`
+	// 		Start XY `json:"start"`
+	// 	} `json:"line,omitempty"`
+	// 	Triangle []XY `json:"triangle,omitempty"`
 	// }
 	// type XY struct {
-	// 	X	float64	`json:"x"`
-	// 	Y	float64	`json:"y"`
+	// 	X float64 `json:"x"`
+	// 	Y float64 `json:"y"`
 	// }
+
 }
 
 func ExampleJSONParser_FeedValue() {
@@ -59,16 +61,17 @@ func ExampleJSONParser_FeedValue() {
 	res := parser.String()
 	fmt.Println(res)
 
-	// Output: type Document struct {
+	// Output:
+	// type Document struct {
 	// 	Line struct {
-	// 		End	struct {
-	// 			X	float64	`json:"x"`
-	// 			Y	float64	`json:"y"`
-	// 		}	`json:"end"`
-	// 		Start	struct {
-	// 			X	float64	`json:"x"`
-	// 			Y	float64	`json:"y"`
-	// 		}	`json:"start"`
+	// 		End struct {
+	// 			X float64 `json:"x"`
+	// 			Y float64 `json:"y"`
+	// 		} `json:"end"`
+	// 		Start struct {
+	// 			X float64 `json:"x"`
+	//			Y float64 `json:"y"`
+	// 		} `json:"start"`
 	// 	} `json:"line"`
 	// }
 }
@@ -137,20 +140,21 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 			err = parser.FeedBytes(input)
 			require.NoError(t, err)
 
-			parserOutput := parser.String()
-			got := normalizeStr(parserOutput)
-			want := normalizeStr(tc.Out)
-			assert.Equal(t, want, got)
+			// Test .String() output 2 times to check if .String() doesn't change internal parser state.
+			for i := 0; i < 2; i++ {
+				parserOutput := parser.String()
+				got := normalizeStr(parserOutput)
+				want := normalizeStr(tc.Out)
+				assert.Equal(t, want, got)
+			}
 
-			testGeneratedType(t, tn, parserOpts, input)
+			testGeneratedType(t, tn, parser, input)
 		})
 	}
 }
 
 // testGeneratedType unmarshals test data to generated type, then marshals it again and compares generated output to original data.
-func testGeneratedType(t *testing.T, name string, parserOpts []JSONParserOpt, data []byte) {
-	// We have to create new parser because original parser can generate type only once.
-	parser := NewJSONParser("Document", parserOpts...)
+func testGeneratedType(t *testing.T, name string, parser *JSONParser, data []byte) {
 	err := parser.FeedBytes(data)
 	require.NoError(t, err)
 

@@ -100,18 +100,20 @@ func (p *JSONParser) FeedValue(input interface{}) {
 
 // String returns string representation of go struct fitting parsed json values
 func (p *JSONParser) String() string {
-	p.rootNode.sort()
+	root := p.rootNode.clone()
+
+	root.sort()
 
 	if p.opts.skipEmptyKeys {
-		p.stripEmptyKeys(p.rootNode)
+		p.stripEmptyKeys(root)
 	}
 	if p.opts.makeMaps {
-		convertViableObjectsToMaps(p.rootNode, p.opts.makeMapsWhenMinAttributes)
+		convertViableObjectsToMaps(root, p.opts.makeMapsWhenMinAttributes)
 	}
 
-	nodes := []*node{p.rootNode}
+	nodes := []*node{root}
 	if p.opts.extractCommonTypes {
-		nodes = extractCommonSubtrees(p.rootNode)
+		nodes = extractCommonSubtrees(root)
 	}
 
 	return astPrintDecls(

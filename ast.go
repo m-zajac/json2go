@@ -10,6 +10,19 @@ import (
 	"strings"
 )
 
+// Printer settings - copy from gofmt.
+// See: https://github.com/golang/go/blob/go1.15.5/src/cmd/gofmt/gofmt.go
+const (
+	tabWidth    = 8
+	printerMode = printer.UseSpaces | printer.TabIndent | printerNormalizeNumbers
+
+	// printerNormalizeNumbers means to canonicalize number literal prefixes
+	// and exponents while printing. See https://golang.org/doc/go1.13#gofmt.
+	//
+	// This value is defined in go/printer specifically for go/format and cmd/gofmt.
+	printerNormalizeNumbers = 1 << 30
+)
+
 func astMakeDecls(rootNodes []*node, opts options) []ast.Decl {
 	var decls []ast.Decl
 
@@ -34,10 +47,12 @@ func astPrintDecls(decls []ast.Decl) string {
 		Decls: decls,
 	}
 
+	// Use go/printer with settings compatible with gofmt.
 	var buf bytes.Buffer
-	printer.Fprint(&buf, token.NewFileSet(), file)
+	prn := printer.Config{Mode: printerMode, Tabwidth: tabWidth}
+	prn.Fprint(&buf, token.NewFileSet(), file)
 
-	// remove go file header
+	// Remove go file header
 	repr := buf.String()
 	repr = strings.TrimPrefix(repr, "package main")
 	repr = strings.TrimSpace(repr)
