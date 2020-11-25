@@ -6,16 +6,21 @@ import (
 	"strings"
 )
 
-const dir = "."
-
 func main() {
-	fs := http.FileServer(http.Dir(dir))
-	log.Print("Serving " + dir + " on http://localhost:8080")
+	htmlFS := http.FileServer(http.Dir("."))
+	wasmFS := http.FileServer(http.Dir("../../build/web"))
+
+	log.Print("Serving on http://localhost:8080")
 	http.ListenAndServe(":8080", http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Add("Cache-Control", "no-cache")
-		if strings.HasSuffix(req.URL.Path, ".wasm") {
+		switch {
+		case strings.HasSuffix(req.URL.Path, ".wasm"):
 			resp.Header().Set("content-type", "application/wasm")
+			wasmFS.ServeHTTP(resp, req)
+		case strings.HasSuffix(req.URL.Path, "wasm_exec.js"):
+			wasmFS.ServeHTTP(resp, req)
+		default:
+			htmlFS.ServeHTTP(resp, req)
 		}
-		fs.ServeHTTP(resp, req)
 	}))
 }
