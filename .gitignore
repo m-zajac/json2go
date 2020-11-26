@@ -2,3 +2,4 @@
 build/
 /json2go
 .devcontainer/
+.vscode/

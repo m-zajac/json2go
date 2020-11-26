@@ -64,15 +64,13 @@ func ExampleJSONParser_FeedValue() {
 	// Output:
 	// type Document struct {
 	// 	Line struct {
-	// 		End struct {
-	// 			X float64 `json:"x"`
-	// 			Y float64 `json:"y"`
-	// 		} `json:"end"`
-	// 		Start struct {
-	// 			X float64 `json:"x"`
-	//			Y float64 `json:"y"`
-	// 		} `json:"start"`
+	// 		End   XY `json:"end"`
+	// 		Start XY `json:"start"`
 	// 	} `json:"line"`
+	// }
+	// type XY struct {
+	// 	X float64 `json:"x"`
+	// 	Y float64 `json:"y"`
 	// }
 }
 
@@ -113,6 +111,7 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 			MakeMaps                     bool `yaml:"makeMaps"`
 			MakeMapsWhenMinAttributes    uint `yaml:"makeMapsWhenMinAttributes"`
 			TimeAsStr                    bool `yaml:"timeAsStr"`
+			FindReccurence               bool `yaml:"findRecurrence"`
 		} `yaml:"options"`
 		Out string `yaml:"out"`
 	}
@@ -135,6 +134,7 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 				OptSkipEmptyKeys(tc.Options.SkipEmptyKeys),
 				OptMakeMaps(tc.Options.MakeMaps, tc.Options.MakeMapsWhenMinAttributes),
 				OptTimeAsString(tc.Options.TimeAsStr),
+				OptFindRecurrence(tc.Options.FindReccurence),
 			}
 			parser := NewJSONParser(baseTypeName, parserOpts...)
 			err = parser.FeedBytes(input)
@@ -145,7 +145,7 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 				parserOutput := parser.String()
 				got := normalizeStr(parserOutput)
 				want := normalizeStr(tc.Out)
-				assert.Equal(t, want, got)
+				require.Equal(t, want, got, "want:\n%v\ngot:\n%v", want, got)
 			}
 
 			testGeneratedType(t, tn, parser, input)
@@ -165,7 +165,7 @@ func testGeneratedType(t *testing.T, name string, parser *JSONParser, data []byt
 	runCmd := exec.Command("go", "run", filename)
 	runCmd.Stdin = bytes.NewBuffer(data)
 	out, err := runCmd.CombinedOutput()
-	require.NoError(t, err, "running go code: %v, %s", err, out)
+	require.NoError(t, err, "running go code: %v, %s\ninput:\n%s\nparser out:\n%s", err, out, string(data), parserOutput)
 
 	// unmarshal input data and test output data to generic type, then compare
 	var valIn, valOut interface{}
@@ -260,6 +260,7 @@ func compareMaps(t *testing.T, a, b map[string]interface{}) bool {
 		}
 		if v != nil {
 			t.Errorf("key '%s' is missing in one of the maps", k)
+			return false
 		}
 	}
 

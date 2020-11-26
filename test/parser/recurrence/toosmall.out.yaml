@@ -1,0 +1,9 @@
+- options:
+    findRecurrence: true
+  out: |
+    type Document struct {
+      A bool `json:"a"`
+      Z struct {
+        A bool `json:"a"`
+      } `json:"z"`
+    }

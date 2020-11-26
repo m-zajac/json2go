@@ -12,6 +12,7 @@ type options struct {
 	makeMaps                     bool
 	makeMapsWhenMinAttributes    uint
 	timeAsStr                    bool
+	findRecurrence               bool
 }
 
 // JSONParserOpt is a type for setting parser options.
@@ -54,6 +55,13 @@ func OptTimeAsString(v bool) JSONParserOpt {
 	}
 }
 
+// OptFindRecurrence toggles using recurent types.
+func OptFindRecurrence(v bool) JSONParserOpt {
+	return func(o *options) {
+		o.findRecurrence = v
+	}
+}
+
 // JSONParser parses successive json inputs and returns go representation as string
 type JSONParser struct {
 	rootNode *node
@@ -66,7 +74,15 @@ func NewJSONParser(rootTypeName string, opts ...JSONParserOpt) *JSONParser {
 	rootNode.root = true
 	p := JSONParser{
 		rootNode: rootNode,
-		opts:     options{},
+		opts: options{
+			extractCommonTypes:           true,
+			stringPointersWhenKeyMissing: false,
+			skipEmptyKeys:                false,
+			makeMaps:                     true,
+			makeMapsWhenMinAttributes:    10,
+			timeAsStr:                    false,
+			findRecurrence:               true,
+		},
 	}
 	for _, o := range opts {
 		o(&p.opts)
@@ -112,8 +128,39 @@ func (p *JSONParser) String() string {
 	}
 
 	nodes := []*node{root}
+
+	if p.opts.findRecurrence {
+		replaced := replaceRecurrentNodes(root)
+		if replaced {
+			// If some type was used recurrently, it's not safe to leave root as slice type
+			// because it's type could be used.
+			if root.arrayLevel > 0 {
+				rootName := root.name
+				elemName := rootName + "Elem"
+				root.replaceExternalTypeID(rootName, elemName)
+				newRoot := &node{
+					root:           true,
+					nullable:       false,
+					required:       true,
+					key:            "root",
+					name:           rootName,
+					t:              nodeTypeExtracted,
+					externalTypeID: elemName,
+					arrayLevel:     root.arrayLevel,
+				}
+				root.name = elemName
+				root.arrayLevel = 0
+				nodes = append([]*node{newRoot}, nodes...)
+			}
+		}
+	}
+
 	if p.opts.extractCommonTypes {
-		nodes = extractCommonSubtrees(root)
+		var newNodes []*node
+		for _, n := range nodes {
+			newNodes = append(newNodes, extractCommonSubtrees(n)...)
+		}
+		nodes = newNodes
 	}
 
 	return astPrintDecls(

@@ -9,6 +9,9 @@ import (
 const (
 	baseTypeName           = "Document"
 	structIDlevelSeparator = "|"
+
+	// maxExtraAttributesForNodesToFit defines how many attributes more bigger node can have to fit smaller node.
+	maxExtraAttributesForNodesToFit = 3
 )
 
 type node struct {
@@ -146,28 +149,20 @@ func (n *node) sort() {
 }
 
 func (n *node) compare(n2 *node) bool {
-	if n.key != n2.key {
+	if !n.compareBaseProperties(n2) {
 		return false
 	}
-	if n.t.id() != n2.t.id() {
-		return false
-	}
+
 	if n.nullable != n2.nullable {
 		return false
 	}
 	if n.required != n2.required {
 		return false
 	}
-	if n.externalTypeID != n2.externalTypeID {
-		return false
-	}
-	if n.arrayLevel != n2.arrayLevel {
-		return false
-	}
+
 	if len(n.children) != len(n2.children) {
 		return false
 	}
-
 	for i, child := range n.children {
 		child2 := n2.children[i]
 		if !child.compare(child2) {
@@ -178,6 +173,23 @@ func (n *node) compare(n2 *node) bool {
 	return true
 }
 
+func (n *node) compareBaseProperties(n2 *node) bool {
+	if n.key != n2.key {
+		return false
+	}
+	if n.t.id() != n2.t.id() {
+		return false
+	}
+	if n.externalTypeID != n2.externalTypeID {
+		return false
+	}
+	if n.arrayLevel != n2.arrayLevel {
+		return false
+	}
+	return true
+}
+
+// repr returns string representation of object for debuging.
 func (n *node) repr(prefix string) string {
 	var buf bytes.Buffer
 
@@ -205,6 +217,7 @@ func (n *node) repr(prefix string) string {
 	return buf.String()
 }
 
+// clone returns deep copy of n.
 func (n *node) clone() *node {
 	n2 := *n
 	var children []*node
@@ -213,6 +226,72 @@ func (n *node) clone() *node {
 	}
 	n2.children = children
 	return &n2
+}
+
+// fits checks if n2 can fit into n.
+func (n *node) fits(n2 *node) bool {
+	if n.t != nodeTypeObject || n2.t != nodeTypeObject {
+		return false
+	}
+	if len(n2.children) > len(n.children) {
+		return false
+	}
+	if len(n2.children) == 0 && len(n.children) == 0 {
+		return true
+	}
+
+	nChildren := make(map[string]*node)
+	for _, c := range n.children {
+		nChildren[c.name] = c
+	}
+
+	// Check if all nodes from n2 are present and compatible with nodes from n.
+	n2ChildrenNames := make(map[string]bool)
+	for _, n2c := range n2.children {
+		n2ChildrenNames[n2c.name] = true
+
+		nc, ok := nChildren[n2c.name]
+		if !ok {
+			return false
+		}
+		if !nc.compareBaseProperties(n2c) {
+			return false
+		}
+		if nc.required && !n2c.required {
+			return false
+		}
+		if nc.nullable && !n2c.nullable {
+			return false
+		}
+		if nc.t == nodeTypeObject && !nc.fits(n2c) {
+			return false
+		}
+	}
+
+	// Check if rest of the n nodes are not required.
+	for _, nc := range n.children {
+		if n2ChildrenNames[nc.name] {
+			continue
+		}
+		if nc.name == n2.name {
+			continue
+		}
+
+		if nc.required && !nc.nullable {
+			return false
+		}
+	}
+
+	return len(n.children)-len(n2.children) <= maxExtraAttributesForNodesToFit
+}
+
+func (n *node) replaceExternalTypeID(old, new string) {
+	if n.externalTypeID == old {
+		n.externalTypeID = new
+	}
+	for _, c := range n.children {
+		c.replaceExternalTypeID(old, new)
+	}
 }
 
 // arrayStructure returns array depth and elements type. If array is nested and has no consistent structure, level -1 is returned.

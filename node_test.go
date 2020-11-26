@@ -2008,3 +2008,121 @@ func TestArrayStructureType(t *testing.T) {
 		})
 	}
 }
+
+func TestJSONNodeFits(t *testing.T) {
+	objectV1_1 := newObjectNode(
+		"test1",
+		newObjectNode("cv11"),
+		newObjectNode("cv12"),
+	)
+	objectV1_2 := newObjectNode(
+		"test2",
+		newObjectNode("cv11"),
+		newObjectNode("cv12"),
+		newObjectNode("cv13"),
+	)
+	objectV2_1 := newObjectNode(
+		"test3",
+		newObjectNode("cv21"),
+		newObjectNode("cv22"),
+		newObjectNode("cv23"),
+	)
+	objectV3_1 := newObjectNode(
+		"test4",
+		objectV1_1,
+		objectV2_1,
+		&node{t: nodeTypeBool, name: "cv31"},
+		&node{t: nodeTypeFloat, name: "cv32"},
+	)
+	objectV3_2 := newObjectNode(
+		"test5",
+		objectV1_1,
+		objectV1_2,
+		objectV2_1,
+		&node{t: nodeTypeBool, name: "cv31"},
+		&node{t: nodeTypeFloat, name: "cv32"},
+		&node{t: nodeTypeInt, name: "cv33"},
+	)
+
+	tests := []struct {
+		name string
+		n1   *node
+		n2   *node
+		want bool
+	}{
+		{
+			name: "non object v1",
+			n1:   &node{t: nodeTypeBool},
+			n2:   objectV1_1,
+			want: false,
+		},
+		{
+			name: "non object v2",
+			n1:   objectV1_1,
+			n2:   &node{t: nodeTypeBool},
+			want: false,
+		},
+		{
+			name: "v1_2 <= v1_1",
+			n1:   objectV1_2,
+			n2:   objectV1_1,
+			want: true,
+		},
+		{
+			name: "v1_1 !<= v1_2",
+			n1:   objectV1_1,
+			n2:   objectV1_2,
+			want: false,
+		},
+		{
+			name: "v1_1 !<= v1_2",
+			n1:   objectV1_1,
+			n2:   objectV1_2,
+			want: false,
+		},
+		{
+			name: "v1_1 !<= v2_1",
+			n1:   objectV1_1,
+			n2:   objectV2_1,
+			want: false,
+		},
+		{
+			name: "v1_1 !=> v2_1",
+			n1:   objectV2_1,
+			n2:   objectV1_1,
+			want: false,
+		},
+		{
+			name: "v3_1 => v3_2",
+			n1:   objectV3_2,
+			n2:   objectV3_1,
+			want: true,
+		},
+		{
+			name: "v3_1 !<= v3_2",
+			n1:   objectV3_1,
+			n2:   objectV3_2,
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fits := tt.n1.fits(tt.n2)
+			assert.Equal(t, tt.want, fits)
+		})
+	}
+}
+
+func newObjectNode(name string, children ...*node) *node {
+	return &node{
+		root:           false,
+		nullable:       false,
+		required:       false,
+		key:            name,
+		name:           name,
+		t:              nodeTypeObject,
+		children:       children,
+		arrayLevel:     0,
+		arrayWithNulls: false,
+	}
+}

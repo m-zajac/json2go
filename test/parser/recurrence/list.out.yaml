@@ -1,0 +1,13 @@
+- options:
+    findRecurrence: true
+    extractCommonTypes: true
+  out: |
+    type Document []DocumentElem
+    type DocumentElem struct {
+      A bool `json:"a"`
+      B string `json:"b,omitempty"`
+      C int `json:"c"`
+      D float64 `json:"d"`
+      X *DocumentElem `json:"x,omitempty"`
+      Z *DocumentElem `json:"z,omitempty"`
+    }
