@@ -83,6 +83,7 @@ func extractCommonSubtree(root *node, rootNames map[string]bool) *node {
 		extractedNode.name = extractedName
 		extractedNode.key = extractedKey
 		extractedNode.root = true
+		extractedNode.arrayLevel = 0
 
 		modifyTree(root, info.structureID, func(modNode *node) {
 			modNode.t = nodeTypeExtracted
