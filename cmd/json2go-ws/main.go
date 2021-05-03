@@ -45,35 +45,30 @@ func parseOpts(jsVal js.Value) (opts []json2go.JSONParserOpt, rootName string) {
 		return nil, rootName
 	}
 
-	var useMapsMinAttrs uint = 5
-	useMaps := jsVal.Get("useMaps").Truthy()
-	if useMaps {
+	if v := jsVal.Get("extractCommonTypes"); !v.IsUndefined() {
+		opts = append(opts, json2go.OptExtractCommonTypes(v.Truthy()))
+	}
+	if v := jsVal.Get("stringPointersWhenKeyMissing"); !v.IsUndefined() {
+		opts = append(opts, json2go.OptStringPointersWhenKeyMissing(v.Truthy()))
+	}
+	if v := jsVal.Get("skipEmptyKeys"); !v.IsUndefined() {
+		opts = append(opts, json2go.OptSkipEmptyKeys(v.Truthy()))
+	}
+	if v := jsVal.Get("useMaps"); !v.IsUndefined() {
+		var useMapsMinAttrs uint = 5
 		if v := jsVal.Get("useMapsMinAttrs").String(); v != "" {
 			if w, err := strconv.ParseUint(v, 10, 64); err == nil {
 				useMapsMinAttrs = uint(w)
 			}
 		}
+		opts = append(opts, json2go.OptMakeMaps(v.Truthy(), useMapsMinAttrs))
 	}
-
-	opts = append(
-		opts,
-		json2go.OptExtractCommonTypes(
-			jsVal.Get("extractCommonTypes").Truthy(),
-		),
-		json2go.OptStringPointersWhenKeyMissing(
-			jsVal.Get("stringPointersWhenKeyMissing").Truthy(),
-		),
-		json2go.OptSkipEmptyKeys(
-			jsVal.Get("skipEmptyKeys").Truthy(),
-		),
-		json2go.OptMakeMaps(
-			jsVal.Get("useMaps").Truthy(),
-			useMapsMinAttrs,
-		),
-		json2go.OptTimeAsString(
-			jsVal.Get("timeAsStr").Truthy(),
-		),
-	)
+	if v := jsVal.Get("timeAsStr"); !v.IsUndefined() {
+		opts = append(opts, json2go.OptTimeAsString(v.Truthy()))
+	}
+	if v := jsVal.Get("findRecurrence"); !v.IsUndefined() {
+		opts = append(opts, json2go.OptFindRecurrence(v.Truthy()))
+	}
 
 	ro := jsVal.Get("rootName")
 	if ro.Type() == js.TypeString {

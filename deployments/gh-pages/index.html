@@ -121,6 +121,15 @@
                             </label>
                         </div>
                     </div>
+
+                    <div class="input-group mb-2 mr-sm-3">
+                        <div class="form-check">
+                            <input name="checkbox" id="findRecurrence" type="checkbox" class="json2go form-check-input" checked="checked">
+                            <label for="findRecurrence" class="form-check-label">
+                                Detect recurrent types
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -246,6 +255,7 @@
                     useMaps: document.getElementById("useMaps").checked,
                     useMapsMinAttrs: document.getElementById("useMapsMinAttrs").value,
                     timeAsStr: document.getElementById("timeAsStr").checked,
+                    findRecurrence: document.getElementById("findRecurrence").checked,
                 };
                 let out = json2go(json, opts);
 

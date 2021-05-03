@@ -1,4 +1,5 @@
-- options: {}
+- options:
+    findRecurrence: false
   out: |
     type Document []struct {
       Zinner1 struct {

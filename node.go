@@ -229,15 +229,26 @@ func (n *node) clone() *node {
 }
 
 // fits checks if n2 can fit into n.
-func (n *node) fits(n2 *node) bool {
+// Returns bool and similarity score in range [0, 1].
+func (n *node) fits(n2 *node) (fits bool, similarity float64) {
+	ok, diff := n._fits(n2)
+	if !ok {
+		return false, 0
+	}
+
+	nAttrCount := n.attributeCount()
+	return true, float64(nAttrCount-diff) / float64(nAttrCount)
+}
+
+func (n *node) _fits(n2 *node) (ok bool, diff int) {
 	if n.t != nodeTypeObject || n2.t != nodeTypeObject {
-		return false
+		return false, 0
 	}
 	if len(n2.children) > len(n.children) {
-		return false
+		return false, 0
 	}
 	if len(n2.children) == 0 && len(n.children) == 0 {
-		return true
+		return true, 0
 	}
 
 	nChildren := make(map[string]*node)
@@ -252,19 +263,23 @@ func (n *node) fits(n2 *node) bool {
 
 		nc, ok := nChildren[n2c.name]
 		if !ok {
-			return false
+			return false, 0
 		}
 		if !nc.compareBaseProperties(n2c) {
-			return false
+			return false, 0
 		}
 		if nc.required && !n2c.required {
-			return false
+			return false, 0
 		}
 		if nc.nullable && !n2c.nullable {
-			return false
+			return false, 0
 		}
-		if nc.t == nodeTypeObject && !nc.fits(n2c) {
-			return false
+		if nc.t == nodeTypeObject {
+			ok, cdiff := nc._fits(n2c)
+			if !ok {
+				return false, 0
+			}
+			diff += cdiff
 		}
 	}
 
@@ -276,13 +291,25 @@ func (n *node) fits(n2 *node) bool {
 		if nc.name == n2.name {
 			continue
 		}
-
+		diff++
 		if nc.required && !nc.nullable {
-			return false
+			return false, 0
 		}
 	}
 
-	return len(n.children)-len(n2.children) <= maxExtraAttributesForNodesToFit
+	return true, diff
+}
+
+func (n *node) attributeCount() int {
+	if n.t != nodeTypeObject {
+		return 0
+	}
+
+	count := 0
+	for _, c := range n.children {
+		count += 1 + c.attributeCount()
+	}
+	return count
 }
 
 func (n *node) replaceExternalTypeID(old, new string) {

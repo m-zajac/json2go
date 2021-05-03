@@ -2045,10 +2045,11 @@ func TestJSONNodeFits(t *testing.T) {
 	)
 
 	tests := []struct {
-		name string
-		n1   *node
-		n2   *node
-		want bool
+		name      string
+		n1        *node
+		n2        *node
+		want      bool
+		wantScore float64
 	}{
 		{
 			name: "non object v1",
@@ -2063,10 +2064,11 @@ func TestJSONNodeFits(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "v1_2 <= v1_1",
-			n1:   objectV1_2,
-			n2:   objectV1_1,
-			want: true,
+			name:      "v1_2 <= v1_1",
+			n1:        objectV1_2,
+			n2:        objectV1_1,
+			want:      true,
+			wantScore: 0.667, // v1_2 has 3 attributes, v1_1 has misses 1 attribute, (3-1)/3 == 0.667
 		},
 		{
 			name: "v1_1 !<= v1_2",
@@ -2093,10 +2095,11 @@ func TestJSONNodeFits(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "v3_1 => v3_2",
-			n1:   objectV3_2,
-			n2:   objectV3_1,
-			want: true,
+			name:      "v3_1 => v3_2",
+			n1:        objectV3_2,
+			n2:        objectV3_1,
+			want:      true,
+			wantScore: 0.857, // v3_2 has 14 attributes, v3_1 misses 2 attributes, (14-2)/14 == 0.857
 		},
 		{
 			name: "v3_1 !<= v3_2",
@@ -2107,8 +2110,12 @@ func TestJSONNodeFits(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fits := tt.n1.fits(tt.n2)
+			fits, score := tt.n1.fits(tt.n2)
 			assert.Equal(t, tt.want, fits)
+			assert.InDelta(t, tt.wantScore, score, 0.01)
+			if fits {
+				t.Log(score)
+			}
 		})
 	}
 }

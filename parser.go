@@ -117,52 +117,12 @@ func (p *JSONParser) FeedValue(input interface{}) {
 // String returns string representation of go struct fitting parsed json values
 func (p *JSONParser) String() string {
 	root := p.rootNode.clone()
-
 	root.sort()
 
-	if p.opts.skipEmptyKeys {
-		p.stripEmptyKeys(root)
-	}
-	if p.opts.makeMaps {
-		convertViableObjectsToMaps(root, p.opts.makeMapsWhenMinAttributes)
-	}
-
-	nodes := []*node{root}
-
-	if p.opts.findRecurrence {
-		replaced := replaceRecurrentNodes(root)
-		if replaced {
-			// If some type was used recurrently, it's not safe to leave root as slice type
-			// because it's type could be used.
-			if root.arrayLevel > 0 {
-				rootName := root.name
-				elemName := rootName + "Elem"
-				root.replaceExternalTypeID(rootName, elemName)
-				newRoot := &node{
-					root:           true,
-					nullable:       false,
-					required:       true,
-					key:            "root",
-					name:           rootName,
-					t:              nodeTypeExtracted,
-					externalTypeID: elemName,
-					arrayLevel:     root.arrayLevel,
-				}
-				root.name = elemName
-				root.arrayLevel = 0
-				nodes = append([]*node{newRoot}, nodes...)
-			}
-		}
-	}
-
-	if p.opts.extractCommonTypes {
-		var newNodes []*node
-		for _, n := range nodes {
-			newNodes = append(newNodes, extractCommonSubtrees(n)...)
-		}
-		nodes = newNodes
-	}
-
+	p.stripEmptyKeys(root)
+	p.makeMaps(root)
+	nodes := p.findRecurrence(root)
+	nodes = p.extractTypes(nodes)
 	return astPrintDecls(
 		astMakeDecls(nodes, p.opts),
 	)
@@ -178,6 +138,9 @@ func (p *JSONParser) ASTDecls() []ast.Decl {
 }
 
 func (p *JSONParser) stripEmptyKeys(n *node) {
+	if !p.opts.skipEmptyKeys {
+		return
+	}
 	if len(n.children) == 0 {
 		return
 	}
@@ -190,4 +153,54 @@ func (p *JSONParser) stripEmptyKeys(n *node) {
 		}
 	}
 	n.children = newChildren
+}
+
+func (p *JSONParser) makeMaps(root *node) {
+	if !p.opts.makeMaps {
+		return
+	}
+	convertViableObjectsToMaps(root, p.opts.makeMapsWhenMinAttributes)
+}
+
+func (p *JSONParser) findRecurrence(root *node) []*node {
+	if !p.opts.findRecurrence {
+		return []*node{root}
+	}
+
+	// If some type was used recurrently, it's not safe to leave root as slice type
+	// because it's type could be used.
+	replaced := replaceRecurrentNodes(root)
+	if !replaced || root.arrayLevel == 0 {
+		return []*node{root}
+	}
+
+	rootName := root.name
+	elemName := rootName + "Elem"
+	root.replaceExternalTypeID(rootName, elemName)
+	newRoot := &node{
+		root:           true,
+		nullable:       false,
+		required:       true,
+		key:            "root",
+		name:           rootName,
+		t:              nodeTypeExtracted,
+		externalTypeID: elemName,
+		arrayLevel:     root.arrayLevel,
+	}
+	root.name = elemName
+	root.arrayLevel = 0
+	return append([]*node{newRoot}, root)
+}
+
+func (p *JSONParser) extractTypes(nodes []*node) []*node {
+	if !p.opts.extractCommonTypes {
+		return nodes
+	}
+
+	var newNodes []*node
+	for _, n := range nodes {
+		newNodes = append(newNodes, extractCommonSubtrees(n)...)
+	}
+
+	return newNodes
 }

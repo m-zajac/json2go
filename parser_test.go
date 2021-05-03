@@ -97,7 +97,9 @@ func TestParser(t *testing.T) {
 
 		return nil
 	})
-	t.Log(err)
+	if err != nil {
+		t.Log(err)
+	}
 }
 
 func testFile(t *testing.T, name, inPath, outPath string) {

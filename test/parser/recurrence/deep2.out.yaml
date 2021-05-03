@@ -1,0 +1,18 @@
+- options:
+    findRecurrence: true
+    extractCommonTypes: true
+  out: |
+    type Document struct {
+      A bool `json:"a"`
+      B string `json:"b"`
+      C int `json:"c"`
+      D float64 `json:"d"`
+      Z *EFG `json:"z"`
+    }
+    type EFG struct {
+      E bool `json:"e"`
+      F string `json:"f"`
+      G int `json:"g"`
+      H float64 `json:"h"`
+      X *EFG `json:"x"`
+    }

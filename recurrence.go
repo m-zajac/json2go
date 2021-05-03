@@ -1,7 +1,8 @@
 package json2go
 
 const (
-	minNumOfAttributesForRecurrence = 3
+	minRecurrentReplaceScore        = 0.6
+	minReccurentTypeAttributesCount = 2
 )
 
 func replaceRecurrentNodes(root *node) bool {
@@ -12,7 +13,7 @@ func replaceRecurrent(n *node, parents []*node) bool {
 	if n.t != nodeTypeObject {
 		return false
 	}
-	if len(n.children) < minNumOfAttributesForRecurrence {
+	if len(n.children) == 0 {
 		return false
 	}
 
@@ -22,9 +23,13 @@ func replaceRecurrent(n *node, parents []*node) bool {
 		if c.t != nodeTypeObject {
 			continue
 		}
+		if len(c.children) < minReccurentTypeAttributesCount {
+			continue
+		}
 
 		for _, p := range parents {
-			if p.fits(c) {
+			fits, score := p.fits(c)
+			if fits && score >= minRecurrentReplaceScore {
 				n.children[i] = &node{
 					root:           false,
 					nullable:       true, // recurrent type hase to be a pointer

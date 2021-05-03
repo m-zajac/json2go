@@ -16,6 +16,7 @@ func main() {
 	useMaps := flag.Bool("m", true, "Try to use maps instead of structs where possible")
 	useMapsMinAttrs := flag.Int("mk", 5, "Minimum number of attributes in object to try converting it to a map.")
 	timeAsStr := flag.Bool("st", false, "Don't use time.Time type, just strings")
+	findRecurrence := flag.Bool("r", true, "Detect recurrent types")
 	rootTypeName := flag.String("n", "Document", "Type name")
 
 	flag.Parse()
@@ -34,6 +35,7 @@ func main() {
 		json2go.OptSkipEmptyKeys(*skipEmptyKeys),
 		json2go.OptMakeMaps(*useMaps, uint(*useMapsMinAttrs)),
 		json2go.OptTimeAsString(*timeAsStr),
+		json2go.OptFindRecurrence(*findRecurrence),
 	)
 
 	parser.FeedValue(data)
