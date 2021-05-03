@@ -1,0 +1,28 @@
+[
+    {
+        "starttime": "2021-03-10T08:04:05Z",
+        "endtime": "2021-03-10T15:04:05Z",
+        "details": [
+            {
+                "state": "working",
+                "duration": 25
+            },
+            {
+                "state": "idle",
+                "duration": 15
+            },
+            {
+                "state": "working",
+                "duration": 20
+            }
+        ]
+    },
+    {
+        "starttime": "2021-03-10T08:04:05Z",
+        "endtime": "2021-03-10T15:04:05Z",
+        "totalwork": {
+            "state": "working",
+            "duration": 25
+        }
+    }
+]
