@@ -160,10 +160,8 @@
         }
 
         const go = new Go();
-        let mod, inst;
         WebAssembly.instantiateStreaming(fetch("json2go.wasm"), go.importObject).then((result) => {
-            mod = result.module;
-            inst = result.instance;
+            const inst = result.instance;
             go.run(inst);
         }).then(() => {
             let onChange = () => { };

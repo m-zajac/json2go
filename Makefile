@@ -1,7 +1,5 @@
 appname := json2go
 
-goroot := $(shell go env GOROOT)
-
 build = GOOS=$(1) GOARCH=$(2) go build -o build/$(appname)$(3) ./cmd/json2go/*.go && chmod gu+x build/$(appname)$(3)
 tar = cd build && tar -cvzf $(1)_$(2).tar.gz $(appname)$(3) && rm $(appname)$(3)
 zip = cd build && zip $(1)_$(2).zip $(appname)$(3) && rm $(appname)$(3)
@@ -9,7 +7,7 @@ last_version = $(shell git describe --tags --abbrev=0)
 
 .PHONY: all windows darwin linux web clean test lint lint-more depl-pages
 
-all: windows darwin linux web
+all: windows darwin linux web tinyweb
 
 clean:
 	rm -rf build/
@@ -41,8 +39,13 @@ darwin: build/darwin_amd64.tar.gz
 windows: build/windows_386.zip build/windows_amd64.zip
 web:
 	mkdir -p build/web
-	cp "$(goroot)/misc/wasm/wasm_exec.js" build/web
-	GOOS=js GOARCH=wasm go build -o build/web/json2go.wasm ./cmd/json2go-ws/*.go
+	cp "$(shell go env GOROOT)/misc/wasm/wasm_exec.js" build/web
+	GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o build/web/json2go.wasm ./cmd/json2go-ws/*.go
+
+tinyweb:
+	mkdir -p build/tinyweb
+	cp "$(shell tinygo env TINYGOROOT)/targets/wasm_exec.js" build/tinyweb
+	tinygo build --no-debug -target wasm -o build/tinyweb/json2go.wasm ./cmd/json2go-ws/*.go
 
 build/linux_386.tar.gz:
 	$(call build,linux,386,)

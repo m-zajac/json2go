@@ -8,7 +8,7 @@ import (
 
 func main() {
 	htmlFS := http.FileServer(http.Dir("."))
-	wasmFS := http.FileServer(http.Dir("../../build/web"))
+	wasmFS := http.FileServer(http.Dir("../../build/tinyweb"))
 
 	log.Print("Serving on http://localhost:8080")
 	http.ListenAndServe(":8080", http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
