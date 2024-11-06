@@ -1,4 +1,4 @@
-module github.com/m-zajac/json2go
+module github.com/heucoder/json2go
 
 go 1.13
 
