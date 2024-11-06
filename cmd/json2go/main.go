@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/m-zajac/json2go"
+	"github.com/heucoder/json2go"
 )
 
 func main() {
