@@ -130,6 +130,21 @@ func (p *JSONParser) ASTDecls() []ast.Decl {
 	)
 }
 
+func (p *JSONParser) ASTDeclsWithOpt() []ast.Decl {
+	root := p.rootNode.clone()
+	root.sort()
+	if p.opts.skipEmptyKeys {
+		p.stripEmptyKeys(root)
+	}
+	if p.opts.makeMaps {
+		convertViableObjectsToMaps(root, p.opts.makeMapsWhenMinAttributes)
+	}
+	return astMakeDecls(
+		[]*node{p.rootNode},
+		p.opts,
+	)
+}
+
 func (p *JSONParser) stripEmptyKeys(n *node) {
 	if len(n.children) == 0 {
 		return
