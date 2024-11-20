@@ -3,17 +3,17 @@ package json2go
 import "strings"
 
 func convertViableObjectsToMaps(root *node, minAttributes uint) {
-	for _, c := range root.children {
-		if c.t.id() != nodeTypeObject.id() {
-			continue
-		}
+	// for _, c := range root.children {
+	// 	if c.t.id() != nodeTypeObject.id() {
+	// 		continue
+	// 	}
 
-		convertViableObjectsToMaps(c, minAttributes)
+	// 	convertViableObjectsToMaps(c, minAttributes)
 
-		if tryConvertToMap(c, minAttributes) {
-			continue
-		}
-	}
+	// 	if tryConvertToMap(c, minAttributes) {
+	// 		continue
+	// 	}
+	// }
 
 	tryConvertToMap(root, minAttributes)
 }
