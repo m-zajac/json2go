@@ -39,7 +39,7 @@ type Document []struct {
 
 ## CLI Installation
 
-    go get github.com/m-zajac/json2go/...
+    go install github.com/m-zajac/json2go/cmd/json2go@latest
 
 ## Usage
 
