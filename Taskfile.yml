@@ -70,6 +70,21 @@ tasks:
       - task: build-package
         vars: { GOOS: windows, GOARCH: amd64, EXT: .exe, FORMAT: zip, PKG_EXT: zip }
 
+  deploy-pages:
+    desc: Prepare gh-pages deployment
+    deps:
+      - web
+    sources:
+      - "deployments/gh-pages/**/*"
+      - "build/web/**/*"
+    generates:
+      - "build/gh-pages/index.html"
+    cmds:
+      - mkdir -p build/gh-pages
+      - cp -r deployments/gh-pages/* build/gh-pages/
+      - cp -r build/web/* build/gh-pages/
+      - sed -i 's!_VERSION_!{{.LAST_VERSION}}!g' build/gh-pages/index.html
+
   build-package:
     internal: true
     vars:
@@ -111,18 +126,3 @@ tasks:
       - mkdir -p build/web
       - cp "{{.WASM_EXEC}}" build/web/
       - GOOS=js GOARCH=wasm go build -o build/web/json2go.wasm ./cmd/json2go-ws/*.go
-
-  deploy-pages:
-    desc: Prepare gh-pages deployment
-    deps:
-      - web
-    sources:
-      - "deployments/gh-pages/**/*"
-      - "build/web/**/*"
-    generates:
-      - "build/gh-pages/index.html"
-    cmds:
-      - mkdir -p build/gh-pages
-      - cp -r deployments/gh-pages/* build/gh-pages/
-      - cp -r build/web/* build/gh-pages/
-      - sed -i 's!_VERSION_!{{.LAST_VERSION}}!g' build/gh-pages/index.html
