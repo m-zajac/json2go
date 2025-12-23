@@ -3,3 +3,4 @@ build/
 /json2go
 .devcontainer/
 .task/
+.cursor/
