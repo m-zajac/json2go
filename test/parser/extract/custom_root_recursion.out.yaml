@@ -1,0 +1,18 @@
+- options:
+    extractCommonTypes: true
+    rootName: Project
+    makeMaps: false
+  out: |
+    type Project struct {
+      F1   int      `json:"f1"`
+      F2   int      `json:"f2"`
+      F3   int      `json:"f3"`
+      F4   int      `json:"f4"`
+      F5   int      `json:"f5"`
+      F6   int      `json:"f6"`
+      F7   int      `json:"f7"`
+      F8   int      `json:"f8"`
+      F9   int      `json:"f9"`
+      Node *Project `json:"node"`
+    }
+

@@ -124,10 +124,10 @@ func tryExtractSimilarity(root *node, candidates []*node, allRoots []*node, root
 		}
 
 		for _, r := range allRoots {
-			// If it's the root Document node, we want to be very sure it's recursive.
+			// If it's the root node, we want to be very sure it's recursive.
 			threshold := opts.extractSimilarityThreshold
-			if r.root && r.key == baseTypeName { // Assuming baseTypeName is "Document"
-				threshold = 0.9 // Higher threshold for root Document
+			if r.root && r.key == root.key {
+				threshold = 0.9 // Higher threshold for root node
 			}
 
 			sim := c.similarity(r)
@@ -599,14 +599,4 @@ func structureID(n *node, withKey bool) string {
 		result += structIDlevelSeparator + strings.Join(parts, ",")
 	}
 	return result
-}
-
-func modifyTree(root *node, structID string, f func(*node)) {
-	for i, child := range root.children {
-		if structureID(child, false) == structID {
-			f(root.children[i])
-		}
-
-		modifyTree(child, structID, f)
-	}
 }

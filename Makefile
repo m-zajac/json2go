@@ -17,11 +17,7 @@ clean:
 test:
 	go test -race ./...
 
-lint: $(shell go env GOPATH)/bin/golint
-	go vet ./...
-	$(shell go env GOPATH)/bin/golint -set_exit_status `go list ./... | grep -v /vendor/`
-
-lint-more: $(shell go env GOPATH)/bin/golangci-lint
+lint: $(shell go env GOPATH)/bin/golangci-lint
 	$(shell go env GOPATH)/bin/golangci-lint run ./...
 
 
