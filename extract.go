@@ -179,6 +179,10 @@ func extractNodes(root *node, nodes []*node, rootNames map[string]bool, parentKe
 		allParentKeys = append(allParentKeys, parentKeys[n]...)
 	}
 	extractedKey, extractedName := makeNameFromNodes(nodes, allParentKeys)
+	if extractedName == "" {
+		extractedName = "Extracted"
+		extractedKey = "extracted"
+	}
 	for rootNames[extractedName] {
 		extractedName = nextName(extractedName)
 		extractedKey = nextName(extractedKey)
@@ -334,6 +338,10 @@ func tryExtractSubset(root *node, candidates []*node, allRoots []*node, rootName
 			extractedName = attrName(extractedKey)
 		}
 
+		if extractedName == "" {
+			extractedName = "Extracted"
+			extractedKey = "extracted"
+		}
 		for rootNames[extractedName] {
 			extractedName = nextName(extractedName)
 			extractedKey = nextName(extractedKey)
@@ -513,6 +521,11 @@ func makeNameFromNodes(nodes []*node, parentKeys []string) (key, name string) {
 		}
 		key = nameFromNamesCapped(keys...)
 		name = attrName(key)
+	}
+
+	if name == "" {
+		key = "extracted"
+		name = "Extracted"
 	}
 
 	return key, name

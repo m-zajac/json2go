@@ -84,9 +84,9 @@ func astTypeFromNode(n *node, opts options, rootNodeName string) ast.Expr {
 		resultType = astStructTypeFromNode(n, opts, rootNodeName)
 	case nodeExtractedType:
 		resultType = astTypeFromExtractedNode(n)
-		if n.externalTypeID == rootNodeName || (n.externalTypeID == "" && n.name == rootNodeName) {
+		if (n.externalTypeID == rootNodeName || (n.externalTypeID == "" && n.name == rootNodeName)) && n.arrayLevel == 0 {
 			// Recursive reference
-			return &ast.StarExpr{X: resultType}
+			resultType = &ast.StarExpr{X: resultType}
 		}
 	case nodeInterfaceType, nodeInitType:
 		resultType = newEmptyInterfaceExpr()
