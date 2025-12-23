@@ -257,6 +257,10 @@ func tryExtractSubset(root *node, candidates []*node, allRoots []*node, rootName
 							continue
 						}
 
+						if collidesWithFields(existingRoot.name, c3, common) {
+							continue
+						}
+
 						// Replace fields with embedding.
 						newChildren := make([]*node, 0, len(c3.children)-len(common)+1)
 						newChildren = append(newChildren, &node{
@@ -342,9 +346,31 @@ func tryExtractSubset(root *node, candidates []*node, allRoots []*node, rootName
 			extractedName = "Extracted"
 			extractedKey = "extracted"
 		}
-		for rootNames[extractedName] {
-			extractedName = nextName(extractedName)
-			extractedKey = nextName(extractedKey)
+		for {
+			if rootNames[extractedName] {
+				extractedName = nextName(extractedName)
+				extractedKey = nextName(extractedKey)
+				continue
+			}
+
+			collides := false
+			for _, n := range best.nodes {
+				if len(n.children) == len(best.keys) {
+					continue
+				}
+				if collidesWithFields(extractedName, n, best.keys) {
+					collides = true
+					break
+				}
+			}
+
+			if collides {
+				extractedName = nextName(extractedName)
+				extractedKey = nextName(extractedKey)
+				continue
+			}
+
+			break
 		}
 		rootNames[extractedName] = true
 
@@ -579,6 +605,35 @@ func mergeNodes(nodes []*node) *node {
 	}
 
 	return merged
+}
+
+func isFieldExcluded(child *node, excludingKeys []string) bool {
+	for _, k := range excludingKeys {
+		if strings.HasPrefix(k, "|") {
+			if child.embedded && child.externalTypeID == strings.TrimPrefix(k, "|") {
+				return true
+			}
+		} else if child.key == k {
+			return true
+		}
+	}
+	return false
+}
+
+func collidesWithFields(name string, n *node, excludingKeys []string) bool {
+	for _, child := range n.children {
+		if isFieldExcluded(child, excludingKeys) {
+			continue
+		}
+		if child.embedded {
+			if child.externalTypeID == name {
+				return true
+			}
+		} else if attrName(child.key) == name {
+			return true
+		}
+	}
+	return false
 }
 
 // structureID returns identifier unique for this nodes structure

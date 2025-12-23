@@ -2,14 +2,13 @@
     extractCommonTypes: true
     rootName: Project
     makeMaps: false
-    skipGoRun: true
   out: |
     type Project struct {
-      Node
-      Node Node `json:"node"`
+      Node2
+      Node Node2 `json:"node"`
     }
 
-    type Node struct {
+    type Node2 struct {
       A int `json:"a"`
       B int `json:"b"`
       C int `json:"c"`
