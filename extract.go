@@ -195,10 +195,6 @@ func extractNodes(root *node, nodes []*node, rootNames map[string]bool, parentKe
 	extractedNode.root = true
 	extractedNode.arrayLevel = 0
 
-	// We need a way to identify these specific nodes to replace them.
-	// Since we don't have unique IDs, we'll use pointer comparison if they are in the same tree.
-	// But wait, some might be from different roots.
-	// Actually, candidates were collected from allRoots.
 	for _, n := range nodes {
 		n.t = nodeTypeExtracted
 		n.externalTypeID = extractedName
