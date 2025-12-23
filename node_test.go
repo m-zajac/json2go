@@ -1799,7 +1799,7 @@ func TestJSONNodeExtractCommonSubtrees(t *testing.T) {
 
 			opts := options{}
 
-			nodes := extractCommonSubtrees(tc.root)
+			nodes := extractCommonSubtrees(tc.root, defaultOptions())
 			if !assert.Equal(t, len(tc.expected), len(nodes)) {
 				t.Logf("\n%s\n\n", astPrintDecls(astMakeDecls(nodes, opts)))
 				t.FailNow()

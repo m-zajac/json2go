@@ -32,7 +32,7 @@ func astMakeDecls(rootNodes []*node, opts options) []ast.Decl {
 			Specs: []ast.Spec{
 				&ast.TypeSpec{
 					Name: ast.NewIdent(node.name),
-					Type: astTypeFromNode(node, opts),
+					Type: astTypeFromNode(node, opts, node.name),
 				},
 			},
 		})
@@ -60,7 +60,7 @@ func astPrintDecls(decls []ast.Decl) string {
 	return repr
 }
 
-func astTypeFromNode(n *node, opts options) ast.Expr {
+func astTypeFromNode(n *node, opts options, rootNodeName string) ast.Expr {
 	var resultType ast.Expr
 	notRequiredAsPointer := true
 	allowPointer := true
@@ -81,22 +81,28 @@ func astTypeFromNode(n *node, opts options) ast.Expr {
 			notRequiredAsPointer = opts.stringPointersWhenKeyMissing
 		}
 	case nodeObjectType:
-		resultType = astStructTypeFromNode(n, opts)
+		resultType = astStructTypeFromNode(n, opts, rootNodeName)
 	case nodeExtractedType:
 		resultType = astTypeFromExtractedNode(n)
+		if n.externalTypeID == rootNodeName || (n.externalTypeID == "" && n.name == rootNodeName) {
+			// Recursive reference
+			return &ast.StarExpr{X: resultType}
+		}
 	case nodeInterfaceType, nodeInitType:
 		resultType = newEmptyInterfaceExpr()
 		allowPointer = false
 	case nodeMapType:
-		resultType = astTypeFromMapNode(n, opts)
+		resultType = astTypeFromMapNode(n, opts, rootNodeName)
 		allowPointer = false
 	default:
 		panic(fmt.Sprintf("unknown type: %v", n.t))
 	}
 
 	if astTypeShouldBeAPointer(n, notRequiredAsPointer, allowPointer) {
-		resultType = &ast.StarExpr{
-			X: resultType,
+		if _, ok := resultType.(*ast.StarExpr); !ok {
+			resultType = &ast.StarExpr{
+				X: resultType,
+			}
 		}
 	}
 
@@ -124,12 +130,12 @@ func astTypeFromTimeNode(n *node, opts options) ast.Expr {
 	return resultType
 }
 
-func astTypeFromMapNode(n *node, opts options) ast.Expr {
+func astTypeFromMapNode(n *node, opts options, rootNodeName string) ast.Expr {
 	var ve ast.Expr
 	if len(n.children) == 0 {
 		ve = newEmptyInterfaceExpr()
 	} else {
-		ve = astTypeFromNode(n.children[0], opts)
+		ve = astTypeFromNode(n.children[0], opts, rootNodeName)
 	}
 	return &ast.MapType{
 		Key:   ast.NewIdent("string"),
@@ -145,7 +151,7 @@ func astTypeFromExtractedNode(n *node) ast.Expr {
 	return ast.NewIdent(extName)
 }
 
-func astStructTypeFromNode(n *node, opts options) *ast.StructType {
+func astStructTypeFromNode(n *node, opts options, rootNodeName string) *ast.StructType {
 	typeDesc := &ast.StructType{
 		Fields: &ast.FieldList{
 			List: []*ast.Field{},
@@ -169,11 +175,14 @@ func astStructTypeFromNode(n *node, opts options) *ast.StructType {
 	})
 
 	for _, child := range sortedChildren {
-		typeDesc.Fields.List = append(typeDesc.Fields.List, &ast.Field{
-			Names: []*ast.Ident{ast.NewIdent(child.name)},
-			Type:  astTypeFromNode(child.node, opts),
-			Tag:   astJSONTag(child.node.key, !child.node.required),
-		})
+		field := &ast.Field{
+			Type: astTypeFromNode(child.node, opts, rootNodeName),
+		}
+		if !child.node.embedded {
+			field.Names = []*ast.Ident{ast.NewIdent(child.name)}
+			field.Tag = astJSONTag(child.node.key, !child.node.required)
+		}
+		typeDesc.Fields.List = append(typeDesc.Fields.List, field)
 	}
 
 	return typeDesc

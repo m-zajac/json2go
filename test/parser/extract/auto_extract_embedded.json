@@ -1,0 +1,9 @@
+{
+  "recordings": [
+    {"id": "1", "title": "T1", "length": 100},
+    {"id": "2", "title": "T2", "length": 200}
+  ],
+  "releases": [
+    {"id": "1", "title": "R1", "date": "2020"}
+  ]
+}

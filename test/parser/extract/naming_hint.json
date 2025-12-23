@@ -1,0 +1,10 @@
+{
+  "billing_address": {
+    "street": "123 Main St",
+    "city": "Springfield"
+  },
+  "shipping_address": {
+    "street": "456 Oak Ave",
+    "city": "Shelbyville"
+  }
+}

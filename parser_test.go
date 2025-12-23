@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -117,10 +116,10 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 		Out string `yaml:"out"`
 	}
 
-	input, err := ioutil.ReadFile(inPath)
+	input, err := os.ReadFile(inPath)
 	require.NoError(t, err)
 
-	output, err := ioutil.ReadFile(outPath)
+	output, err := os.ReadFile(outPath)
 	require.NoError(t, err)
 
 	var tests []testDef

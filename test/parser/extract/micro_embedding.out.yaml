@@ -1,0 +1,18 @@
+- options:
+    extractCommonTypes: true
+  out: |
+    type Document struct {
+      Artists []IDName `json:"artists"`
+      Concerts []Concerts `json:"concerts"`
+      Venues []IDName `json:"venues"`
+    }
+
+    type IDName struct {
+      ID int `json:"id"`
+      Name string `json:"name"`
+    }
+
+    type Concerts struct {
+      IDName
+      Date string `json:"date"`
+    }

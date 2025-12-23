@@ -22,6 +22,7 @@ type node struct {
 	children       []*node
 	arrayLevel     int
 	arrayWithNulls bool
+	embedded       bool
 }
 
 func newNode(key string) *node {
@@ -86,6 +87,7 @@ func (n *node) getOrCreateChild(key string) (*node, bool) {
 	}
 
 	n.children = append(n.children, child)
+
 	return child, true
 }
 
@@ -213,6 +215,46 @@ func (n *node) clone() *node {
 	}
 	n2.children = children
 	return &n2
+}
+
+func (n *node) similarity(n2 *node) float64 {
+	if n.t.id() != n2.t.id() {
+		return 0
+	}
+
+	if len(n.children) == 0 && len(n2.children) == 0 {
+		return 1
+	}
+
+	set1 := make(map[string]bool)
+	for _, c := range n.children {
+		set1[c.key+"|"+c.t.id()] = true
+	}
+
+	set2 := make(map[string]bool)
+	for _, c := range n2.children {
+		set2[c.key+"|"+c.t.id()] = true
+	}
+
+	intersection := 0
+	for k := range set1 {
+		if set2[k] {
+			intersection++
+		}
+	}
+
+	union := len(set1)
+	for k := range set2 {
+		if !set1[k] {
+			union++
+		}
+	}
+
+	if union == 0 {
+		return 0
+	}
+
+	return float64(intersection) / float64(union)
 }
 
 // arrayStructure returns array depth and elements type. If array is nested and has no consistent structure, level -1 is returned.

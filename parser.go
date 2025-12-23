@@ -7,6 +7,10 @@ import (
 
 type options struct {
 	extractCommonTypes           bool
+	extractSimilarityThreshold   float64
+	extractMinSubsetSize         int
+	extractMinSubsetOccurrences  int
+	extractMinAddedFields        int
 	stringPointersWhenKeyMissing bool
 	skipEmptyKeys                bool
 	makeMaps                     bool
@@ -21,6 +25,16 @@ type JSONParserOpt func(*options)
 func OptExtractCommonTypes(v bool) JSONParserOpt {
 	return func(o *options) {
 		o.extractCommonTypes = v
+	}
+}
+
+// OptExtractHeuristics sets thresholds for extracting similar types and shared subsets.
+func OptExtractHeuristics(similarity float64, minSize, minOccurrences, minAddedFields int) JSONParserOpt {
+	return func(o *options) {
+		o.extractSimilarityThreshold = similarity
+		o.extractMinSubsetSize = minSize
+		o.extractMinSubsetOccurrences = minOccurrences
+		o.extractMinAddedFields = minAddedFields
 	}
 }
 
@@ -66,13 +80,22 @@ func NewJSONParser(rootTypeName string, opts ...JSONParserOpt) *JSONParser {
 	rootNode.root = true
 	p := JSONParser{
 		rootNode: rootNode,
-		opts:     options{},
+		opts:     defaultOptions(),
 	}
 	for _, o := range opts {
 		o(&p.opts)
 	}
 
 	return &p
+}
+
+func defaultOptions() options {
+	return options{
+		extractSimilarityThreshold:  0.7,
+		extractMinSubsetSize:        2,
+		extractMinSubsetOccurrences: 2,
+		extractMinAddedFields:       2,
+	}
 }
 
 // FeedBytes consumes json input as bytes. If input is invalid, json unmarshalling error is returned
@@ -113,7 +136,7 @@ func (p *JSONParser) String() string {
 
 	nodes := []*node{root}
 	if p.opts.extractCommonTypes {
-		nodes = extractCommonSubtrees(root)
+		nodes = extractCommonSubtrees(root, p.opts)
 	}
 
 	return astPrintDecls(
