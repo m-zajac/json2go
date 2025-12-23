@@ -1,0 +1,128 @@
+version: '3'
+
+vars:
+  APP_NAME: json2go
+  LAST_VERSION:
+    sh: git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0"
+  GOROOT:
+    sh: go env GOROOT
+
+tasks:
+  default:
+    cmds:
+      - task: all
+
+  all:
+    desc: Build for all supported platforms
+    cmds:
+      - task: windows
+      - task: darwin
+      - task: linux
+      - task: web
+
+  clean:
+    desc: Remove the build directory
+    cmds:
+      - rm -rf build/
+
+  test:
+    desc: Run tests with race detection
+    sources:
+      - "**/*.go"
+      - "go.mod"
+      - "go.sum"
+    cmds:
+      - go test -race ./...
+
+  lint:
+    desc: Run golangci-lint
+    deps:
+      - install-lint
+    cmds:
+      - golangci-lint run ./...
+
+  install-lint:
+    internal: true
+    status:
+      - command -v golangci-lint >/dev/null 2>&1
+    cmds:
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+  linux:
+    desc: Build for Linux
+    cmds:
+      - task: build-package
+        vars: { GOOS: linux, GOARCH: '386', FORMAT: tar, PKG_EXT: tar.gz }
+      - task: build-package
+        vars: { GOOS: linux, GOARCH: amd64, FORMAT: tar, PKG_EXT: tar.gz }
+
+  darwin:
+    desc: Build for Darwin
+    cmds:
+      - task: build-package
+        vars: { GOOS: darwin, GOARCH: amd64, FORMAT: tar, PKG_EXT: tar.gz }
+
+  windows:
+    desc: Build for Windows
+    cmds:
+      - task: build-package
+        vars: { GOOS: windows, GOARCH: '386', EXT: .exe, FORMAT: zip, PKG_EXT: zip }
+      - task: build-package
+        vars: { GOOS: windows, GOARCH: amd64, EXT: .exe, FORMAT: zip, PKG_EXT: zip }
+
+  build-package:
+    internal: true
+    vars:
+      OUTPUT_NAME: "{{.GOOS}}_{{.GOARCH}}"
+      BINARY: "{{.APP_NAME}}{{.EXT}}"
+      PACKAGE_NAME: "{{.OUTPUT_NAME}}.{{.PKG_EXT}}"
+    sources:
+      - "**/*.go"
+      - "go.mod"
+      - "go.sum"
+    generates:
+      - "build/{{.PACKAGE_NAME}}"
+    env:
+      GOOS: "{{.GOOS}}"
+      GOARCH: "{{.GOARCH}}"
+    cmds:
+      - go build -o build/{{.BINARY}} ./cmd/json2go/*.go
+      - chmod gu+x build/{{.BINARY}}
+      - |
+        cd build
+        if [ "{{.FORMAT}}" = "tar" ]; then
+          tar -cvzf {{.PACKAGE_NAME}} {{.BINARY}}
+        else
+          zip {{.PACKAGE_NAME}} {{.BINARY}}
+        fi
+      - rm build/{{.BINARY}}
+
+  web:
+    desc: Build for Web (WASM)
+    vars:
+      WASM_EXEC: "{{.GOROOT}}/lib/wasm/wasm_exec.js"
+    sources:
+      - "cmd/json2go-ws/**/*.go"
+      - "**/*.go"
+    generates:
+      - "build/web/json2go.wasm"
+      - "build/web/wasm_exec.js"
+    cmds:
+      - mkdir -p build/web
+      - cp "{{.WASM_EXEC}}" build/web/
+      - GOOS=js GOARCH=wasm go build -o build/web/json2go.wasm ./cmd/json2go-ws/*.go
+
+  deploy-pages:
+    desc: Prepare gh-pages deployment
+    deps:
+      - web
+    sources:
+      - "deployments/gh-pages/**/*"
+      - "build/web/**/*"
+    generates:
+      - "build/gh-pages/index.html"
+    cmds:
+      - mkdir -p build/gh-pages
+      - cp -r deployments/gh-pages/* build/gh-pages/
+      - cp -r build/web/* build/gh-pages/
+      - sed -i 's!_VERSION_!{{.LAST_VERSION}}!g' build/gh-pages/index.html
