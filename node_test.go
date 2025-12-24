@@ -2008,3 +2008,68 @@ func TestArrayStructureType(t *testing.T) {
 		})
 	}
 }
+
+func TestMergeNodes_RequiredFields(t *testing.T) {
+	t.Parallel()
+
+	// Create three nodes with different sets of children
+	// Node 1: has fields "a" and "b"
+	node1 := &node{
+		key: "base",
+		t:   nodeTypeObject,
+		children: []*node{
+			{key: "a", name: "A", t: nodeTypeInt, required: true},
+			{key: "b", name: "B", t: nodeTypeInt, required: true},
+		},
+	}
+
+	// Node 2: has fields "a", "b", and "c"
+	node2 := &node{
+		key: "middle",
+		t:   nodeTypeObject,
+		children: []*node{
+			{key: "a", name: "A", t: nodeTypeInt, required: true},
+			{key: "b", name: "B", t: nodeTypeInt, required: true},
+			{key: "c", name: "C", t: nodeTypeInt, required: true},
+		},
+	}
+
+	// Node 3: has fields "a", "b", "c", and "d"
+	node3 := &node{
+		key: "top",
+		t:   nodeTypeObject,
+		children: []*node{
+			{key: "a", name: "A", t: nodeTypeInt, required: true},
+			{key: "b", name: "B", t: nodeTypeInt, required: true},
+			{key: "c", name: "C", t: nodeTypeInt, required: true},
+			{key: "d", name: "D", t: nodeTypeInt, required: true},
+		},
+	}
+
+	// Merge all three nodes
+	merged := mergeNodes([]*node{node1, node2, node3})
+
+	// Assert that merged has all four fields
+	assert.Len(t, merged.children, 4, "merged node should have 4 children")
+
+	// Fields "a" and "b" exist in all nodes, so they should be required
+	fieldA := merged.getChild("a")
+	assert.NotNil(t, fieldA, "field 'a' should exist")
+	assert.True(t, fieldA.required, "field 'a' should be required (exists in all nodes)")
+
+	fieldB := merged.getChild("b")
+	assert.NotNil(t, fieldB, "field 'b' should exist")
+	assert.True(t, fieldB.required, "field 'b' should be required (exists in all nodes)")
+
+	// Field "c" exists only in node2 and node3 (missing from node1)
+	// So it should NOT be required
+	fieldC := merged.getChild("c")
+	assert.NotNil(t, fieldC, "field 'c' should exist")
+	assert.False(t, fieldC.required, "field 'c' should NOT be required (missing from node1)")
+
+	// Field "d" exists only in node3 (missing from node1 and node2)
+	// So it should NOT be required
+	fieldD := merged.getChild("d")
+	assert.NotNil(t, fieldD, "field 'd' should exist")
+	assert.False(t, fieldD.required, "field 'd' should NOT be required (missing from node1 and node2)")
+}

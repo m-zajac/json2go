@@ -1,6 +1,5 @@
 - options:
     extractCommonTypes: true
-    skipGoRun: true
   out: |
     type Document struct {
       Base Base `json:"base"`
@@ -11,7 +10,7 @@
     type F1F2F3And1More struct {
       Base
       F3 int `json:"f3"`
-      F4 int `json:"f4"`
+      F4 *int `json:"f4,omitempty"`
     }
 
     type Base struct {

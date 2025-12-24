@@ -587,23 +587,40 @@ func mergeNodes(nodes []*node) *node {
 		}
 	}
 
-	// Set attributes of merged node's children recurently.
-	if len(merged.children) > 0 {
-		for i, cn := range merged.children {
-			cnodes := make([]*node, 0, len(nodes))
-			for _, n := range nodes {
-				v := n.getChild(cn.key)
-				if v == nil {
-					continue
-				}
-				cnodes = append(cnodes, v)
-			}
-			if len(cnodes) > 1 {
-				merged.children[i] = mergeNodes(cnodes)
-			} else if len(cnodes) == 1 {
-				merged.children[i] = cnodes[0].clone()
-			}
+	// Set attributes of merged node's children recursively.
+	// First, collect all unique child keys from all nodes.
+	childKeys := make(map[string]bool)
+	for _, n := range nodes {
+		for _, child := range n.children {
+			childKeys[child.key] = true
 		}
+	}
+
+	// Process each unique child key.
+	merged.children = make([]*node, 0, len(childKeys))
+	for key := range childKeys {
+		cnodes := make([]*node, 0, len(nodes))
+		for _, n := range nodes {
+			v := n.getChild(key)
+			if v == nil {
+				continue
+			}
+			cnodes = append(cnodes, v)
+		}
+
+		var mergedChild *node
+		if len(cnodes) > 1 {
+			mergedChild = mergeNodes(cnodes)
+		} else if len(cnodes) == 1 {
+			mergedChild = cnodes[0].clone()
+		}
+
+		// Mark as not required if missing from some nodes
+		if len(cnodes) < len(nodes) {
+			mergedChild.required = false
+		}
+
+		merged.children = append(merged.children, mergedChild)
 	}
 
 	return merged
