@@ -96,7 +96,7 @@ func extractOne(root *node, allRoots []*node, rootNames map[string]bool, opts op
 	}
 
 	// 3. Try to find common subsets for embedding.
-	if ext := tryExtractSubset(root, candidates, allRoots, rootNames, opts, changed, parentKeys); ext != nil || *changed {
+	if ext := tryExtractSubset(candidates, allRoots, rootNames, opts, changed, parentKeys); ext != nil || *changed {
 		return ext
 	}
 
@@ -166,14 +166,14 @@ func tryExtractSimilarity(root *node, candidates []*node, allRoots []*node, root
 		if len(matches) > 0 {
 			matches = append(matches, c1)
 			*changed = true
-			return extractNodes(root, matches, rootNames, parentKeys)
+			return extractNodes(matches, rootNames, parentKeys)
 		}
 	}
 
 	return nil
 }
 
-func extractNodes(root *node, nodes []*node, rootNames map[string]bool, parentKeys map[*node][]string) *node {
+func extractNodes(nodes []*node, rootNames map[string]bool, parentKeys map[*node][]string) *node {
 	var allParentKeys []string
 	for _, n := range nodes {
 		allParentKeys = append(allParentKeys, parentKeys[n]...)
@@ -204,7 +204,7 @@ func extractNodes(root *node, nodes []*node, rootNames map[string]bool, parentKe
 	return extractedNode
 }
 
-func tryExtractSubset(root *node, candidates []*node, allRoots []*node, rootNames map[string]bool, opts options, changed *bool, parentKeys map[*node][]string) *node {
+func tryExtractSubset(candidates []*node, allRoots []*node, rootNames map[string]bool, opts options, changed *bool, parentKeys map[*node][]string) *node {
 	if opts.extractMinSubsetSize < 1 {
 		return nil
 	}
@@ -266,14 +266,7 @@ func tryExtractSubset(root *node, candidates []*node, allRoots []*node, rootName
 							required:       true,
 						})
 						for _, child := range c3.children {
-							found := false
-							for _, k := range common {
-								if child.key == k {
-									found = true
-									break
-								}
-							}
-							if !found {
+							if !isFieldExcluded(child, common) {
 								newChildren = append(newChildren, child)
 							}
 						}
@@ -421,19 +414,7 @@ func tryExtractSubset(root *node, candidates []*node, allRoots []*node, rootName
 			}
 			newChildren = append(newChildren, embedded)
 			for _, child := range n.children {
-				found := false
-				for _, k := range best.keys {
-					if strings.HasPrefix(k, "|") {
-						if child.embedded && child.externalTypeID == strings.TrimPrefix(k, "|") {
-							found = true
-							break
-						}
-					} else if child.key == k {
-						found = true
-						break
-					}
-				}
-				if !found {
+				if !isFieldExcluded(child, best.keys) {
 					newChildren = append(newChildren, child)
 				}
 			}

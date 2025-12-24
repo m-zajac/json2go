@@ -166,14 +166,14 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 			}
 
 			if !tc.Options.SkipGoRun {
-				testGeneratedType(t, tn, parser, input)
+				testGeneratedType(t, parser, input)
 			}
 		})
 	}
 }
 
 // testGeneratedType unmarshals test data to generated type, then marshals it again and compares generated output to original data.
-func testGeneratedType(t *testing.T, name string, parser *JSONParser, data []byte) {
+func testGeneratedType(t *testing.T, parser *JSONParser, data []byte) {
 	err := parser.FeedBytes(data)
 	require.NoError(t, err)
 
