@@ -6,11 +6,17 @@ import (
 	"strings"
 )
 
+// extractCommonSubtrees analyzes a root node and its subnodes, identifying repeated or common subtrees
+// that can be promoted to standalone types. It iteratively extracts such common structures, returning
+// a slice containing the root node and all newly promoted types.
 func extractCommonSubtrees(root *node, opts options) []*node {
 	rootNames := map[string]bool{
 		root.name: true,
 	}
 
+	// Iteratively extract and accumulate common subtrees that can be promoted to separate types.
+	// This loop repeatedly tries to find and extract new shared type candidates using extractOne().
+	// When a new subtree is extracted, it's appended to nodes, and the process repeats until no more changes occur.
 	nodes := []*node{root}
 	for {
 		changed := false
@@ -47,7 +53,7 @@ func extractCommonSubtrees(root *node, opts options) []*node {
 			extNode.arrayLevel = 0
 
 			c.t = nodeTypeExtracted
-			c.externalTypeID = name
+			c.extractedTypeName = name
 			c.children = nil
 
 			nodes = append(nodes, extNode)
@@ -63,7 +69,7 @@ func extractCommonSubtrees(root *node, opts options) []*node {
 }
 
 func collectAnonymousEmbeddedNodes(n *node, candidates *[]*node) {
-	if n.t.id() == nodeTypeObject.id() && !n.root && n.externalTypeID == "" {
+	if n.t.id() == nodeTypeObject.id() && !n.root && n.extractedTypeName == "" {
 		hasEmbedding := false
 		for _, child := range n.children {
 			if child.embedded {
@@ -82,6 +88,24 @@ func collectAnonymousEmbeddedNodes(n *node, candidates *[]*node) {
 	}
 }
 
+// extractOne attempts to extract a common type from the given set of JSON object nodes.
+//
+// It performs three main steps:
+// 1. Collects all object/map nodes from the provided root nodes.
+// 2. Attempts to extract a type by merging nodes with high identity or similarity.
+// 3. Attempts to extract a type by finding a common subset suitable for embedding.
+//
+// If a successful extraction or change is made, it returns the new extracted node; otherwise, it returns nil.
+//
+// Parameters:
+//   - root: The node currently being examined as a potential extraction candidate.
+//   - allRoots: The set of all current root nodes under consideration.
+//   - rootNames: A map used to ensure uniqueness of generated type names.
+//   - opts: Options governing the extraction process.
+//   - changed: Pointer to a bool set to true if an extraction or transformation took place.
+//
+// Returns:
+//   - *node: The newly extracted node if successful, or nil if no extraction occurred.
 func extractOne(root *node, allRoots []*node, rootNames map[string]bool, opts options, changed *bool) *node {
 	// 1. Collect all object/map nodes from all current roots.
 	var candidates []*node
@@ -91,7 +115,8 @@ func extractOne(root *node, allRoots []*node, rootNames map[string]bool, opts op
 	}
 
 	// 2. Try to find identity/similarity-based merges.
-	if ext := tryExtractSimilarity(root, candidates, allRoots, rootNames, opts, changed, parentKeys); ext != nil || *changed {
+	ext := tryExtractSimilarity(root, candidates, allRoots, rootNames, opts, changed, parentKeys)
+	if ext != nil || *changed {
 		return ext
 	}
 
@@ -133,13 +158,13 @@ func tryExtractSimilarity(root *node, candidates []*node, allRoots []*node, root
 			sim := c.similarity(r)
 			if sim >= threshold {
 				// Found a match!
-				extractedName := r.externalTypeID
+				extractedName := r.extractedTypeName
 				if extractedName == "" {
 					extractedName = r.name
 				}
 
 				c.t = nodeTypeExtracted
-				c.externalTypeID = extractedName
+				c.extractedTypeName = extractedName
 				c.children = nil
 				*changed = true
 				return nil
@@ -197,7 +222,7 @@ func extractNodes(nodes []*node, rootNames map[string]bool, parentKeys map[*node
 
 	for _, n := range nodes {
 		n.t = nodeTypeExtracted
-		n.externalTypeID = extractedName
+		n.extractedTypeName = extractedName
 		n.children = nil
 	}
 
@@ -244,7 +269,7 @@ func tryExtractSubset(candidates []*node, allRoots []*node, rootNames map[string
 						// Check if c3 already embeds this root.
 						alreadyEmbeds := false
 						for _, child := range c3.children {
-							if child.embedded && child.externalTypeID == existingRoot.name {
+							if child.embedded && child.extractedTypeName == existingRoot.name {
 								alreadyEmbeds = true
 								break
 							}
@@ -260,10 +285,10 @@ func tryExtractSubset(candidates []*node, allRoots []*node, rootNames map[string
 						// Replace fields with embedding.
 						newChildren := make([]*node, 0, len(c3.children)-len(common)+1)
 						newChildren = append(newChildren, &node{
-							t:              nodeTypeExtracted,
-							externalTypeID: existingRoot.name,
-							embedded:       true,
-							required:       true,
+							t:                 nodeTypeExtracted,
+							extractedTypeName: existingRoot.name,
+							embedded:          true,
+							required:          true,
 						})
 						for _, child := range c3.children {
 							if !isFieldExcluded(child, common) {
@@ -373,10 +398,10 @@ func tryExtractSubset(candidates []*node, allRoots []*node, rootNames map[string
 			if strings.HasPrefix(k, "|") {
 				extID := strings.TrimPrefix(k, "|")
 				baseNode.children = append(baseNode.children, &node{
-					t:              nodeTypeExtracted,
-					externalTypeID: extID,
-					embedded:       true,
-					required:       true,
+					t:                 nodeTypeExtracted,
+					extractedTypeName: extID,
+					embedded:          true,
+					required:          true,
 				})
 				continue
 			}
@@ -399,7 +424,7 @@ func tryExtractSubset(candidates []*node, allRoots []*node, rootNames map[string
 			// If all fields were in the subset, replace node with a reference to the base node.
 			if len(n.children) == len(best.keys) {
 				n.t = nodeTypeExtracted
-				n.externalTypeID = extractedName
+				n.extractedTypeName = extractedName
 				n.children = nil
 				continue
 			}
@@ -407,10 +432,10 @@ func tryExtractSubset(candidates []*node, allRoots []*node, rootNames map[string
 			// Remove fields from node and add embedded field.
 			newChildren := make([]*node, 0, len(n.children)-len(best.keys)+1)
 			embedded := &node{
-				t:              nodeTypeExtracted,
-				externalTypeID: extractedName,
-				embedded:       true,
-				required:       true, // Base structs are usually required if fields were there
+				t:                 nodeTypeExtracted,
+				extractedTypeName: extractedName,
+				embedded:          true,
+				required:          true, // Base structs are usually required if fields were there
 			}
 			newChildren = append(newChildren, embedded)
 			for _, child := range n.children {
@@ -433,7 +458,7 @@ func getCommonFields(n1, n2 *node) []string {
 	for _, c := range n1.children {
 		key := c.key
 		if c.embedded {
-			key = "|" + c.externalTypeID // Use externalTypeID for comparison of embedded fields
+			key = "|" + c.extractedTypeName // Use extractedTypeName for comparison of embedded fields
 		}
 		if key != "" {
 			set1[key] = c.t.id()
@@ -444,7 +469,7 @@ func getCommonFields(n1, n2 *node) []string {
 	for _, c := range n2.children {
 		key := c.key
 		if c.embedded {
-			key = "|" + c.externalTypeID
+			key = "|" + c.extractedTypeName
 		}
 		if key != "" && set1[key] == c.t.id() {
 			common = append(common, key)
@@ -460,7 +485,7 @@ func hasAllFields(n *node, keys []string) bool {
 			extID := strings.TrimPrefix(k, "|")
 			found := false
 			for _, child := range n.children {
-				if child.embedded && child.externalTypeID == extID {
+				if child.embedded && child.extractedTypeName == extID {
 					found = true
 					break
 				}
@@ -587,7 +612,7 @@ func mergeNodes(nodes []*node) *node {
 func isFieldExcluded(child *node, excludingKeys []string) bool {
 	for _, k := range excludingKeys {
 		if strings.HasPrefix(k, "|") {
-			if child.embedded && child.externalTypeID == strings.TrimPrefix(k, "|") {
+			if child.embedded && child.extractedTypeName == strings.TrimPrefix(k, "|") {
 				return true
 			}
 		} else if child.key == k {
@@ -603,7 +628,7 @@ func collidesWithFields(name string, n *node, excludingKeys []string) bool {
 			continue
 		}
 		if child.embedded {
-			if child.externalTypeID == name {
+			if child.extractedTypeName == name {
 				return true
 			}
 		} else if attrName(child.key) == name {

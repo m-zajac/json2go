@@ -63,15 +63,13 @@ func ExampleJSONParser_FeedValue() {
 	// Output:
 	// type Document struct {
 	// 	Line struct {
-	// 		End struct {
-	// 			X float64 `json:"x"`
-	// 			Y float64 `json:"y"`
-	// 		} `json:"end"`
-	// 		Start struct {
-	// 			X float64 `json:"x"`
-	//			Y float64 `json:"y"`
-	// 		} `json:"start"`
+	// 		End   XY `json:"end"`
+	// 		Start XY `json:"start"`
 	// 	} `json:"line"`
+	// }
+	// type XY struct {
+	// 	X float64 `json:"x"`
+	// 	Y float64 `json:"y"`
 	// }
 }
 

@@ -12,17 +12,22 @@ const (
 )
 
 type node struct {
-	root           bool
-	nullable       bool
-	required       bool
-	key            string
-	name           string
-	t              nodeType
-	externalTypeID string
-	children       []*node
-	arrayLevel     int
+	root     bool
+	nullable bool
+	required bool
+	key      string
+	name     string
+	t        nodeType
+	// extractedTypeName is the name of the Go struct that this node should represent
+	// when it has been extracted to a separate named type.
+	extractedTypeName string
+	children          []*node
+	// arrayLevel is the number of nested array levels (e.g., 1 for []T, 2 for [][]T).
+	arrayLevel int
+	// arrayWithNulls indicates if any level of the nested array contains null values.
 	arrayWithNulls bool
-	embedded       bool
+	// embedded indicates if the node represents an embedded (anonymous) struct field.
+	embedded bool
 }
 
 func newNode(key string) *node {
@@ -160,7 +165,7 @@ func (n *node) compare(n2 *node) bool {
 	if n.required != n2.required {
 		return false
 	}
-	if n.externalTypeID != n2.externalTypeID {
+	if n.extractedTypeName != n2.extractedTypeName {
 		return false
 	}
 	if n.arrayLevel != n2.arrayLevel {
@@ -192,8 +197,8 @@ func (n *node) repr(prefix string) string {
 	}
 	buf.WriteString(fmt.Sprintf("%s  nullable: %t\n", prefix, n.nullable))
 	buf.WriteString(fmt.Sprintf("%s  required: %t\n", prefix, n.required))
-	if n.externalTypeID != "" {
-		buf.WriteString(fmt.Sprintf("%s  extType: %s\n", prefix, n.externalTypeID))
+	if n.extractedTypeName != "" {
+		buf.WriteString(fmt.Sprintf("%s  extType: %s\n", prefix, n.extractedTypeName))
 	}
 	if len(n.children) > 0 {
 		buf.WriteString(fmt.Sprintf("%s  children: {\n", prefix))
