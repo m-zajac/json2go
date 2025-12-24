@@ -4,11 +4,11 @@
   out: |
     type Document struct {
       Base Base `json:"base"`
-      Middle F1F2F3And2More `json:"middle"`
-      Top F1F2F3And2More `json:"top"`
+      Middle F1F2F3And1More `json:"middle"`
+      Top F1F2F3And1More `json:"top"`
     }
 
-    type F1F2F3And2More struct {
+    type F1F2F3And1More struct {
       Base
       F3 int `json:"f3"`
       F4 int `json:"f4"`
