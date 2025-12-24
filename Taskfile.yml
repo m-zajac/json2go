@@ -126,3 +126,9 @@ tasks:
       - mkdir -p build/web
       - cp "{{.WASM_EXEC}}" build/web/
       - GOOS=js GOARCH=wasm go build -o build/web/json2go.wasm ./cmd/json2go-ws/*.go
+
+  serve-web:
+    desc: Serve the web application locally
+    dir: ./deployments/gh-pages
+    cmds:
+      - go run ./...
