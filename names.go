@@ -193,7 +193,7 @@ func nameFromNamesCapped(names ...string) string {
 	result := names[0]
 	for i, k := range names[1:] {
 		if i >= maxParts-1 {
-			result = fmt.Sprintf("%sAnd%dMore", result, len(names)-maxParts+1)
+			result = fmt.Sprintf("%sAnd%dMore", result, len(names)-maxParts)
 			return result
 		}
 		result = result + "_" + k

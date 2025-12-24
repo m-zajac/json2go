@@ -202,3 +202,46 @@ func TestNextName(t *testing.T) {
 		})
 	}
 }
+
+func TestNameFromNamesCapped(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		inputs   []string
+		expected string
+	}{
+		{
+			name:     "empty",
+			inputs:   []string{},
+			expected: "",
+		},
+		{
+			name:     "single input",
+			inputs:   []string{"test"},
+			expected: "test",
+		},
+		{
+			name:     "exactly max parts",
+			inputs:   []string{"a", "b", "c"},
+			expected: "a_b_c",
+		},
+		{
+			name:     "more than max parts (4)",
+			inputs:   []string{"a", "b", "c", "d"},
+			expected: "a_b_cAnd1More",
+		},
+		{
+			name:     "more than max parts (5)",
+			inputs:   []string{"a", "b", "c", "d", "e"},
+			expected: "a_b_cAnd2More",
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, nameFromNamesCapped(tc.inputs...))
+		})
+	}
+}
