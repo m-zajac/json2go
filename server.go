@@ -11,7 +11,7 @@ func main() {
 	wasmFS := http.FileServer(http.Dir("../../build/web"))
 
 	log.Print("Serving on http://localhost:8080")
-	http.ListenAndServe(":8080", http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+	_ = http.ListenAndServe(":8080", http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Add("Cache-Control", "no-cache")
 		switch {
 		case strings.HasSuffix(req.URL.Path, ".wasm"):

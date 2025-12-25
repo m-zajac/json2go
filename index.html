@@ -24,6 +24,26 @@
 
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+
+    <style>
+        .help-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            line-height: 14px;
+            text-align: center;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 5px;
+            cursor: help;
+        }
+        .help-icon:hover {
+            background-color: #5a6268;
+        }
+    </style>
 </head>
 
 <body class="bg-light container px-5">
@@ -65,61 +85,149 @@
         <div class="form-group row">
             <label class="col-2 col-form-label">Options</label>
             <div class="col-10">
-                <div class="">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <em class="fa fa-address-card">Root name</em>
-                            </div>
-                        </div>
-                        <input id="rootName" class="form-control json2go" type="text" value="Document"/>
+                <div class="form-group row mb-2">
+                    <label for="rootName" class="col-5 col-form-label col-form-label-sm">
+                        Root name
+                        <span class="help-icon" title="The name of the root/top-level Go struct that will be generated">?</span>
+                    </label>
+                    <div class="col-7">
+                        <input id="rootName" class="form-control form-control-sm json2go" type="text" value="Document"/>
                     </div>
                 </div>
 
-                <div class="mt-1 form-inline">
-                    <div class="input-group mb-2 mr-sm-3">
-                        <div class="form-check">
-                            <input id="extractCommonTypes" name="checkbox" id="checkbox_0" type="checkbox" checked="checked" class="json2go form-check-input">
-                            <label for="extractCommonTypes" class="form-check-label">Extract common types</label>
-                        </div>
-                    </div>
-
-                    <div class="input-group mb-2 mr-sm-3">
-                        <div class="form-check">
-                            <input name="checkbox" id="stringPointersWhenKeyMissing" type="checkbox" class="json2go form-check-input" checked="checked">
+                <div class="form-group row mb-2">
+                    <label for="stringPointersWhenKeyMissing" class="col-5 col-form-label col-form-label-sm">
+                        String pointers when key missing
+                        <span class="help-icon" title="When a key is missing in some objects, use *string instead of string to distinguish between empty and missing values">?</span>
+                    </label>
+                    <div class="col-7">
+                        <div class="form-check mt-2">
+                            <input id="stringPointersWhenKeyMissing" type="checkbox" class="json2go form-check-input" checked="checked">
                             <label for="stringPointersWhenKeyMissing" class="form-check-label">
-                                String pointers when key is missing
+                                <small class="text-muted">Use *string when key is missing</small>
                             </label>
                         </div>
                     </div>
-                    
-                    <div class="input-group mb-2 mr-sm-3">
-                        <div class="form-check">
-                            <input name="checkbox" id="skipEmptyKeys" type="checkbox" class="json2go form-check-input" checked="checked">
+                </div>
+
+                <div class="form-group row mb-2">
+                    <label for="skipEmptyKeys" class="col-5 col-form-label col-form-label-sm">
+                        Skip empty keys
+                        <span class="help-icon" title="Omit struct fields for keys that only have null values in all JSON samples">?</span>
+                    </label>
+                    <div class="col-7">
+                        <div class="form-check mt-2">
+                            <input id="skipEmptyKeys" type="checkbox" class="json2go form-check-input" checked="checked">
                             <label for="skipEmptyKeys" class="form-check-label">
-                                Skip keys with only null values
+                                <small class="text-muted">Skip keys with only null values</small>
                             </label>
                         </div>
                     </div>
+                </div>
 
-                    <div class="input-group mb-2 mr-sm-3">
-                        <div class="form-check">
-                            <input name="checkbox" id="useMaps" type="checkbox" class="json2go form-check-input" checked="checked">
+                <div class="form-group row mb-2">
+                    <label for="useMaps" class="col-5 col-form-label col-form-label-sm">
+                        Use maps
+                        <span class="help-icon" title="Detect objects with many similar keys and represent them as map[string]T instead of structs">?</span>
+                    </label>
+                    <div class="col-7">
+                        <div class="form-check mt-2">
+                            <input id="useMaps" type="checkbox" class="json2go form-check-input" checked="checked">
                             <label for="useMaps" class="form-check-label">
-                                Try to use maps for objects with at least 
-                                <input class="json2go mx-2" style="width: 3rem;" type="number" value="5" id="useMapsMinAttrs">
-                                attributes
+                                <small class="text-muted">Try to use maps for objects</small>
                             </label>
                         </div>
                     </div>
+                </div>
 
-                    <div class="input-group mb-2 mr-sm-3">
-                        <div class="form-check">
-                            <input name="checkbox" id="timeAsStr" type="checkbox" class="json2go form-check-input">
+                <div class="form-group row mb-2">
+                    <label for="useMapsMinAttrs" class="col-5 col-form-label col-form-label-sm">
+                        Min attributes for maps
+                        <span class="help-icon" title="Minimum number of attributes an object must have before considering it for map representation">?</span>
+                    </label>
+                    <div class="col-7">
+                        <input id="useMapsMinAttrs" class="form-control form-control-sm json2go" type="number" 
+                               min="1" step="1" value="5">
+                    </div>
+                </div>
+
+                <div class="form-group row mb-2">
+                    <label for="timeAsStr" class="col-5 col-form-label col-form-label-sm">
+                        Time as string
+                        <span class="help-icon" title="Keep time values as strings instead of converting them to time.Time type">?</span>
+                    </label>
+                    <div class="col-7">
+                        <div class="form-check mt-2">
+                            <input id="timeAsStr" type="checkbox" class="json2go form-check-input">
                             <label for="timeAsStr" class="form-check-label">
-                                Don't use time.Time, just strings
+                                <small class="text-muted">Don't use time.Time, just strings</small>
                             </label>
                         </div>
+                    </div>
+                </div>
+
+                <hr class="my-3"/>
+                <div class="mb-2">
+                    <h6 class="text-muted mb-0">Type Extraction</h6>
+                    <small class="text-muted">Options for extracting and reusing common types</small>
+                </div>
+
+                <div class="form-group row mb-2">
+                    <label for="extractCommonTypes" class="col-5 col-form-label col-form-label-sm">
+                        Extract common types
+                        <span class="help-icon" title="Analyze objects to find and extract common patterns into reusable struct types, reducing code duplication">?</span>
+                    </label>
+                    <div class="col-7">
+                        <div class="form-check mt-2">
+                            <input id="extractCommonTypes" type="checkbox" checked="checked" class="json2go form-check-input">
+                            <label for="extractCommonTypes" class="form-check-label">
+                                <small class="text-muted">Extract and reuse common struct types</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group row mb-2">
+                    <label for="similarityThreshold" class="col-5 col-form-label col-form-label-sm">
+                        Similarity threshold
+                        <span class="help-icon" title="How similar two structs must be (0.0-1.0) to be merged into the same type. Higher values require more similarity">?</span>
+                    </label>
+                    <div class="col-7">
+                        <input id="similarityThreshold" class="form-control form-control-sm json2go" type="number" 
+                               min="0" max="1" step="0.1" value="0.7">
+                    </div>
+                </div>
+
+                <div class="form-group row mb-2">
+                    <label for="minSubsetSize" class="col-5 col-form-label col-form-label-sm">
+                        Min subset size
+                        <span class="help-icon" title="Minimum number of shared fields required to consider extracting them as a common embedded type">?</span>
+                    </label>
+                    <div class="col-7">
+                        <input id="minSubsetSize" class="form-control form-control-sm json2go" type="number" 
+                               min="1" step="1" value="2">
+                    </div>
+                </div>
+
+                <div class="form-group row mb-2">
+                    <label for="minSubsetOccurrences" class="col-5 col-form-label col-form-label-sm">
+                        Min subset occurrences
+                        <span class="help-icon" title="How many times a pattern of shared fields must appear before extracting it as a separate type">?</span>
+                    </label>
+                    <div class="col-7">
+                        <input id="minSubsetOccurrences" class="form-control form-control-sm json2go" type="number" 
+                               min="1" step="1" value="2">
+                    </div>
+                </div>
+
+                <div class="form-group row mb-2">
+                    <label for="minAddedFields" class="col-5 col-form-label col-form-label-sm">
+                        Min added fields
+                        <span class="help-icon" title="Minimum number of unique fields an object must add beyond common fields to justify creating a new type">?</span>
+                    </label>
+                    <div class="col-7">
+                        <input id="minAddedFields" class="form-control form-control-sm json2go" type="number" 
+                               min="1" step="1" value="2">
                     </div>
                 </div>
             </div>
@@ -145,7 +253,7 @@
     </form>
 
     <footer class="text-secondary font-weight-light text-right pb-3">
-        Version v1.1.4
+        Version v1.2.0
         <br/>
         Thanks to <a href="https://github.com/MariaLetta/free-gophers-pack">Maria Letta</a> for awesome gopher image! :)
     </footer>
@@ -246,6 +354,10 @@
                     useMaps: document.getElementById("useMaps").checked,
                     useMapsMinAttrs: document.getElementById("useMapsMinAttrs").value,
                     timeAsStr: document.getElementById("timeAsStr").checked,
+                    similarityThreshold: document.getElementById("similarityThreshold").value,
+                    minSubsetSize: document.getElementById("minSubsetSize").value,
+                    minSubsetOccurrences: document.getElementById("minSubsetOccurrences").value,
+                    minAddedFields: document.getElementById("minAddedFields").value,
                 };
                 let out = json2go(json, opts);
 
