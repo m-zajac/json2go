@@ -32,7 +32,7 @@ func astMakeDecls(rootNodes []*node, opts options) []ast.Decl {
 			Specs: []ast.Spec{
 				&ast.TypeSpec{
 					Name: ast.NewIdent(node.name),
-					Type: astTypeFromNode(node, opts),
+					Type: astTypeFromNode(node, opts, node.name),
 				},
 			},
 		})
@@ -60,10 +60,9 @@ func astPrintDecls(decls []ast.Decl) string {
 	return repr
 }
 
-func astTypeFromNode(n *node, opts options) ast.Expr {
+func astTypeFromNode(n *node, opts options, rootNodeName string) ast.Expr {
 	var resultType ast.Expr
 	notRequiredAsPointer := true
-	allowPointer := true
 
 	switch n.t.(type) {
 	case nodeBoolType:
@@ -81,23 +80,19 @@ func astTypeFromNode(n *node, opts options) ast.Expr {
 			notRequiredAsPointer = opts.stringPointersWhenKeyMissing
 		}
 	case nodeObjectType:
-		resultType = astStructTypeFromNode(n, opts)
+		resultType = astStructTypeFromNode(n, opts, rootNodeName)
 	case nodeExtractedType:
 		resultType = astTypeFromExtractedNode(n)
 	case nodeInterfaceType, nodeInitType:
 		resultType = newEmptyInterfaceExpr()
-		allowPointer = false
 	case nodeMapType:
-		resultType = astTypeFromMapNode(n, opts)
-		allowPointer = false
+		resultType = astTypeFromMapNode(n, opts, rootNodeName)
 	default:
 		panic(fmt.Sprintf("unknown type: %v", n.t))
 	}
 
-	if astTypeShouldBeAPointer(n, notRequiredAsPointer, allowPointer) {
-		resultType = &ast.StarExpr{
-			X: resultType,
-		}
+	if astTypeShouldBeAPointer(resultType, n, rootNodeName, notRequiredAsPointer) {
+		resultType = &ast.StarExpr{X: resultType}
 	}
 
 	for i := n.arrayLevel; i > 0; i-- {
@@ -124,12 +119,12 @@ func astTypeFromTimeNode(n *node, opts options) ast.Expr {
 	return resultType
 }
 
-func astTypeFromMapNode(n *node, opts options) ast.Expr {
+func astTypeFromMapNode(n *node, opts options, rootNodeName string) ast.Expr {
 	var ve ast.Expr
 	if len(n.children) == 0 {
 		ve = newEmptyInterfaceExpr()
 	} else {
-		ve = astTypeFromNode(n.children[0], opts)
+		ve = astTypeFromNode(n.children[0], opts, rootNodeName)
 	}
 	return &ast.MapType{
 		Key:   ast.NewIdent("string"),
@@ -138,14 +133,14 @@ func astTypeFromMapNode(n *node, opts options) ast.Expr {
 }
 
 func astTypeFromExtractedNode(n *node) ast.Expr {
-	extName := n.externalTypeID
+	extName := n.extractedTypeName
 	if extName == "" {
 		extName = n.name
 	}
 	return ast.NewIdent(extName)
 }
 
-func astStructTypeFromNode(n *node, opts options) *ast.StructType {
+func astStructTypeFromNode(n *node, opts options, rootNodeName string) *ast.StructType {
 	typeDesc := &ast.StructType{
 		Fields: &ast.FieldList{
 			List: []*ast.Field{},
@@ -169,11 +164,15 @@ func astStructTypeFromNode(n *node, opts options) *ast.StructType {
 	})
 
 	for _, child := range sortedChildren {
-		typeDesc.Fields.List = append(typeDesc.Fields.List, &ast.Field{
-			Names: []*ast.Ident{ast.NewIdent(child.name)},
-			Type:  astTypeFromNode(child.node, opts),
-			Tag:   astJSONTag(child.node.key, !child.node.required),
-		})
+		field := &ast.Field{
+			Type: astTypeFromNode(child.node, opts, rootNodeName),
+		}
+		if !child.node.embedded {
+			field.Names = []*ast.Ident{ast.NewIdent(child.name)}
+			field.Tag = astJSONTag(child.node.key, !child.node.required)
+		}
+
+		typeDesc.Fields.List = append(typeDesc.Fields.List, field)
 	}
 
 	return typeDesc
@@ -193,22 +192,28 @@ func astJSONTag(key string, omitempty bool) *ast.BasicLit {
 	}
 }
 
-func astTypeShouldBeAPointer(n *node, notRequiredAsPointer bool, allowPointer bool) bool {
-	if !allowPointer {
+func astTypeShouldBeAPointer(resultType ast.Expr, n *node, rootNodeName string, notRequiredAsPointer bool) bool {
+	switch resultType.(type) {
+	case *ast.StarExpr:
+		// Already a pointer.
 		return false
+	case *ast.InterfaceType:
+		// An empty interface will never be a pointer.
+		return false
+	case *ast.MapType:
+		// Maps will never be a pointer.
+		return false
+	default:
+		if n.arrayLevel == 0 {
+			if _, ok := n.t.(nodeExtractedType); ok && (n.extractedTypeName == rootNodeName || (n.extractedTypeName == "" && n.name == rootNodeName)) {
+				return true // Recursive reference
+			}
+			return !n.root && (n.nullable || (!n.required && notRequiredAsPointer))
+		}
+
+		return n.arrayWithNulls
 	}
 
-	if !n.root && n.arrayLevel == 0 {
-		if n.nullable || (!n.required && notRequiredAsPointer) {
-			return true
-		}
-	} else if n.arrayLevel > 0 {
-		if n.arrayWithNulls {
-			return true
-		}
-	}
-
-	return false
 }
 
 func newEmptyInterfaceExpr() ast.Expr {

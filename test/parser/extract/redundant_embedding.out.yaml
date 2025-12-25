@@ -1,0 +1,19 @@
+- options:
+    extractCommonTypes: true
+  out: |
+    type Document struct {
+      Base Base `json:"base"`
+      Middle F1F2F3And1More `json:"middle"`
+      Top F1F2F3And1More `json:"top"`
+    }
+
+    type F1F2F3And1More struct {
+      Base
+      F3 int `json:"f3"`
+      F4 *int `json:"f4,omitempty"`
+    }
+
+    type Base struct {
+      F1 int `json:"f1"`
+      F2 int `json:"f2"`
+    }

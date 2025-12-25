@@ -1,0 +1,17 @@
+[
+  {
+    "person": {
+      "name": "John",
+      "age": 30
+    }
+  },
+  {
+    "worker": {
+      "name": "Alice",
+      "age": 35,
+      "salary": 50000
+    }
+  }
+]
+
+

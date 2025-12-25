@@ -12,16 +12,22 @@ const (
 )
 
 type node struct {
-	root           bool
-	nullable       bool
-	required       bool
-	key            string
-	name           string
-	t              nodeType
-	externalTypeID string
-	children       []*node
-	arrayLevel     int
+	root     bool
+	nullable bool
+	required bool
+	key      string
+	name     string
+	t        nodeType
+	// extractedTypeName is the name of the Go struct that this node should represent
+	// when it has been extracted to a separate named type.
+	extractedTypeName string
+	children          []*node
+	// arrayLevel is the number of nested array levels (e.g., 1 for []T, 2 for [][]T).
+	arrayLevel int
+	// arrayWithNulls indicates if any level of the nested array contains null values.
 	arrayWithNulls bool
+	// embedded indicates if the node represents an embedded (anonymous) struct field.
+	embedded bool
 }
 
 func newNode(key string) *node {
@@ -86,6 +92,7 @@ func (n *node) getOrCreateChild(key string) (*node, bool) {
 	}
 
 	n.children = append(n.children, child)
+
 	return child, true
 }
 
@@ -158,7 +165,7 @@ func (n *node) compare(n2 *node) bool {
 	if n.required != n2.required {
 		return false
 	}
-	if n.externalTypeID != n2.externalTypeID {
+	if n.extractedTypeName != n2.extractedTypeName {
 		return false
 	}
 	if n.arrayLevel != n2.arrayLevel {
@@ -190,8 +197,8 @@ func (n *node) repr(prefix string) string {
 	}
 	buf.WriteString(fmt.Sprintf("%s  nullable: %t\n", prefix, n.nullable))
 	buf.WriteString(fmt.Sprintf("%s  required: %t\n", prefix, n.required))
-	if n.externalTypeID != "" {
-		buf.WriteString(fmt.Sprintf("%s  extType: %s\n", prefix, n.externalTypeID))
+	if n.extractedTypeName != "" {
+		buf.WriteString(fmt.Sprintf("%s  extType: %s\n", prefix, n.extractedTypeName))
 	}
 	if len(n.children) > 0 {
 		buf.WriteString(fmt.Sprintf("%s  children: {\n", prefix))
@@ -213,6 +220,46 @@ func (n *node) clone() *node {
 	}
 	n2.children = children
 	return &n2
+}
+
+func (n *node) similarity(n2 *node) float64 {
+	if n.t.id() != n2.t.id() {
+		return 0
+	}
+
+	if len(n.children) == 0 && len(n2.children) == 0 {
+		return 1
+	}
+
+	set1 := make(map[string]bool)
+	for _, c := range n.children {
+		set1[c.key+"|"+c.t.id()] = true
+	}
+
+	set2 := make(map[string]bool)
+	for _, c := range n2.children {
+		set2[c.key+"|"+c.t.id()] = true
+	}
+
+	intersection := 0
+	for k := range set1 {
+		if set2[k] {
+			intersection++
+		}
+	}
+
+	union := len(set1)
+	for k := range set2 {
+		if !set1[k] {
+			union++
+		}
+	}
+
+	if union == 0 {
+		return 0
+	}
+
+	return float64(intersection) / float64(union)
 }
 
 // arrayStructure returns array depth and elements type. If array is nested and has no consistent structure, level -1 is returned.

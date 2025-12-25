@@ -3,32 +3,37 @@ on:
   push:
     tags:
       - '*'
+  workflow_dispatch:
 jobs:
   publish:
     name: Publish to pages
     runs-on: ubuntu-latest
     steps:
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v2
+    - name: Set up Go
+      uses: actions/setup-go@v5
       with:
-        go-version: ^1.15
+        go-version: '1.24'
 
     - name: Check out code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         # preserve history to be able to see latest tag
         fetch-depth: 0
 
+    - name: Install Task
+      uses: arduino/setup-task@v2
+      with:
+        version: 3.x
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Run tests
-      run: go test -race -v ./...
+      run: task test
 
     - name: Build pages
-      run: make depl-pages
+      run: task deploy-pages
 
     - name: Deploy 🚀
-      uses: JamesIves/github-pages-deploy-action@3.7.1
+      uses: JamesIves/github-pages-deploy-action@v4
       with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        BRANCH: gh-pages
-        FOLDER: build/gh-pages
-        CLEAN: true
+        folder: build/gh-pages
+        branch: gh-pages

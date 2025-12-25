@@ -2,6 +2,7 @@ package json2go
 
 import (
 	"bytes"
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -81,21 +82,90 @@ func extractCommonName(names ...string) string {
 		return ""
 	}
 
-	result := []rune(names[0])
-	for _, s := range names {
-		for i, char := range []rune(s) {
-			if i >= len(result) {
-				break
-			}
-
-			if result[i] != char {
-				result = result[:i]
+	// Try word-based prefix first
+	var prefixParts []string
+	firstWords := splitToWords(names[0])
+	for i := 1; i <= len(firstWords); i++ {
+		prefix := strings.Join(firstWords[:i], "_")
+		allMatch := true
+		for _, s := range names[1:] {
+			if !strings.HasPrefix(strings.ToLower(s), prefix) {
+				allMatch = false
 				break
 			}
 		}
+		if allMatch {
+			prefixParts = firstWords[:i]
+		} else {
+			break
+		}
 	}
 
-	return string(result)
+	// Try word-based suffix
+	var suffixParts []string
+	lastWords := splitToWords(names[0])
+	for i := 1; i <= len(lastWords); i++ {
+		suffix := strings.Join(lastWords[len(lastWords)-i:], "_")
+		allMatch := true
+		for _, s := range names[1:] {
+			if !strings.HasSuffix(strings.ToLower(s), suffix) {
+				allMatch = false
+				break
+			}
+		}
+		if allMatch {
+			suffixParts = lastWords[len(lastWords)-i:]
+		} else {
+			break
+		}
+	}
+
+	prefix := strings.Join(prefixParts, "_")
+	suffix := strings.Join(suffixParts, "_")
+
+	// If word-based failed, try rune-based prefix
+	if len(prefix) == 0 && len(suffix) == 0 {
+		resPrefix := []rune(names[0])
+		for _, s := range names {
+			for i, char := range []rune(s) {
+				if i >= len(resPrefix) {
+					break
+				}
+				if resPrefix[i] != char {
+					resPrefix = resPrefix[:i]
+					break
+				}
+			}
+		}
+		prefix = strings.Trim(string(resPrefix), "-_")
+	}
+
+	if len(prefix) >= len(suffix) {
+		return prefix
+	}
+	return suffix
+}
+
+func splitToWords(s string) []string {
+	var words []string
+	var current strings.Builder
+	for _, r := range s {
+		if r == '_' || r == '-' || unicode.IsUpper(r) {
+			if current.Len() > 0 {
+				words = append(words, strings.ToLower(current.String()))
+				current.Reset()
+			}
+			if r != '_' && r != '-' {
+				current.WriteRune(r)
+			}
+		} else {
+			current.WriteRune(r)
+		}
+	}
+	if current.Len() > 0 {
+		words = append(words, strings.ToLower(current.String()))
+	}
+	return words
 }
 
 func nameFromNames(names ...string) string {
@@ -109,6 +179,24 @@ func nameFromNames(names ...string) string {
 		if i > 0 && len(result) > 3 {
 			return result
 		}
+	}
+
+	return result
+}
+
+func nameFromNamesCapped(names ...string) string {
+	if len(names) == 0 {
+		return ""
+	}
+
+	const maxParts = 3
+	result := names[0]
+	for i, k := range names[1:] {
+		if i >= maxParts-1 {
+			result = fmt.Sprintf("%sAnd%dMore", result, len(names)-maxParts)
+			return result
+		}
+		result = result + "_" + k
 	}
 
 	return result

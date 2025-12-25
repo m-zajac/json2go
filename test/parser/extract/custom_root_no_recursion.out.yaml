@@ -1,0 +1,20 @@
+- options:
+    extractCommonTypes: true
+    rootName: Project
+    makeMaps: false
+  out: |
+    type Project struct {
+      Node2
+      Node Node2 `json:"node"`
+    }
+
+    type Node2 struct {
+      A int `json:"a"`
+      B int `json:"b"`
+      C int `json:"c"`
+      D int `json:"d"`
+      E int `json:"e"`
+      F int `json:"f"`
+      G int `json:"g"`
+      H int `json:"h"`
+    }

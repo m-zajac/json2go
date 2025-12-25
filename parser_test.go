@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -64,15 +63,13 @@ func ExampleJSONParser_FeedValue() {
 	// Output:
 	// type Document struct {
 	// 	Line struct {
-	// 		End struct {
-	// 			X float64 `json:"x"`
-	// 			Y float64 `json:"y"`
-	// 		} `json:"end"`
-	// 		Start struct {
-	// 			X float64 `json:"x"`
-	//			Y float64 `json:"y"`
-	// 		} `json:"start"`
+	// 		End   XY `json:"end"`
+	// 		Start XY `json:"start"`
 	// 	} `json:"line"`
+	// }
+	// type XY struct {
+	// 	X float64 `json:"x"`
+	// 	Y float64 `json:"y"`
 	// }
 }
 
@@ -107,20 +104,26 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 
 	type testDef struct {
 		Options struct {
-			ExtractCommonTypes           bool `yaml:"extractCommonTypes"`
-			StringPointersWhenKeyMissing bool `yaml:"stringPointersWhenKeyMissing"`
-			SkipEmptyKeys                bool `yaml:"skipEmptyKeys"`
-			MakeMaps                     bool `yaml:"makeMaps"`
-			MakeMapsWhenMinAttributes    uint `yaml:"makeMapsWhenMinAttributes"`
-			TimeAsStr                    bool `yaml:"timeAsStr"`
+			RootName                     string  `yaml:"rootName"`
+			ExtractCommonTypes           bool    `yaml:"extractCommonTypes"`
+			ExtractSimilarityThreshold   float64 `yaml:"extractSimilarityThreshold"`
+			ExtractMinSubsetSize         int     `yaml:"extractMinSubsetSize"`
+			ExtractMinSubsetOccurrences  int     `yaml:"extractMinSubsetOccurrences"`
+			ExtractMinAddedFields        int     `yaml:"extractMinAddedFields"`
+			StringPointersWhenKeyMissing bool    `yaml:"stringPointersWhenKeyMissing"`
+			SkipEmptyKeys                bool    `yaml:"skipEmptyKeys"`
+			MakeMaps                     bool    `yaml:"makeMaps"`
+			MakeMapsWhenMinAttributes    uint    `yaml:"makeMapsWhenMinAttributes"`
+			TimeAsStr                    bool    `yaml:"timeAsStr"`
+			SkipGoRun                    bool    `yaml:"skipGoRun"`
 		} `yaml:"options"`
 		Out string `yaml:"out"`
 	}
 
-	input, err := ioutil.ReadFile(inPath)
+	input, err := os.ReadFile(inPath)
 	require.NoError(t, err)
 
-	output, err := ioutil.ReadFile(outPath)
+	output, err := os.ReadFile(outPath)
 	require.NoError(t, err)
 
 	var tests []testDef
@@ -136,7 +139,19 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 				OptMakeMaps(tc.Options.MakeMaps, tc.Options.MakeMapsWhenMinAttributes),
 				OptTimeAsString(tc.Options.TimeAsStr),
 			}
-			parser := NewJSONParser(baseTypeName, parserOpts...)
+			if tc.Options.ExtractSimilarityThreshold > 0 {
+				parserOpts = append(parserOpts, OptExtractHeuristics(
+					tc.Options.ExtractSimilarityThreshold,
+					tc.Options.ExtractMinSubsetSize,
+					tc.Options.ExtractMinSubsetOccurrences,
+					tc.Options.ExtractMinAddedFields,
+				))
+			}
+			rootName := tc.Options.RootName
+			if rootName == "" {
+				rootName = baseTypeName
+			}
+			parser := NewJSONParser(rootName, parserOpts...)
 			err = parser.FeedBytes(input)
 			require.NoError(t, err)
 
@@ -148,19 +163,21 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 				assert.Equal(t, want, got)
 			}
 
-			testGeneratedType(t, tn, parser, input)
+			if !tc.Options.SkipGoRun {
+				testGeneratedType(t, parser, input)
+			}
 		})
 	}
 }
 
 // testGeneratedType unmarshals test data to generated type, then marshals it again and compares generated output to original data.
-func testGeneratedType(t *testing.T, name string, parser *JSONParser, data []byte) {
+func testGeneratedType(t *testing.T, parser *JSONParser, data []byte) {
 	err := parser.FeedBytes(data)
 	require.NoError(t, err)
 
 	parserOutput := parser.String()
 
-	filename := makeTypeTestGoFile(t, parserOutput)
+	filename := makeTypeTestGoFile(t, parserOutput, parser.rootNode.name)
 
 	runCmd := exec.Command("go", "run", filename)
 	runCmd.Stdin = bytes.NewBuffer(data)
@@ -178,7 +195,7 @@ func testGeneratedType(t *testing.T, name string, parser *JSONParser, data []byt
 	}
 }
 
-func makeTypeTestGoFile(t *testing.T, parserOutput string) string {
+func makeTypeTestGoFile(t *testing.T, parserOutput, rootName string) string {
 	testTemplate := `
 package main
 
@@ -193,7 +210,7 @@ import (
 
 func main() {
 	var _ time.Time
-	var doc Document
+	var doc {{.RootName}}
 
 	jd := json.NewDecoder(os.Stdin)
 	if err := jd.Decode(&doc); err != nil {
@@ -213,7 +230,8 @@ func main() {
 	tmpl, err := template.New("test").Parse(testTemplate)
 	require.NoError(t, err, "parsing test code template: %v", err)
 	err = tmpl.Execute(f, map[string]interface{}{
-		"Type": parserOutput,
+		"Type":     parserOutput,
+		"RootName": rootName,
 	})
 	require.NoError(t, err, "executing test template: %v", err)
 
