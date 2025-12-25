@@ -2073,3 +2073,84 @@ func TestMergeNodes_RequiredFields(t *testing.T) {
 	assert.NotNil(t, fieldD, "field 'd' should exist")
 	assert.False(t, fieldD.required, "field 'd' should NOT be required (missing from node1 and node2)")
 }
+
+func TestMergeNodes_MultipleEmbeddedFields(t *testing.T) {
+	t.Parallel()
+
+	// This test demonstrates the bug where mergeNodes loses embedded fields
+	// when a node has multiple embedded children.
+	//
+	// Bug: All embedded nodes have key="", so they collide in the childKeys map.
+	// Only the first embedded child is preserved during merge.
+
+	// Create two nodes, each with two embedded fields
+	node1 := &node{
+		key: "node1",
+		t:   nodeTypeObject,
+		children: []*node{
+			{
+				key:               "",
+				name:              "",
+				t:                 nodeTypeExtracted,
+				extractedTypeName: "TypeA",
+				embedded:          true,
+				required:          true,
+			},
+			{
+				key:               "",
+				name:              "",
+				t:                 nodeTypeExtracted,
+				extractedTypeName: "TypeB",
+				embedded:          true,
+				required:          true,
+			},
+			{key: "field1", name: "Field1", t: nodeTypeString, required: true},
+		},
+	}
+
+	node2 := &node{
+		key: "node2",
+		t:   nodeTypeObject,
+		children: []*node{
+			{
+				key:               "",
+				name:              "",
+				t:                 nodeTypeExtracted,
+				extractedTypeName: "TypeA",
+				embedded:          true,
+				required:          true,
+			},
+			{
+				key:               "",
+				name:              "",
+				t:                 nodeTypeExtracted,
+				extractedTypeName: "TypeB",
+				embedded:          true,
+				required:          true,
+			},
+			{key: "field1", name: "Field1", t: nodeTypeString, required: true},
+		},
+	}
+
+	// Merge the nodes
+	merged := mergeNodes([]*node{node1, node2})
+
+	// Count embedded children
+	embeddedCount := 0
+	embeddedTypes := make(map[string]bool)
+	for _, child := range merged.children {
+		if child.embedded {
+			embeddedCount++
+			embeddedTypes[child.extractedTypeName] = true
+		}
+	}
+
+	// BUG: This assertion will fail because only one embedded field is preserved
+	assert.Equal(t, 2, embeddedCount, "merged node should have 2 embedded fields")
+	assert.True(t, embeddedTypes["TypeA"], "should have embedded TypeA")
+	assert.True(t, embeddedTypes["TypeB"], "should have embedded TypeB")
+
+	// Also verify the regular field is preserved
+	field1 := merged.getChild("field1")
+	assert.NotNil(t, field1, "regular field 'field1' should exist")
+}

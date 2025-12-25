@@ -589,19 +589,32 @@ func mergeNodes(nodes []*node) *node {
 
 	// Set attributes of merged node's children recursively.
 	// First, collect all unique child keys from all nodes.
+	// For embedded nodes (key=""), use "|TypeName" as the unique identifier.
+	// For regular nodes, use the child's key.
 	childKeys := make(map[string]bool)
 	for _, n := range nodes {
 		for _, child := range n.children {
-			childKeys[child.key] = true
+			uniqueKey := child.key
+			if child.embedded {
+				uniqueKey = "|" + child.extractedTypeName
+			}
+			childKeys[uniqueKey] = true
 		}
 	}
 
-	// Process each unique child key.
-	merged.children = make([]*node, 0, len(childKeys))
+	// Extract and sort keys to ensure deterministic ordering
+	sortedKeys := make([]string, 0, len(childKeys))
 	for key := range childKeys {
+		sortedKeys = append(sortedKeys, key)
+	}
+	sort.Strings(sortedKeys)
+
+	// Process each unique child key in sorted order.
+	merged.children = make([]*node, 0, len(childKeys))
+	for _, uniqueKey := range sortedKeys {
 		cnodes := make([]*node, 0, len(nodes))
 		for _, n := range nodes {
-			v := n.getChild(key)
+			v := getChildByUniqueKey(n, uniqueKey)
 			if v == nil {
 				continue
 			}
@@ -624,6 +637,24 @@ func mergeNodes(nodes []*node) *node {
 	}
 
 	return merged
+}
+
+// getChildByUniqueKey retrieves a child node using a unique key that handles both
+// embedded and regular nodes. For embedded nodes, the key format is "|TypeName".
+// For regular nodes, the key is the child's key field.
+func getChildByUniqueKey(n *node, uniqueKey string) *node {
+	if strings.HasPrefix(uniqueKey, "|") {
+		// Embedded node - search by extractedTypeName
+		typeName := strings.TrimPrefix(uniqueKey, "|")
+		for _, child := range n.children {
+			if child.embedded && child.extractedTypeName == typeName {
+				return child
+			}
+		}
+		return nil
+	}
+	// Regular node - use existing getChild method
+	return n.getChild(uniqueKey)
 }
 
 func isFieldExcluded(child *node, excludingKeys []string) bool {
