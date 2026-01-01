@@ -75,14 +75,14 @@ tasks:
     deps:
       - web
     sources:
-      - "deployments/gh-pages/**/*"
+      - "deployments/gh-pages-app/src/**/*"
+      - "deployments/gh-pages-app/index.html"
       - "build/web/**/*"
     generates:
       - "build/gh-pages/index.html"
     cmds:
-      - mkdir -p build/gh-pages
-      - cp -r deployments/gh-pages/* build/gh-pages/
-      - cp -r build/web/* build/gh-pages/
+      - cd deployments/gh-pages-app && npm install
+      - cd deployments/gh-pages-app && npm run build
       - sed -i 's!_VERSION_!{{.LAST_VERSION}}!g' build/gh-pages/index.html
 
   build-package:
@@ -128,7 +128,16 @@ tasks:
       - GOOS=js GOARCH=wasm go build -o build/web/json2go.wasm ./cmd/json2go-ws/*.go
 
   serve-web:
-    desc: Serve the web application locally
+    desc: Serve the web application locally (old static version)
     dir: ./deployments/gh-pages
     cmds:
       - go run ./...
+
+  dev:
+    desc: Run the development server for the web app
+    deps:
+      - web
+    dir: ./deployments/gh-pages-app
+    cmds:
+      - npm install
+      - npm run dev

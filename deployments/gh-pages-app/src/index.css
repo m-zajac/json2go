@@ -1,0 +1,19 @@
+/* WebTUI CSS Framework */
+@layer base, utils, components;
+
+@import '@webtui/css/base.css';
+
+/* Utils */
+@import '@webtui/css/utils/box.css';
+
+/* Components */
+@import '@webtui/css/components/button.css';
+@import '@webtui/css/components/input.css';
+@import '@webtui/css/components/checkbox.css';
+@import '@webtui/css/components/pre.css';
+@import '@webtui/css/components/badge.css';
+@import '@webtui/css/components/typography.css';
+@import '@webtui/css/components/view.css';
+
+/* Theme */
+@import '@webtui/theme-catppuccin';
