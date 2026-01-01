@@ -109,6 +109,11 @@ export function App() {
   const [loadError, setLoadError] = useState(false)
   const [copied, setCopied] = useState(false)
   
+  // Resizable panels state
+  const [split, setSplit] = useState(50)
+  const [isResizing, setIsResizing] = useState(false)
+  const mainLayoutRef = useRef(null)
+
   // Options state
   const [options, setOptions] = useState({
     rootName: 'Document',
@@ -129,6 +134,37 @@ export function App() {
 
   const editorRef = useRef(null)
   const editorViewRef = useRef(null)
+
+  // Resizer logic
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing || !mainLayoutRef.current) return
+      
+      const containerRect = mainLayoutRef.current.getBoundingClientRect()
+      // Use 0.5ch (approx 4-5px) offset for the resizer itself if needed, 
+      // but simple percentage calculation usually works best with grid.
+      const newSplit = ((e.clientX - containerRect.left) / containerRect.width) * 100
+      setSplit(Math.max(10, Math.min(90, newSplit)))
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+      document.body.style.cursor = 'default'
+      document.body.style.userSelect = 'auto'
+    }
+
+    if (isResizing) {
+      window.addEventListener('mousemove', handleMouseMove)
+      window.addEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isResizing])
 
   // Initialize CodeMirror
   useEffect(() => {
@@ -447,7 +483,11 @@ export function App() {
       </div>
 
       {/* Main Content Areas */}
-      <div className="main-layout">
+      <div 
+        ref={mainLayoutRef}
+        className="main-layout"
+        style={{ '--split-percent': `${split}%` }}
+      >
         {/* JSON Input */}
         <div is-="view" box-="square" className="panel" shear-="top">
           <div class="header">
@@ -476,6 +516,12 @@ export function App() {
           </div>
           <div ref={editorRef} className="panel-editor" />
         </div>
+
+        {/* Resizer */}
+        <div 
+          className={`resizer ${isResizing ? 'resizing' : ''}`}
+          onMouseDown={() => setIsResizing(true)}
+        />
 
         {/* Go Output */}
         <div is-="view" box-="square" className="panel" shear-="top">
