@@ -10,7 +10,7 @@
 
 /* Layout Utilities */
 .container {
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 1lh 1ch;
 }
@@ -255,17 +255,25 @@
 
 .copy-button {
   position: absolute;
-  top: 0.5rem;
+  top: 1.3rem;
   right: 0.5rem;
   z-index: 10;
-  width: 48px;
-  height: 28px;
+  width: 1.4rem !important;
+  height: 1.4rem !important;
   padding: 0 !important;
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 0 !important;
   border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.copy-button:hover {
+  opacity: 1;
+  transform: scale(1.05);
 }
 
 .output-container {
@@ -274,12 +282,15 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--webtui-surface0);
 }
 
 .xoutput-pre {
   margin: 0;
   flex: 1;
   overflow: auto;
+  padding: 1rem 0.5rem;
+  line-height: 1.5;
 }
 
 /* Tooltip Styles */
@@ -287,25 +298,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 14px;
-  height: 14px;
   margin-left: 0.7ch;
-  border-radius: 50%;
-  background-color: var(--webtui-surface1, #45475a);
   color: var(--webtui-subtext1, #a6adc8);
-  font-size: 9px;
-  font-weight: bold;
   cursor: help;
   vertical-align: middle;
   position: relative;
-  top: -1px; /* Adjusting alignment slightly higher */
   z-index: 100;
-  border: 1px solid var(--webtui-surface2, #313244);
   transition: all 0.2s ease;
 }
 
 .help-icon:hover {
-  background-color: var(--webtui-surface2, #313244);
   color: var(--webtui-text, #cdd6f4);
   transform: scale(1.1);
 }

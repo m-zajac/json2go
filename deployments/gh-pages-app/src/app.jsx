@@ -1,19 +1,22 @@
 import { useState, useEffect, useRef } from 'preact/hooks'
+import { Clipboard, Check, HelpCircle } from 'lucide-preact'
 import { EditorView, basicSetup } from 'codemirror'
 import { json } from '@codemirror/lang-json'
 import { oneDark } from '@codemirror/theme-one-dark'
 import './app.css'
 
 const CopyIcon = () => (
-  <span style={{ fontSize: '0.7rem', fontWeight: 'bold' }}>COPY</span>
+  <Clipboard size={12} />
 )
 
 const CheckIcon = () => (
-  <span style={{ fontSize: '0.7rem', fontWeight: 'bold' }}>✓ DONE</span>
+  <Check size={12} />
 )
 
 const HelpIcon = ({ text }) => (
-  <span className="help-icon" data-tooltip={text}>?</span>
+  <span className="help-icon" data-tooltip={text}>
+    <HelpCircle size={14} />
+  </span>
 )
 
 function CollapsibleSection({ title, children, expanded, onToggle, subSection = false }) {
@@ -478,17 +481,18 @@ export function App() {
           </div>
           
           <div className="output-container">
-            <button 
-              is-="button" 
-              className="copy-button"
-              variant-={copied ? 'green' : 'blue'}
-              onClick={copyToClipboard}
-              disabled={!output || output === 'Loading...' || output.startsWith('waiting')}
-              title={copied ? 'Copied!' : 'Copy to clipboard'}
-            >
-              {copied ? <CheckIcon /> : <CopyIcon />}
-            </button>
             <pre is-="pre" className="xoutput-pre">
+              <button 
+                is-="button" 
+                className="copy-button"
+                variant-={copied ? 'green' : 'blue'}
+                size-="small"
+                onClick={copyToClipboard}
+                disabled={!output || output === 'Loading...' || output.startsWith('waiting')}
+                title={copied ? 'Copied!' : 'Copy to clipboard'}
+              >
+                {copied ? <CheckIcon /> : <CopyIcon />}
+              </button>
               {output}
             </pre>
           </div>
