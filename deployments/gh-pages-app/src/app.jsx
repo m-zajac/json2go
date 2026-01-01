@@ -124,6 +124,9 @@ export function App() {
     minAddedFields: 2,
   })
 
+  const optionsRef = useRef(options)
+  optionsRef.current = options
+
   const editorRef = useRef(null)
   const editorViewRef = useRef(null)
 
@@ -178,7 +181,7 @@ export function App() {
     }
 
     const jsonText = editorViewRef.current.state.doc.toString()
-    const result = window.json2go(jsonText, options)
+    const result = window.json2go(jsonText, optionsRef.current)
 
     if (result) {
       setOutput(result)
@@ -187,12 +190,12 @@ export function App() {
     }
   }
 
+  useEffect(() => {
+    parseJSON()
+  }, [options])
+
   const updateOption = (key, value) => {
-    setOptions(prev => {
-      const newOptions = { ...prev, [key]: value }
-      setTimeout(() => parseJSON(), 0)
-      return newOptions
-    })
+    setOptions(prev => ({ ...prev, [key]: value }))
   }
 
   const loadFromURL = async () => {
