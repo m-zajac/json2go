@@ -2,6 +2,17 @@
 .cm-editor {
   height: 100%;
   font-size: 0.9rem;
+  background-color: transparent !important;
+}
+
+.cm-editor .cm-content,
+.cm-editor .cm-gutter,
+.cm-editor .cm-gutters {
+  background-color: transparent !important;
+}
+
+.cm-gutters {
+  border-right: 1px solid var(--webtui-surface0) !important;
 }
 
 .cm-scroller {
@@ -44,8 +55,8 @@
 }
 
 .gopher-logo {
-  width: 64px;
-  height: 64px;
+  width: 80px;
+  height: 80px;
 }
 
 .config-box {
@@ -282,7 +293,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--webtui-surface0);
+  background: transparent;
 }
 
 .xoutput-pre {
@@ -291,6 +302,7 @@
   overflow: auto;
   padding: 1rem 0.5rem;
   line-height: 1.5;
+  background: transparent !important;
 }
 
 /* Tooltip Styles */

@@ -103,8 +103,8 @@ const defaultJSON = [
 
 export function App() {
   const [output, setOutput] = useState('Loading...')
-  const [optionsExpanded, setOptionsExpanded] = useState(true)
-  const [typeExtractionExpanded, setTypeExtractionExpanded] = useState(true)
+  const [optionsExpanded, setOptionsExpanded] = useState(false)
+  const [typeExtractionExpanded, setTypeExtractionExpanded] = useState(false)
   const [url, setUrl] = useState('')
   const [loadError, setLoadError] = useState(false)
   const [copied, setCopied] = useState(false)
