@@ -280,7 +280,7 @@ export function App() {
             <p is-="p" className="header-description">
               Paste json to generate go struct.<br/>
               For source code and more details see <a href="https://github.com/m-zajac/json2go">https://github.com/m-zajac/json2go</a><br/>
-              If you use Visual Studio Code, checkout this cool <a href="https://marketplace.visualstudio.com/items?itemName=m-zajac.vsc-json2go" target="blank">vsc-json2go</a> extension!
+              If you use Visual Studio Code, checkout this cool <a href="https://marketplace.visualstudio.com/items?itemName=m-zajac.vsc-json2go" target="_blank">vsc-json2go</a> extension!
             </p>
           </div>
         </div>
