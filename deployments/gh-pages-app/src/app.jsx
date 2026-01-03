@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'preact/hooks'
+import { useState, useEffect, useRef, useCallback } from 'preact/hooks'
 import { Clipboard, Check, HelpCircle } from 'lucide-preact'
 import { EditorView, basicSetup } from 'codemirror'
 import { json } from '@codemirror/lang-json'
@@ -135,6 +135,22 @@ export function App() {
   const editorRef = useRef(null)
   const editorViewRef = useRef(null)
 
+  const parseJSON = useCallback(() => {
+    if (!editorViewRef.current || !window.json2go) {
+      setOutput('waiting for valid json ...')
+      return
+    }
+
+    const jsonText = editorViewRef.current.state.doc.toString()
+    const result = window.json2go(jsonText, optionsRef.current)
+
+    if (result) {
+      setOutput(result)
+    } else {
+      setOutput('waiting for valid json ...')
+    }
+  }, [setOutput])
+
   // Resizer logic
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -186,7 +202,7 @@ export function App() {
     editorViewRef.current = view
 
     return () => view.destroy()
-  }, [])
+  }, [parseJSON])
 
   // Load WASM and parse JSON
   useEffect(() => {
@@ -206,27 +222,11 @@ export function App() {
         console.error('Failed to load WASM:', err)
         setOutput('Error loading WASM module: ' + err.message)
       })
-  }, [])
-
-  const parseJSON = () => {
-    if (!editorViewRef.current || !window.json2go) {
-      setOutput('waiting for valid json ...')
-      return
-    }
-
-    const jsonText = editorViewRef.current.state.doc.toString()
-    const result = window.json2go(jsonText, optionsRef.current)
-
-    if (result) {
-      setOutput(result)
-    } else {
-      setOutput('waiting for valid json ...')
-    }
-  }
+  }, [parseJSON])
 
   useEffect(() => {
     parseJSON()
-  }, [options])
+  }, [options, parseJSON])
 
   const updateOption = (key, value) => {
     setOptions(prev => ({ ...prev, [key]: value }))
@@ -276,7 +276,7 @@ export function App() {
           <div className="header-text">
             <h1 is-="h1" className="header-title">json2go web parser</h1>
             <p is-="p" className="header-description">
-              Paste json to generate go struct.<br/>
+              Paste JSON to generate Go struct.<br/>
               For source code and more details see <a href="https://github.com/m-zajac/json2go">https://github.com/m-zajac/json2go</a><br/>
               If you use Visual Studio Code, checkout this cool <a href="https://marketplace.visualstudio.com/items?itemName=m-zajac.vsc-json2go" target="_blank">vsc-json2go</a> extension!
             </p>

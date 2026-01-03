@@ -202,11 +202,16 @@
 
 .collapsible-grid.expanded {
   grid-template-rows: 1fr;
-  overflow: visible;
+}
+
+.collapsible-grid.expanded .collapsible-content {
+  opacity: 1;
 }
 
 .collapsible-content {
   min-height: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
 }
 
 .chevron-transition {
@@ -330,7 +335,7 @@
   background: transparent;
 }
 
-.xoutput-pre {
+.output-pre {
   margin: 0;
   flex: 1;
   overflow: auto;

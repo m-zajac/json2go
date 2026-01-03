@@ -49,7 +49,9 @@ func parseOpts(jsVal js.Value) (opts []json2go.JSONParserOpt, rootName string) {
 	var useMapsMinAttrs uint = json2go.DefaultMakeMapsWhenMinAttributes
 	useMaps := jsVal.Get("useMaps").Truthy()
 	if useMaps {
-		if v := jsVal.Get("useMapsMinAttrs").String(); v != "" {
+		if v := jsVal.Get("useMapsMinAttrs"); v.Type() == js.TypeNumber {
+			useMapsMinAttrs = uint(v.Int())
+		} else if v := v.String(); v != "" {
 			if w, err := strconv.ParseUint(v, 10, 64); err == nil {
 				useMapsMinAttrs = uint(w)
 			}
