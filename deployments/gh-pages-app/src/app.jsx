@@ -141,8 +141,6 @@ export function App() {
       if (!isResizing || !mainLayoutRef.current) return
       
       const containerRect = mainLayoutRef.current.getBoundingClientRect()
-      // Use 0.5ch (approx 4-5px) offset for the resizer itself if needed, 
-      // but simple percentage calculation usually works best with grid.
       const newSplit = ((e.clientX - containerRect.left) / containerRect.width) * 100
       setSplit(Math.max(10, Math.min(90, newSplit)))
     }
@@ -530,7 +528,7 @@ export function App() {
           </div>
           
           <div className="output-container">
-            <pre is-="pre" className="xoutput-pre">
+            <pre is-="pre" className="output-pre">
               <button 
                 is-="button" 
                 className="copy-button"
