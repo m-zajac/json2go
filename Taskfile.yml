@@ -3,7 +3,7 @@ version: '3'
 vars:
   APP_NAME: json2go
   LAST_VERSION:
-    sh: git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0"
+    sh: git describe --tags 2>/dev/null | sed 's/-\([0-9]\+\)-g\([0-9a-f]\+\)$/-\2/' || echo "v0.0.0-$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")"
   GOROOT:
     sh: go env GOROOT
 
@@ -83,7 +83,7 @@ tasks:
     cmds:
       - cd deployments/gh-pages-app && npm install
       - cd deployments/gh-pages-app && npm run build
-      - sed -i 's!_VERSION_!{{.LAST_VERSION}}!g' build/gh-pages/index.html
+      - sed -i 's!_VERSION_!{{.LAST_VERSION}}!g' build/gh-pages/assets/*.js
 
   build-package:
     internal: true
