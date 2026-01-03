@@ -4,3 +4,4 @@ build/
 .devcontainer/
 .task/
 .cursor/
+test/failures/

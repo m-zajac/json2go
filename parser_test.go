@@ -13,6 +13,7 @@ import (
 	"testing"
 	"text/template"
 
+	"github.com/pmezard/go-difflib/difflib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
@@ -44,6 +45,7 @@ func ExampleNewJSONParser() {
 	// 	} `json:"line,omitempty"`
 	// 	Triangle []XY `json:"triangle,omitempty"`
 	// }
+	//
 	// type XY struct {
 	// 	X float64 `json:"x"`
 	// 	Y float64 `json:"y"`
@@ -67,6 +69,7 @@ func ExampleJSONParser_FeedValue() {
 	// 		Start XY `json:"start"`
 	// 	} `json:"line"`
 	// }
+	//
 	// type XY struct {
 	// 	X float64 `json:"x"`
 	// 	Y float64 `json:"y"`
@@ -160,7 +163,7 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 				parserOutput := parser.String()
 				got := strings.TrimSpace(parserOutput)
 				want := strings.TrimSpace(tc.Out)
-				assert.Equal(t, want, got)
+				assertWithDiff(t, tn, want, got)
 			}
 
 			if !tc.Options.SkipGoRun {
@@ -294,4 +297,43 @@ func compareSlices(t *testing.T, a, b []interface{}) bool {
 		}
 	}
 	return true
+}
+
+func assertWithDiff(t *testing.T, name, want, got string) {
+	t.Helper()
+
+	if want == got {
+		_ = os.Remove(filepath.Join("test", "failures", name+".txt"))
+		return
+	}
+
+	failureDir := filepath.Join("test", "failures")
+	failureFile := filepath.Join(failureDir, name+".txt")
+	_ = os.MkdirAll(filepath.Dir(failureFile), 0755)
+	content := fmt.Sprintf("=== EXPECTED ===\n%s\n\n=== GOT ===\n%s\n", want, got)
+	_ = os.WriteFile(failureFile, []byte(content), 0644)
+
+	visualize := func(s string) string {
+		s = strings.ReplaceAll(s, " ", "·")
+		s = strings.ReplaceAll(s, "\t", "→")
+		s = strings.ReplaceAll(s, "\n", "↵\n")
+		return s
+	}
+
+	diff := difflib.UnifiedDiff{
+		A:        difflib.SplitLines(visualize(want)),
+		B:        difflib.SplitLines(visualize(got)),
+		FromFile: "Expected",
+		ToFile:   "Got",
+		Context:  1,
+	}
+	text, _ := difflib.GetUnifiedDiffString(diff)
+
+	const maxLines = 20
+	lines := strings.Split(strings.TrimSpace(text), "\n")
+	if len(lines) > maxLines {
+		text = strings.Join(lines[:maxLines], "\n") + "\n... and more"
+	}
+
+	t.Errorf("Output mismatch for %s. Failure saved to %s\n%s", name, failureFile, text)
 }
