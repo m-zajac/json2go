@@ -2,15 +2,15 @@
     stringPointersWhenKeyMissing: false
   out: |
     type Document []struct {
-      X string `json:"x,omitempty"`
-      Y string `json:"y,omitempty"`
+    	X string `json:"x,omitempty"`
+    	Y string `json:"y,omitempty"`
     }
 
 - options:
     stringPointersWhenKeyMissing: true
   out: |
     type Document []struct {
-      X *string `json:"x,omitempty"`
-      Y *string `json:"y,omitempty"`
+    	X *string `json:"x,omitempty"`
+    	Y *string `json:"y,omitempty"`
     }
 

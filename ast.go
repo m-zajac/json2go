@@ -42,22 +42,23 @@ func astMakeDecls(rootNodes []*node, opts options) []ast.Decl {
 }
 
 func astPrintDecls(decls []ast.Decl) string {
-	file := &ast.File{
-		Name:  ast.NewIdent("main"),
-		Decls: decls,
+	if len(decls) == 0 {
+		return ""
 	}
 
+	// Print each declaration separately and join with blank lines
+	var parts []string
+	fset := token.NewFileSet()
 	// Use go/printer with settings compatible with gofmt.
-	var buf bytes.Buffer
 	prn := printer.Config{Mode: printerMode, Tabwidth: tabWidth}
-	prn.Fprint(&buf, token.NewFileSet(), file)
 
-	// Remove go file header
-	repr := buf.String()
-	repr = strings.TrimPrefix(repr, "package main")
-	repr = strings.TrimSpace(repr)
+	for _, decl := range decls {
+		var buf bytes.Buffer
+		prn.Fprint(&buf, fset, decl)
+		parts = append(parts, strings.TrimSpace(buf.String()))
+	}
 
-	return repr
+	return strings.Join(parts, "\n\n")
 }
 
 func astTypeFromNode(n *node, opts options, rootNodeName string) ast.Expr {

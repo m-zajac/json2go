@@ -158,8 +158,8 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 			// Test .String() output 2 times to check if .String() doesn't change internal parser state.
 			for i := 0; i < 2; i++ {
 				parserOutput := parser.String()
-				got := normalizeStr(parserOutput)
-				want := normalizeStr(tc.Out)
+				got := strings.TrimSpace(parserOutput)
+				want := strings.TrimSpace(tc.Out)
 				assert.Equal(t, want, got)
 			}
 

@@ -2,7 +2,7 @@
     extractCommonTypes: true
   out: |
     type Document struct {
-      Child *Document `json:"child"`
-      Name string `json:"name"`
+    	Child *Document `json:"child"`
+    	Name  string    `json:"name"`
     }
 

@@ -4,7 +4,7 @@
     makeMapsWhenMinAttributes: 3
   out: |
     type Document struct {
-      A map[string][]map[string]string `json:"a"`
+    	A map[string][]map[string]string `json:"a"`
     }
 
 - options:
@@ -12,10 +12,10 @@
     makeMapsWhenMinAttributes: 5
   out: |
     type Document struct {
-      A struct {
-        K1 []map[string]string `json:"k1"`
-        K2 []map[string]string `json:"k2"`
-        K3 []map[string]string `json:"k3"`
-      } `json:"a"`
+    	A struct {
+    		K1 []map[string]string `json:"k1"`
+    		K2 []map[string]string `json:"k2"`
+    		K3 []map[string]string `json:"k3"`
+    	} `json:"a"`
     }
 

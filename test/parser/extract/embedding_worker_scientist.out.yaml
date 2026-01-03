@@ -2,21 +2,21 @@
     extractCommonTypes: true
   out: |
     type Document []struct {
-      Scientist *Scientist `json:"scientist,omitempty"`
-      Worker *Worker `json:"worker,omitempty"`
+    	Scientist *Scientist `json:"scientist,omitempty"`
+    	Worker    *Worker    `json:"worker,omitempty"`
     }
 
     type AgeName struct {
-      Age int `json:"age"`
-      Name string `json:"name"`
+    	Age  int    `json:"age"`
+    	Name string `json:"name"`
     }
 
     type Scientist struct {
-      AgeName
-      Field string `json:"field"`
+    	AgeName
+    	Field string `json:"field"`
     }
 
     type Worker struct {
-      AgeName
-      Salary int `json:"salary"`
+    	AgeName
+    	Salary int `json:"salary"`
     }

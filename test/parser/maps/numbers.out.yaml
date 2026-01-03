@@ -2,11 +2,11 @@
     makeMaps: false
   out: |
     type Document struct {
-      A1 int `json:"a1"`
-      A2 float64 `json:"a2"`
-      A3 int `json:"a3"`
-      A4 int `json:"a4"`
-      A5 float64 `json:"a5"`
+    	A1 int     `json:"a1"`
+    	A2 float64 `json:"a2"`
+    	A3 int     `json:"a3"`
+    	A4 int     `json:"a4"`
+    	A5 float64 `json:"a5"`
     }
 
 - options:
@@ -14,11 +14,11 @@
     makeMapsWhenMinAttributes: 6
   out: |
     type Document struct {
-      A1 int `json:"a1"`
-      A2 float64 `json:"a2"`
-      A3 int `json:"a3"`
-      A4 int `json:"a4"`
-      A5 float64 `json:"a5"`
+    	A1 int     `json:"a1"`
+    	A2 float64 `json:"a2"`
+    	A3 int     `json:"a3"`
+    	A4 int     `json:"a4"`
+    	A5 float64 `json:"a5"`
     }
 
 - options:

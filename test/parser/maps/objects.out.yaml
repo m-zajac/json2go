@@ -2,21 +2,21 @@
     makeMaps: false
   out: |
     type Document []struct {
-      A1 struct {
-        Ok bool `json:"ok"`
-      } `json:"a1"`
-      A2 struct {
-        Ok bool `json:"ok"`
-      } `json:"a2"`
-      A3 struct {
-        Ok bool `json:"ok"`
-      } `json:"a3"`
-      A4 struct {
-        Ok bool `json:"ok"`
-      } `json:"a4"`
-      A5 *struct {
-        Ok bool `json:"ok"`
-      } `json:"a5,omitempty"`
+    	A1 struct {
+    		Ok bool `json:"ok"`
+    	} `json:"a1"`
+    	A2 struct {
+    		Ok bool `json:"ok"`
+    	} `json:"a2"`
+    	A3 struct {
+    		Ok bool `json:"ok"`
+    	} `json:"a3"`
+    	A4 struct {
+    		Ok bool `json:"ok"`
+    	} `json:"a4"`
+    	A5 *struct {
+    		Ok bool `json:"ok"`
+    	} `json:"a5,omitempty"`
     }
 
 - options:
@@ -24,21 +24,21 @@
     makeMapsWhenMinAttributes: 6
   out: |
     type Document []struct {
-      A1 struct {
-        Ok bool `json:"ok"`
-      } `json:"a1"`
-      A2 struct {
-        Ok bool `json:"ok"`
-      } `json:"a2"`
-      A3 struct {
-        Ok bool `json:"ok"`
-      } `json:"a3"`
-      A4 struct {
-        Ok bool `json:"ok"`
-      } `json:"a4"`
-      A5 *struct {
-        Ok bool `json:"ok"`
-      } `json:"a5,omitempty"`
+    	A1 struct {
+    		Ok bool `json:"ok"`
+    	} `json:"a1"`
+    	A2 struct {
+    		Ok bool `json:"ok"`
+    	} `json:"a2"`
+    	A3 struct {
+    		Ok bool `json:"ok"`
+    	} `json:"a3"`
+    	A4 struct {
+    		Ok bool `json:"ok"`
+    	} `json:"a4"`
+    	A5 *struct {
+    		Ok bool `json:"ok"`
+    	} `json:"a5,omitempty"`
     }
 
 - options:
@@ -47,7 +47,7 @@
     extractCommonTypes: false
   out: |
     type Document []map[string]struct {
-      Ok bool `json:"ok"`
+    	Ok bool `json:"ok"`
     }
 
 - options:
@@ -56,5 +56,5 @@
     extractCommonTypes: true
   out: |
     type Document []map[string]struct {
-      Ok bool `json:"ok"`
+    	Ok bool `json:"ok"`
     }

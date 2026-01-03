@@ -2,13 +2,13 @@
     skipEmptyKeys: false
   out: |
     type Document []struct {
-      A int `json:"a"`
-      B interface{} `json:"b"`
+    	A int         `json:"a"`
+    	B interface{} `json:"b"`
     }
 
 - options:
     skipEmptyKeys: true
   out: |
     type Document []struct {
-      A int `json:"a"`
+    	A int `json:"a"`
     }

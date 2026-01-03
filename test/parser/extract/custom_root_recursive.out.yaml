@@ -6,21 +6,21 @@
     makeMaps: false
   out: |
     type Project struct {
-      A int `json:"a"`
-      B int `json:"b"`
-      C int `json:"c"`
-      D int `json:"d"`
-      E int `json:"e"`
-      F int `json:"f"`
-      G int `json:"g"`
-      H int `json:"h"`
-      Node struct {
-        A int `json:"a"`
-        B int `json:"b"`
-        C int `json:"c"`
-        D int `json:"d"`
-        E int `json:"e"`
-        F int `json:"f"`
-        G int `json:"g"`
-      } `json:"node"`
+    	A    int `json:"a"`
+    	B    int `json:"b"`
+    	C    int `json:"c"`
+    	D    int `json:"d"`
+    	E    int `json:"e"`
+    	F    int `json:"f"`
+    	G    int `json:"g"`
+    	H    int `json:"h"`
+    	Node struct {
+    		A int `json:"a"`
+    		B int `json:"b"`
+    		C int `json:"c"`
+    		D int `json:"d"`
+    		E int `json:"e"`
+    		F int `json:"f"`
+    		G int `json:"g"`
+    	} `json:"node"`
     }
