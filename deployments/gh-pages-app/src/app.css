@@ -1,0 +1,421 @@
+/* Minimal custom CSS for CodeMirror integration */
+.cm-editor {
+  height: 100%;
+  font-size: 0.9rem;
+  background-color: transparent !important;
+}
+
+.cm-editor .cm-content,
+.cm-editor .cm-gutter,
+.cm-editor .cm-gutters {
+  background-color: transparent !important;
+}
+
+.cm-gutters {
+  border-right: 1px solid var(--webtui-surface0) !important;
+}
+
+.cm-scroller {
+  overflow: auto;
+}
+
+/* Layout Utilities */
+.container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1lh 1ch;
+}
+
+.header-box {
+  margin-bottom: 1lh;
+  padding: 1lh 1ch;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 2ch;
+  flex-wrap: wrap;
+}
+
+.header-text {
+  flex: 1;
+  min-width: 300px;
+}
+
+.header-title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.header-description {
+  margin-top: 0.25lh;
+  font-size: 0.9rem;
+  color: var(--webtui-subtext1);
+}
+
+.gopher-logo {
+  width: 80px;
+  height: 80px;
+}
+
+.config-box {
+  margin-bottom: 1lh;
+}
+
+.config-header {
+  padding: 0.75lh 1ch;
+  cursor: pointer;
+  background: var(--webtui-surface0);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+}
+
+.config-subsection-header {
+  padding: 0.5lh 1.5ch;
+  cursor: pointer;
+  background: rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.5ch;
+  font-weight: bold;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.config-subsection-chevron {
+  font-size: 0.8rem;
+}
+
+.config-content {
+  padding: 1.5lh 1.5ch;
+}
+
+.subsection-divider {
+  border-top: 1px solid var(--webtui-surface0);
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: minmax(0, var(--split-percent, 1fr)) 1ch minmax(0, 1fr);
+  gap: 0;
+  margin-bottom: 1lh;
+  width: 100%;
+}
+
+.resizer {
+  width: 1ch;
+  cursor: col-resize;
+  position: relative;
+  transition: background-color 0.2s ease;
+  z-index: 10;
+}
+
+.resizer:hover, .resizer.resizing {
+  background-color: var(--webtui-surface1);
+}
+
+.resizer::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 10%;
+  bottom: 10%;
+  width: 1px;
+  background-color: var(--webtui-surface2);
+  transform: translateX(-50%);
+  opacity: 0.5;
+}
+
+.resizer:hover::after, .resizer.resizing::after {
+  opacity: 1;
+  background-color: var(--webtui-blue);
+}
+
+@media (max-width: 1024px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+  .resizer {
+    display: none;
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 500px;
+  min-width: 0;
+}
+
+.panel-toolbar {
+  padding: 1lh 1ch;
+  border-bottom: 1px solid var(--webtui-surface0);
+}
+
+.panel-editor {
+  flex: 1;
+  overflow: hidden;
+}
+
+.footer {
+  text-align: right;
+  padding: 1lh 0;
+  color: var(--webtui-subtext0);
+  font-size: 0.8rem;
+}
+
+.footer a, .header-description a {
+  color: var(--webtui-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgba(137, 180, 250, 0.4);
+  transition: all 0.2s ease;
+}
+
+.footer a:visited, .header-description a:visited {
+  color: var(--webtui-blue);
+}
+
+.footer a:hover, .header-description a:hover {
+  text-decoration-color: var(--webtui-blue);
+  opacity: 0.8;
+}
+
+
+.options-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2ch;
+}
+
+/* Animation Utilities */
+.collapsible-grid {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease-out;
+  overflow: hidden;
+}
+
+.collapsible-grid.expanded {
+  grid-template-rows: 1fr;
+}
+
+.collapsible-grid.expanded .collapsible-content {
+  opacity: 1;
+}
+
+.collapsible-content {
+  min-height: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.chevron-transition {
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.chevron-transition.rotated {
+  transform: rotate(90deg);
+}
+
+/* Form Alignment */
+.input-group {
+  display: flex;
+  gap: 0.5ch;
+  align-items: center;
+}
+
+.input-fullwidth {
+  flex: 1;
+}
+
+.button-fixed {
+  min-width: 80px;
+}
+
+.option-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 1ch;
+  margin-bottom: 0.75lh;
+  align-items: start;
+  min-height: 1.5lh;
+  padding-top: 0.15lh;
+}
+
+.option-row > label:first-child {
+  color: var(--webtui-subtext1);
+  line-height: 1.3;
+  padding-top: 0.05lh;
+}
+
+.option-row input[is="input"] {
+  width: 100%;
+  height: 1lh;
+}
+
+/* Fix WebTUI checkbox vertical alignment in flex container */
+.option-row input[type=checkbox]:not([is-=switch]) {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.option-row label:not(:first-child) {
+  display: flex;
+  align-items: flex-start;
+  line-height: 1.3;
+  gap: 0.5ch;
+}
+
+.checkbox-label {
+  cursor: pointer;
+  gap: 0.5ch;
+}
+
+@media (max-width: 600px) {
+  .option-row {
+    grid-template-columns: 1fr;
+    gap: 0.25lh;
+  }
+}
+
+/* Terminal Aesthetics */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--webtui-surface0);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--webtui-surface1);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--webtui-surface2);
+}
+
+.copy-button {
+  position: absolute;
+  top: 1.3rem;
+  right: 0.5rem;
+  z-index: 10;
+  width: 1.4rem !important;
+  height: 1.4rem !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0 !important;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.copy-button:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.output-container {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: transparent;
+}
+
+.output-pre {
+  margin: 0;
+  flex: 1;
+  overflow: auto;
+  padding: 1rem 0.5rem;
+  line-height: 1.5;
+  background: transparent !important;
+}
+
+/* Tooltip Styles */
+.help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.7ch;
+  color: var(--webtui-subtext1, #a6adc8);
+  cursor: help;
+  vertical-align: middle;
+  position: relative;
+  z-index: 100;
+  transition: all 0.2s ease;
+}
+
+.help-icon:hover {
+  color: var(--webtui-text, #cdd6f4);
+  transform: scale(1.1);
+}
+
+.help-icon::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #313244; /* Solid fallback */
+  background-color: var(--webtui-surface2, #313244);
+  color: var(--webtui-text, #cdd6f4);
+  padding: 0.5lh 1ch;
+  border-radius: 4px;
+  border: 1px solid var(--webtui-surface1, #45475a);
+  font-size: 0.75rem;
+  font-weight: normal;
+  text-transform: none;
+  white-space: normal;
+  width: max-content;
+  max-width: 250px;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.help-icon:hover::after {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(-5px);
+}
+
+/* Add a small arrow to the tooltip */
+.help-icon::before {
+  content: '';
+  position: absolute;
+  bottom: 105%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px 5px 0 5px;
+  border-style: solid;
+  border-color: #313244 transparent transparent transparent;
+  border-color: var(--webtui-surface2, #313244) transparent transparent transparent;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 1000;
+}
+
+.help-icon:hover::before {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(-5px);
+}
