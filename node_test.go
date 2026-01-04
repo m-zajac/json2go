@@ -223,14 +223,14 @@ func TestJSONNodeRepr(t *testing.T) {
 	testCases := []struct {
 		name        string
 		startAsRoot bool
-		expands     []interface{}
+		expands     []any
 		expected    *node
 	}{
 		// base types
 		{
 			name:        "bool",
 			startAsRoot: true,
-			expands:     []interface{}{true},
+			expands:     []any{true},
 			expected: &node{
 				root:     true,
 				key:      baseTypeName,
@@ -242,7 +242,7 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "int",
 			startAsRoot: true,
-			expands:     []interface{}{1},
+			expands:     []any{1},
 			expected: &node{
 				root:     true,
 				key:      baseTypeName,
@@ -254,7 +254,7 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "float",
 			startAsRoot: true,
-			expands:     []interface{}{1.1},
+			expands:     []any{1.1},
 			expected: &node{
 				root:     true,
 				key:      baseTypeName,
@@ -266,7 +266,7 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "string",
 			startAsRoot: true,
-			expands:     []interface{}{"1.1"},
+			expands:     []any{"1.1"},
 			expected: &node{
 				root:     true,
 				key:      baseTypeName,
@@ -278,7 +278,7 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "interface",
 			startAsRoot: true,
-			expands:     []interface{}{true, 1},
+			expands:     []any{true, 1},
 			expected: &node{
 				root:     true,
 				key:      baseTypeName,
@@ -292,8 +292,8 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "[]bool",
 			startAsRoot: true,
-			expands: []interface{}{
-				[]interface{}{true},
+			expands: []any{
+				[]any{true},
 			},
 			expected: &node{
 				root:       true,
@@ -307,8 +307,8 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "[]int",
 			startAsRoot: true,
-			expands: []interface{}{
-				[]interface{}{1},
+			expands: []any{
+				[]any{1},
 			},
 			expected: &node{
 				root:       true,
@@ -322,8 +322,8 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "[]float",
 			startAsRoot: true,
-			expands: []interface{}{
-				[]interface{}{1.1},
+			expands: []any{
+				[]any{1.1},
 			},
 			expected: &node{
 				root:       true,
@@ -337,8 +337,8 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "[]string",
 			startAsRoot: true,
-			expands: []interface{}{
-				[]interface{}{"1.1"},
+			expands: []any{
+				[]any{"1.1"},
 			},
 			expected: &node{
 				root:       true,
@@ -352,8 +352,8 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "[]interface",
 			startAsRoot: true,
-			expands: []interface{}{
-				[]interface{}{true, 1},
+			expands: []any{
+				[]any{true, 1},
 			},
 			expected: &node{
 				root:       true,
@@ -367,9 +367,9 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "[][]bool",
 			startAsRoot: true,
-			expands: []interface{}{
-				[]interface{}{
-					[]interface{}{true},
+			expands: []any{
+				[]any{
+					[]any{true},
 				},
 			},
 			expected: &node{
@@ -384,10 +384,10 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "[][][]bool",
 			startAsRoot: true,
-			expands: []interface{}{
-				[]interface{}{
-					[]interface{}{
-						[]interface{}{true},
+			expands: []any{
+				[]any{
+					[]any{
+						[]any{true},
 					},
 				},
 			},
@@ -405,11 +405,11 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "object with 1 attr",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
+			expands: []any{
+				map[string]any{
 					"x": 1,
 				},
-				map[string]interface{}{
+				map[string]any{
 					"x": 3,
 				},
 			},
@@ -432,13 +432,13 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "object with multiple attrs - sorted by name",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
+			expands: []any{
+				map[string]any{
 					"c": 1,
 					"a": "str",
 					"b": 2.0,
 				},
-				map[string]interface{}{
+				map[string]any{
 					"a": "str2",
 					"c": 12.7,
 					"b": true,
@@ -475,12 +475,12 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "object with slice attr",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
-					"slice": []interface{}{1, 2},
+			expands: []any{
+				map[string]any{
+					"slice": []any{1, 2},
 				},
-				map[string]interface{}{
-					"slice": []interface{}{3, 4, 5},
+				map[string]any{
+					"slice": []any{3, 4, 5},
 				},
 			},
 			expected: &node{
@@ -503,11 +503,11 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "object with required string attr",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
+			expands: []any{
+				map[string]any{
 					"x": "stringx1",
 				},
-				map[string]interface{}{
+				map[string]any{
 					"x": "stringx2",
 				},
 			},
@@ -530,11 +530,11 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "object with not required string attr",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
+			expands: []any{
+				map[string]any{
 					"x": "stringx1",
 				},
-				map[string]interface{}{
+				map[string]any{
 					"y": "stringy1",
 				},
 			},
@@ -563,11 +563,11 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "object with nullable attr",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
+			expands: []any{
+				map[string]any{
 					"x": "stringx1",
 				},
-				map[string]interface{}{
+				map[string]any{
 					"x": nil,
 				},
 			},
@@ -590,15 +590,15 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "object with nested object attr",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
-					"level1": map[string]interface{}{
-						"level2": []interface{}{12.5, 5},
+			expands: []any{
+				map[string]any{
+					"level1": map[string]any{
+						"level2": []any{12.5, 5},
 					},
 				},
-				map[string]interface{}{
-					"level1": map[string]interface{}{
-						"level2": []interface{}{6, 5.2},
+				map[string]any{
+					"level1": map[string]any{
+						"level2": []any{6, 5.2},
 					},
 				},
 			},
@@ -630,11 +630,11 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "object 2 different attrs",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
+			expands: []any{
+				map[string]any{
 					"x": 1,
 				},
-				map[string]interface{}{
+				map[string]any{
 					"y": "asd",
 				},
 			},
@@ -663,29 +663,29 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "nested slice of objects attr",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
-					"level1": map[string]interface{}{
-						"level2": []interface{}{
-							map[string]interface{}{
+			expands: []any{
+				map[string]any{
+					"level1": map[string]any{
+						"level2": []any{
+							map[string]any{
 								"x": 1,
 								"y": 2,
 							},
-							map[string]interface{}{
+							map[string]any{
 								"x": 3,
 								"y": 4,
 							},
 						},
 					},
 				},
-				map[string]interface{}{
-					"level1": map[string]interface{}{
-						"level2": []interface{}{
-							map[string]interface{}{
+				map[string]any{
+					"level1": map[string]any{
+						"level2": []any{
+							map[string]any{
 								"x": 345,
 								"y": 45,
 							},
-							map[string]interface{}{
+							map[string]any{
 								"x": 6,
 								"y": 45,
 							},
@@ -735,15 +735,15 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "nested object with no data",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
-					"level1": map[string]interface{}{
-						"level2": map[string]interface{}{},
+			expands: []any{
+				map[string]any{
+					"level1": map[string]any{
+						"level2": map[string]any{},
 					},
 				},
-				map[string]interface{}{
-					"level1": map[string]interface{}{
-						"level2": map[string]interface{}{},
+				map[string]any{
+					"level1": map[string]any{
+						"level2": map[string]any{},
 					},
 				},
 			},
@@ -774,15 +774,15 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "object attr - null then data",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
-					"level1": map[string]interface{}{
+			expands: []any{
+				map[string]any{
+					"level1": map[string]any{
 						"level2": nil,
 					},
 				},
-				map[string]interface{}{
-					"level1": map[string]interface{}{
-						"level2": map[string]interface{}{
+				map[string]any{
+					"level1": map[string]any{
+						"level2": map[string]any{
 							"x": 1,
 							"y": 2,
 						},
@@ -830,17 +830,17 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "object attr - data then null",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
-					"level1": map[string]interface{}{
-						"level2": map[string]interface{}{
+			expands: []any{
+				map[string]any{
+					"level1": map[string]any{
+						"level2": map[string]any{
 							"x": 1,
 							"y": 2,
 						},
 					},
 				},
-				map[string]interface{}{
-					"level1": map[string]interface{}{
+				map[string]any{
+					"level1": map[string]any{
 						"level2": nil,
 					},
 				},
@@ -886,20 +886,20 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "nested object slice with not required attrs",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
-					"level1": map[string]interface{}{
-						"level2": []interface{}{
-							map[string]interface{}{"x": 1},
+			expands: []any{
+				map[string]any{
+					"level1": map[string]any{
+						"level2": []any{
+							map[string]any{"x": 1},
 						},
 					},
 				},
-				map[string]interface{}{
-					"level1": map[string]interface{}{
-						"level2": []interface{}{
-							map[string]interface{}{"x": 1},
-							map[string]interface{}{"x": 1, "y": "ok"},
-							map[string]interface{}{"y": "thumbs up"},
+				map[string]any{
+					"level1": map[string]any{
+						"level2": []any{
+							map[string]any{"x": 1},
+							map[string]any{"x": 1, "y": "ok"},
+							map[string]any{"y": "thumbs up"},
 						},
 					},
 				},
@@ -946,17 +946,17 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "nested object slice with not required attrs #2",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
+			expands: []any{
+				map[string]any{
 					"x": true,
 				},
-				map[string]interface{}{
+				map[string]any{
 					"x": false,
-					"y": []interface{}{
-						map[string]interface{}{
+					"y": []any{
+						map[string]any{
 							"a": "yes",
 						},
-						map[string]interface{}{
+						map[string]any{
 							"b": "no",
 						},
 					},
@@ -1002,11 +1002,11 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "list of objects with only null attr values",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
+			expands: []any{
+				map[string]any{
 					"x": nil,
 				},
-				map[string]interface{}{
+				map[string]any{
 					"x": nil,
 				},
 			},
@@ -1029,12 +1029,12 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "object + []object",
 			startAsRoot: true,
-			expands: []interface{}{
-				map[string]interface{}{
+			expands: []any{
+				map[string]any{
 					"x": true,
 				},
-				[]interface{}{
-					map[string]interface{}{
+				[]any{
+					map[string]any{
 						"x": true,
 					},
 				},
@@ -1050,9 +1050,9 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "[]bool + bool",
 			startAsRoot: true,
-			expands: []interface{}{
+			expands: []any{
 				true,
-				[]interface{}{true},
+				[]any{true},
 			},
 			expected: &node{
 				root:       true,
@@ -1066,10 +1066,10 @@ func TestJSONNodeRepr(t *testing.T) {
 		{
 			name:        "[][]bool + []bool",
 			startAsRoot: true,
-			expands: []interface{}{
-				[]interface{}{true},
-				[]interface{}{
-					[]interface{}{true},
+			expands: []any{
+				[]any{true},
+				[]any{
+					[]any{true},
 				},
 			},
 			expected: &node{
@@ -1104,13 +1104,13 @@ func TestJSONNodeRepr(t *testing.T) {
 func TestJSONNodeTreeKeysNames(t *testing.T) {
 	testCases := []struct {
 		name          string
-		growInput     interface{}
+		growInput     any
 		expectedKeys  map[string]bool
 		expectedNames map[string]bool
 	}{
 		{
 			name: "",
-			growInput: map[string]interface{}{
+			growInput: map[string]any{
 				"x_": 1,
 				"x$": 2,
 			},
@@ -1825,7 +1825,7 @@ func TestArrayStructureDepth(t *testing.T) {
 
 	testCases := []struct {
 		name             string
-		in               []interface{}
+		in               []any
 		inNodeType       nodeType
 		expectedDepth    int
 		expectedType     nodeType
@@ -1833,35 +1833,35 @@ func TestArrayStructureDepth(t *testing.T) {
 	}{
 		{
 			name:          "empty array",
-			in:            []interface{}{},
+			in:            []any{},
 			expectedDepth: 1,
 			expectedType:  nodeTypeInit,
 		},
 		{
 			name:          "flat array",
-			in:            []interface{}{1, 2, 3},
+			in:            []any{1, 2, 3},
 			expectedDepth: 1,
 			expectedType:  nodeTypeInt,
 		},
 		{
 			name:          "flat array, variable types",
-			in:            []interface{}{1, "2", true},
+			in:            []any{1, "2", true},
 			expectedDepth: 1,
 			expectedType:  nodeTypeInterface,
 		},
 		{
 			name:          "subarrays, variable structure",
-			in:            []interface{}{1, 2, []interface{}{3, 4}},
+			in:            []any{1, 2, []any{3, 4}},
 			expectedDepth: -1,
 			expectedType:  nodeTypeInterface,
 		},
 		{
 			name: "subarrays, variable structure #2",
-			in: []interface{}{
-				[]interface{}{true, false},
-				[]interface{}{
-					[]interface{}{true, false},
-					[]interface{}{true, false},
+			in: []any{
+				[]any{true, false},
+				[]any{
+					[]any{true, false},
+					[]any{true, false},
 				},
 			},
 			expectedDepth: -1,
@@ -1869,25 +1869,25 @@ func TestArrayStructureDepth(t *testing.T) {
 		},
 		{
 			name:          "subarrays, variable structure, variable types",
-			in:            []interface{}{1, true, []interface{}{3, "4"}},
+			in:            []any{1, true, []any{3, "4"}},
 			expectedDepth: -1,
 			expectedType:  nodeTypeInterface,
 		},
 		{
 			name:          "subarrays, same structure, same types",
-			in:            []interface{}{[]interface{}{1, 2}, []interface{}{3, 4}},
+			in:            []any{[]any{1, 2}, []any{3, 4}},
 			expectedDepth: 2,
 			expectedType:  nodeTypeInt,
 		},
 		{
 			name:          "subarrays, same structure, variable types",
-			in:            []interface{}{[]interface{}{1, "2"}, []interface{}{3, true}},
+			in:            []any{[]any{1, "2"}, []any{3, true}},
 			expectedDepth: 2,
 			expectedType:  nodeTypeInterface,
 		},
 		{
 			name:          "flat array, different in type",
-			in:            []interface{}{1, 2, 3},
+			in:            []any{1, 2, 3},
 			inNodeType:    nodeTypeBool,
 			expectedDepth: 1,
 			expectedType:  nodeTypeInterface,
@@ -1908,37 +1908,37 @@ func TestArrayStructureDepth(t *testing.T) {
 func TestArrayStructureType(t *testing.T) {
 	tests := []struct {
 		name         string
-		in           []interface{}
+		in           []any
 		inType       nodeType
 		wantType     nodeType
 		wantNullable bool
 	}{
 		{
 			name:         "no data",
-			in:           []interface{}{},
+			in:           []any{},
 			inType:       nil,
 			wantType:     nodeTypeInit,
 			wantNullable: false,
 		},
 		{
 			name:         "empty array, type set already",
-			in:           []interface{}{},
+			in:           []any{},
 			inType:       nodeTypeString,
 			wantType:     nodeTypeString,
 			wantNullable: false,
 		},
 		{
 			name:         "not empty array, type matches",
-			in:           []interface{}{"a", "b"},
+			in:           []any{"a", "b"},
 			inType:       nodeTypeString,
 			wantType:     nodeTypeString,
 			wantNullable: false,
 		},
 		{
 			name: "not empty array, type matches, depth 2",
-			in: []interface{}{
-				[]interface{}{"a", "b"},
-				[]interface{}{"a", "b"},
+			in: []any{
+				[]any{"a", "b"},
+				[]any{"a", "b"},
 			},
 			inType:       nodeTypeString,
 			wantType:     nodeTypeString,
@@ -1946,16 +1946,16 @@ func TestArrayStructureType(t *testing.T) {
 		},
 		{
 			name:         "not empty array, type not match",
-			in:           []interface{}{"a", "b"},
+			in:           []any{"a", "b"},
 			inType:       nodeTypeInt,
 			wantType:     nodeTypeInterface,
 			wantNullable: false,
 		},
 		{
 			name: "not empty array, type not match, depth 2",
-			in: []interface{}{
-				[]interface{}{"a", "b"},
-				[]interface{}{"a", "b"},
+			in: []any{
+				[]any{"a", "b"},
+				[]any{"a", "b"},
 			},
 			inType:       nodeTypeInt,
 			wantType:     nodeTypeInterface,
@@ -1963,16 +1963,16 @@ func TestArrayStructureType(t *testing.T) {
 		},
 		{
 			name:         "ints + floats",
-			in:           []interface{}{1, 2, 3.14},
+			in:           []any{1, 2, 3.14},
 			inType:       nil,
 			wantType:     nodeTypeFloat,
 			wantNullable: false,
 		},
 		{
 			name: "ints + floats, depth 2",
-			in: []interface{}{
-				[]interface{}{1, 2, 3.14},
-				[]interface{}{1, 2, 3.14},
+			in: []any{
+				[]any{1, 2, 3.14},
+				[]any{1, 2, 3.14},
 			},
 			inType:       nil,
 			wantType:     nodeTypeFloat,
@@ -1980,21 +1980,21 @@ func TestArrayStructureType(t *testing.T) {
 		},
 		{
 			name:         "ints + null",
-			in:           []interface{}{1, 2, 3, nil},
+			in:           []any{1, 2, 3, nil},
 			inType:       nil,
 			wantType:     nodeTypeInt,
 			wantNullable: true,
 		},
 		{
 			name:         "null + ints",
-			in:           []interface{}{nil, 1, 2, 3},
+			in:           []any{nil, 1, 2, 3},
 			inType:       nil,
 			wantType:     nodeTypeInt,
 			wantNullable: true,
 		},
 		{
 			name:         "nums + null",
-			in:           []interface{}{1.45, nil, 1, 2.2, 3},
+			in:           []any{1.45, nil, 1, 2.2, 3},
 			inType:       nil,
 			wantType:     nodeTypeFloat,
 			wantNullable: true,

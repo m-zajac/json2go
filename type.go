@@ -19,11 +19,11 @@ const (
 
 type nodeType interface {
 	id() string
-	fit(interface{}) nodeType
+	fit(any) nodeType
 	expands(nodeType) bool
 }
 
-func growType(t nodeType, v interface{}) nodeType {
+func growType(t nodeType, v any) nodeType {
 	if v == nil {
 		return t
 	}
@@ -48,7 +48,7 @@ func (n nodeInitType) expands(n2 nodeType) bool {
 	return n == n2
 }
 
-func (n nodeInitType) fit(v interface{}) nodeType {
+func (n nodeInitType) fit(v any) nodeType {
 	return nodeTypeBool.fit(v)
 }
 
@@ -62,7 +62,7 @@ func (n nodeBoolType) expands(n2 nodeType) bool {
 	return n == n2
 }
 
-func (n nodeBoolType) fit(v interface{}) nodeType {
+func (n nodeBoolType) fit(v any) nodeType {
 	switch v.(type) {
 	case bool:
 		return n
@@ -81,7 +81,7 @@ func (n nodeIntType) expands(n2 nodeType) bool {
 	return n == n2
 }
 
-func (n nodeIntType) fit(v interface{}) nodeType {
+func (n nodeIntType) fit(v any) nodeType {
 	switch typedValue := v.(type) {
 	case int, int8, int16, int32, int64:
 		return n
@@ -108,7 +108,7 @@ func (n nodeFloatType) expands(n2 nodeType) bool {
 	return n == n2 || n2.id() == nodeTypeInt.id()
 }
 
-func (n nodeFloatType) fit(v interface{}) nodeType {
+func (n nodeFloatType) fit(v any) nodeType {
 	switch v.(type) {
 	case float32, float64, int, int16, int32, int64:
 		return n
@@ -127,7 +127,7 @@ func (n nodeTimeType) expands(n2 nodeType) bool {
 	return n == n2
 }
 
-func (n nodeTimeType) fit(v interface{}) nodeType {
+func (n nodeTimeType) fit(v any) nodeType {
 	switch vt := v.(type) {
 	case string:
 		if _, err := time.Parse(time.RFC3339, vt); err == nil {
@@ -148,7 +148,7 @@ func (n nodeStringType) expands(n2 nodeType) bool {
 	return n == n2 || n2 == nodeTypeTime
 }
 
-func (n nodeStringType) fit(v interface{}) nodeType {
+func (n nodeStringType) fit(v any) nodeType {
 	switch v.(type) {
 	case string:
 		return n
@@ -167,9 +167,9 @@ func (n nodeObjectType) expands(n2 nodeType) bool {
 	return n == n2
 }
 
-func (n nodeObjectType) fit(v interface{}) nodeType {
+func (n nodeObjectType) fit(v any) nodeType {
 	switch v.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		return n
 	}
 
@@ -186,7 +186,7 @@ func (n nodeInterfaceType) expands(n2 nodeType) bool {
 	return n == n2
 }
 
-func (n nodeInterfaceType) fit(v interface{}) nodeType {
+func (n nodeInterfaceType) fit(v any) nodeType {
 	return n
 }
 
@@ -200,7 +200,7 @@ func (n nodeExtractedType) expands(n2 nodeType) bool {
 	return n == n2
 }
 
-func (n nodeExtractedType) fit(v interface{}) nodeType {
+func (n nodeExtractedType) fit(v any) nodeType {
 	return n
 }
 
@@ -214,6 +214,6 @@ func (n nodeMapType) expands(n2 nodeType) bool {
 	return n == n2
 }
 
-func (n nodeMapType) fit(v interface{}) nodeType {
+func (n nodeMapType) fit(v any) nodeType {
 	return n
 }

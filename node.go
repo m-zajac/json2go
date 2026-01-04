@@ -40,7 +40,7 @@ func newNode(key string) *node {
 	}
 }
 
-func (n *node) grow(input interface{}) {
+func (n *node) grow(input any) {
 	if input == nil {
 		n.nullable = true
 		return
@@ -53,7 +53,7 @@ func (n *node) grow(input interface{}) {
 	n.growChildrenFromData(input)
 
 	switch typedInput := input.(type) {
-	case []interface{}:
+	case []any:
 		if n.t != nodeTypeInit && n.arrayLevel == 0 {
 			n.t = nodeTypeInterface
 			n.children = nil
@@ -106,19 +106,19 @@ func (n *node) getChild(key string) *node {
 	return nil
 }
 
-func (n *node) growChildrenFromData(in interface{}) {
+func (n *node) growChildrenFromData(in any) {
 	if n.t == nodeTypeInterface {
 		return
 	}
 
-	if ar, ok := in.([]interface{}); ok {
+	if ar, ok := in.([]any); ok {
 		for i := range ar {
 			n.growChildrenFromData(ar[i])
 		}
 		return
 	}
 
-	obj, ok := in.(map[string]interface{})
+	obj, ok := in.(map[string]any)
 	if !ok {
 		n.children = nil
 		return
@@ -263,7 +263,7 @@ func (n *node) similarity(n2 *node) float64 {
 }
 
 // arrayStructure returns array depth and elements type. If array is nested and has no consistent structure, level -1 is returned.
-func arrayStructure(in []interface{}, inType nodeType) (depth int, outType nodeType, nullable bool) {
+func arrayStructure(in []any, inType nodeType) (depth int, outType nodeType, nullable bool) {
 	if inType == nil {
 		inType = nodeTypeInit
 	}
@@ -273,7 +273,7 @@ func arrayStructure(in []interface{}, inType nodeType) (depth int, outType nodeT
 
 	for _, el := range in {
 		switch typedEl := el.(type) {
-		case []interface{}:
+		case []any:
 			localDepth, localType, localNullable := arrayStructure(typedEl, inType)
 			localDepth++
 			if localNullable {

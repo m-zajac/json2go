@@ -9,39 +9,39 @@ import (
 func TestTypeExpand(t *testing.T) {
 	testCases := []struct {
 		name         string
-		inputs       []interface{}
+		inputs       []any
 		resultTypeID string
 	}{
 		// base types
 		{
 			name:         "input to bool",
-			inputs:       []interface{}{true},
+			inputs:       []any{true},
 			resultTypeID: nodeTypeBool.id(),
 		},
 		{
 			name:         "input to int",
-			inputs:       []interface{}{1},
+			inputs:       []any{1},
 			resultTypeID: nodeTypeInt.id(),
 		},
 		{
 			name:         "input to float",
-			inputs:       []interface{}{1.1},
+			inputs:       []any{1.1},
 			resultTypeID: nodeTypeFloat.id(),
 		},
 		{
 			name:         "input to string",
-			inputs:       []interface{}{"123"},
+			inputs:       []any{"123"},
 			resultTypeID: nodeTypeString.id(),
 		},
 		{
 			name:         "input to time",
-			inputs:       []interface{}{"2006-01-02T15:04:05+07:00"},
+			inputs:       []any{"2006-01-02T15:04:05+07:00"},
 			resultTypeID: nodeTypeTime.id(),
 		},
 		{
 			name: "input to object",
-			inputs: []interface{}{
-				map[string]interface{}{
+			inputs: []any{
+				map[string]any{
 					"key": "value",
 				},
 			},
@@ -51,33 +51,33 @@ func TestTypeExpand(t *testing.T) {
 		// mixed types
 		{
 			name:         "input to interface #1",
-			inputs:       []interface{}{"123", 123},
+			inputs:       []any{"123", 123},
 			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name:         "input to interface #2",
-			inputs:       []interface{}{123, "123"},
+			inputs:       []any{123, "123"},
 			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name:         "input to interface #3",
-			inputs:       []interface{}{"123", 123.4},
+			inputs:       []any{"123", 123.4},
 			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name:         "input to interface #4",
-			inputs:       []interface{}{123, true},
+			inputs:       []any{123, true},
 			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name:         "input to interface #5",
-			inputs:       []interface{}{true, 123},
+			inputs:       []any{true, 123},
 			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface #6",
-			inputs: []interface{}{
-				map[string]interface{}{
+			inputs: []any{
+				map[string]any{
 					"k": 1,
 				},
 				true,
@@ -87,77 +87,77 @@ func TestTypeExpand(t *testing.T) {
 		},
 		{
 			name: "input to interface - bool + []bool",
-			inputs: []interface{}{
+			inputs: []any{
 				true,
-				[]interface{}{true},
+				[]any{true},
 			},
 			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - []bool + bool",
-			inputs: []interface{}{
-				[]interface{}{true},
+			inputs: []any{
+				[]any{true},
 				true,
 			},
 			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - int + []int",
-			inputs: []interface{}{
+			inputs: []any{
 				1,
-				[]interface{}{1},
+				[]any{1},
 			},
 			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - []int + int",
-			inputs: []interface{}{
-				[]interface{}{1},
+			inputs: []any{
+				[]any{1},
 				1,
 			},
 			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - float + []float",
-			inputs: []interface{}{
+			inputs: []any{
 				1.1,
-				[]interface{}{1.1},
+				[]any{1.1},
 			},
 			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - []float + float",
-			inputs: []interface{}{
-				[]interface{}{1.1},
+			inputs: []any{
+				[]any{1.1},
 				1.1,
 			},
 			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - string + []string",
-			inputs: []interface{}{
+			inputs: []any{
 				"1.1",
-				[]interface{}{"1.1"},
+				[]any{"1.1"},
 			},
 			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - []string + string",
-			inputs: []interface{}{
-				[]interface{}{"1.1"},
+			inputs: []any{
+				[]any{"1.1"},
 				"1.1",
 			},
 			resultTypeID: nodeTypeInterface.id(),
 		},
 		{
 			name: "input to interface - []object + object",
-			inputs: []interface{}{
-				[]interface{}{
-					map[string]interface{}{
+			inputs: []any{
+				[]any{
+					map[string]any{
 						"x": 1,
 					},
 				},
-				map[string]interface{}{
+				map[string]any{
 					"x": 1,
 				},
 			},
@@ -165,12 +165,12 @@ func TestTypeExpand(t *testing.T) {
 		},
 		{
 			name:         "time + string",
-			inputs:       []interface{}{"2006-01-02T15:04:05+07:00", "some stirng"},
+			inputs:       []any{"2006-01-02T15:04:05+07:00", "some stirng"},
 			resultTypeID: nodeTypeString.id(),
 		},
 		{
 			name:         "string + time",
-			inputs:       []interface{}{"some stirng", "2006-01-02T15:04:05+07:00"},
+			inputs:       []any{"some stirng", "2006-01-02T15:04:05+07:00"},
 			resultTypeID: nodeTypeString.id(),
 		},
 	}

@@ -155,11 +155,11 @@ func (p *JSONParser) FeedBytes(input []byte) error {
 // FeedValue consumes one of:
 //
 //   - simple type (int, float, string, etc.)
-//   - []interface{} - each value must meet these requirements
-//   - map[string]interface{}  - each value must meet these requirements
+//   - []any - each value must meet these requirements
+//   - map[string]any  - each value must meet these requirements
 //
 // json.Unmarshal to empty interface value provides perfect input (see example)
-func (p *JSONParser) FeedValue(input interface{}) {
+func (p *JSONParser) FeedValue(input any) {
 	p.rootNode.grow(input)
 }
 

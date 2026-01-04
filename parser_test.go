@@ -55,7 +55,7 @@ func ExampleNewJSONParser() {
 }
 
 func ExampleJSONParser_FeedValue() {
-	var v interface{}
+	var v any
 	_ = json.Unmarshal([]byte(`{"line":{"start":{"x":12.1,"y":2.8},"end":{"x":12.1,"y":5.67}}}`), &v)
 
 	parser := NewJSONParser("Document")
@@ -191,7 +191,7 @@ func testGeneratedType(t *testing.T, parser *JSONParser, data []byte) {
 	require.NoError(t, err, "running go code: %v, %s", err, out)
 
 	// unmarshal input data and test output data to generic type, then compare
-	var valIn, valOut interface{}
+	var valIn, valOut any
 	err = json.Unmarshal(data, &valIn)
 	require.NoError(t, err, "unmarshaling input data: %v", err)
 	err = json.Unmarshal([]byte(out), &valOut)
@@ -235,7 +235,7 @@ func main() {
 
 	tmpl, err := template.New("test").Parse(testTemplate)
 	require.NoError(t, err, "parsing test code template: %v", err)
-	err = tmpl.Execute(f, map[string]interface{}{
+	err = tmpl.Execute(f, map[string]any{
 		"Type":     parserOutput,
 		"RootName": rootName,
 	})
@@ -244,14 +244,14 @@ func main() {
 	return filename
 }
 
-func compareIgnoringNilKeys(t *testing.T, a, b interface{}) bool {
-	if ma, ok := a.(map[string]interface{}); ok {
-		if mb, ok := b.(map[string]interface{}); ok {
+func compareIgnoringNilKeys(t *testing.T, a, b any) bool {
+	if ma, ok := a.(map[string]any); ok {
+		if mb, ok := b.(map[string]any); ok {
 			return compareMaps(t, ma, mb)
 		}
 	}
-	if sa, ok := a.([]interface{}); ok {
-		if sb, ok := b.([]interface{}); ok {
+	if sa, ok := a.([]any); ok {
+		if sb, ok := b.([]any); ok {
 			return compareSlices(t, sa, sb)
 		}
 	}
@@ -259,7 +259,7 @@ func compareIgnoringNilKeys(t *testing.T, a, b interface{}) bool {
 	return assert.Equal(t, a, b)
 }
 
-func compareMaps(t *testing.T, a, b map[string]interface{}) bool {
+func compareMaps(t *testing.T, a, b map[string]any) bool {
 	checkedKeys := make(map[string]bool)
 	for k, v := range a {
 		checkedKeys[k] = true
@@ -281,7 +281,7 @@ func compareMaps(t *testing.T, a, b map[string]interface{}) bool {
 	return true
 }
 
-func compareSlices(t *testing.T, a, b []interface{}) bool {
+func compareSlices(t *testing.T, a, b []any) bool {
 	if !assert.Equal(t, len(a), len(b)) {
 		return false
 	}
