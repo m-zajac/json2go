@@ -1,0 +1,96 @@
+- options:
+    extractAllTypes: true
+    extractCommonTypes: true
+    extractMinSubsetOccurrences: 2
+  out: |
+    type Document []struct {
+    	BoilingPoint *UnitsValue `json:"boiling_point,omitempty"`
+    	Density      *UnitsValue `json:"density,omitempty"`
+    	Name         string      `json:"name"`
+    }
+    
+    type UnitsValue struct {
+    	Units string  `json:"units"`
+    	Value float64 `json:"value"`
+    }
+
+- options:
+    extractAllTypes: true
+    extractCommonTypes: true
+    extractMinSubsetOccurrences: 3
+  out: |
+    type Document []struct {
+    	BoilingPoint *BoilingPoint `json:"boiling_point,omitempty"`
+    	Density      *Density      `json:"density,omitempty"`
+    	Name         string        `json:"name"`
+    }
+    
+    type BoilingPoint struct {
+    	Units string  `json:"units"`
+    	Value float64 `json:"value"`
+    }
+    
+    type Density struct {
+    	Units string  `json:"units"`
+    	Value float64 `json:"value"`
+    }
+
+- options:
+    extractAllTypes: true
+    extractCommonTypes: true
+    extractMinSubsetOccurrences: 2
+    extractMinAddedFields: 3
+  out: |
+    type Document []struct {
+    	BoilingPoint *BoilingPoint `json:"boiling_point,omitempty"`
+    	Density      *Density      `json:"density,omitempty"`
+    	Name         string        `json:"name"`
+    }
+    
+    type BoilingPoint struct {
+    	Units string  `json:"units"`
+    	Value float64 `json:"value"`
+    }
+    
+    type Density struct {
+    	Units string  `json:"units"`
+    	Value float64 `json:"value"`
+    }
+
+- options:
+    extractAllTypes: true
+    extractCommonTypes: false
+  out: |
+    type Document []struct {
+    	BoilingPoint *BoilingPoint `json:"boiling_point,omitempty"`
+    	Density      *Density      `json:"density,omitempty"`
+    	Name         string        `json:"name"`
+    }
+    
+    type BoilingPoint struct {
+    	Units string  `json:"units"`
+    	Value float64 `json:"value"`
+    }
+    
+    type Density struct {
+    	Units string  `json:"units"`
+    	Value float64 `json:"value"`
+    }
+
+- options:
+    extractAllTypes: false
+    extractCommonTypes: false
+  out: |
+    type Document []struct {
+    	BoilingPoint *struct {
+    		Units string  `json:"units"`
+    		Value float64 `json:"value"`
+    	} `json:"boiling_point,omitempty"`
+    	Density *struct {
+    		Units string  `json:"units"`
+    		Value float64 `json:"value"`
+    	} `json:"density,omitempty"`
+    	Name string `json:"name"`
+    }
+
+

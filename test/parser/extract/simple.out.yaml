@@ -15,6 +15,9 @@
     }
 - options:
     extractCommonTypes: true
+    extractSimilarityThreshold: 0.7
+    extractMinSubsetSize: 1
+    extractMinAddedFields: 1
   out: |
     type Document []struct {
     	X *Z `json:"x,omitempty"`

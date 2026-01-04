@@ -299,6 +299,11 @@ func tryExtractSimilarity(root *node, candidates []*node, allRoots []*node, root
 
 			sim := c.similarity(r)
 			if sim >= threshold {
+				// Validate extraction heuristics before merging with existing type
+				if len(c.children) < opts.extractMinAddedFields {
+					continue // Not enough fields to justify merging
+				}
+
 				// Found a match!
 				extractedName := r.extractedTypeName
 				if extractedName == "" {
@@ -332,6 +337,21 @@ func tryExtractSimilarity(root *node, candidates []*node, allRoots []*node, root
 
 		if len(matches) > 0 {
 			matches = append(matches, c1)
+
+			// Validate extraction heuristics for common types
+			if len(matches) < opts.extractMinSubsetOccurrences {
+				continue // Not enough occurrences
+			}
+			// Only apply minSubsetSize if it's explicitly set (not default)
+			// minSubsetSize is primarily for subset extraction, but can also control full matches when explicitly configured
+			if opts.extractMinSubsetSize > DefaultMinSubsetSize && len(c1.children) < opts.extractMinSubsetSize {
+				continue // Not enough fields (when explicitly configured)
+			}
+			// Check minimum added fields - the structure must have at least this many fields
+			if len(c1.children) < opts.extractMinAddedFields {
+				continue // Not enough fields to justify extraction
+			}
+
 			*changed = true
 			return extractNodes(matches, rootNames, parentKeys)
 		}
@@ -476,6 +496,12 @@ func tryExtractSubset(candidates []*node, allRoots []*node, rootNames map[string
 		}
 		newFieldsCount := len(best.keys) - embeddedCount
 		if embeddedCount > 0 && newFieldsCount < opts.extractMinAddedFields {
+			return nil
+		}
+
+		// Check minimum added fields for ALL subset extractions
+		// This ensures that even full subsets (not embeddings) respect the field count threshold
+		if newFieldsCount < opts.extractMinAddedFields {
 			return nil
 		}
 

@@ -19,6 +19,7 @@
     makeMaps: true
     makeMapsWhenMinAttributes: 5
     extractCommonTypes: true
+    extractMinAddedFields: 1
   out: |
     type Document struct {
     	K1 map[string]Ok `json:"k1"`
@@ -26,5 +27,23 @@
     }
     
     type Ok struct {
+    	Ok bool `json:"ok"`
+    }
+- options:
+    makeMaps: true
+    makeMapsWhenMinAttributes: 5
+    extractCommonTypes: true
+    extractMinAddedFields: 2
+  out: |
+    type Document struct {
+    	K1 map[string]Nested  `json:"k1"`
+    	K2 map[string]Nested2 `json:"k2"`
+    }
+    
+    type Nested struct {
+    	Ok bool `json:"ok"`
+    }
+    
+    type Nested2 struct {
     	Ok bool `json:"ok"`
     }

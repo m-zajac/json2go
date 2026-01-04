@@ -368,7 +368,12 @@ export function App() {
                     min="1"
                     step="1"
                     value={options.useMapsMinAttrs}
-                    onInput={(e) => updateOption('useMapsMinAttrs', parseInt(e.target.value))}
+                    onInput={(e) => {
+                      const value = e.target.valueAsNumber
+                      if (!isNaN(value)) {
+                        updateOption('useMapsMinAttrs', value)
+                      }
+                    }}
                   />
                 </div>
 
@@ -439,7 +444,12 @@ export function App() {
                       max="1"
                       step="0.1"
                       value={options.similarityThreshold}
-                      onInput={(e) => updateOption('similarityThreshold', parseFloat(e.target.value))}
+                      onInput={(e) => {
+                        const value = e.target.valueAsNumber
+                        if (!isNaN(value)) {
+                          updateOption('similarityThreshold', value)
+                        }
+                      }}
                     />
                   </div>
                   
@@ -454,7 +464,12 @@ export function App() {
                       min="1"
                       step="1"
                       value={options.minSubsetSize}
-                      onInput={(e) => updateOption('minSubsetSize', parseInt(e.target.value))}
+                      onInput={(e) => {
+                        const value = e.target.valueAsNumber
+                        if (!isNaN(value)) {
+                          updateOption('minSubsetSize', value)
+                        }
+                      }}
                     />
                   </div>
                 </div>
@@ -471,7 +486,12 @@ export function App() {
                       min="1"
                       step="1"
                       value={options.minSubsetOccurrences}
-                      onInput={(e) => updateOption('minSubsetOccurrences', parseInt(e.target.value))}
+                      onInput={(e) => {
+                        const value = e.target.valueAsNumber
+                        if (!isNaN(value)) {
+                          updateOption('minSubsetOccurrences', value)
+                        }
+                      }}
                     />
                   </div>
 
@@ -486,7 +506,12 @@ export function App() {
                       min="1"
                       step="1"
                       value={options.minAddedFields}
-                      onInput={(e) => updateOption('minAddedFields', parseInt(e.target.value))}
+                      onInput={(e) => {
+                        const value = e.target.valueAsNumber
+                        if (!isNaN(value)) {
+                          updateOption('minAddedFields', value)
+                        }
+                      }}
                     />
                   </div>
                 </div>

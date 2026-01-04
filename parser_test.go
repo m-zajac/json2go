@@ -111,6 +111,7 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 	type testDef struct {
 		Options struct {
 			RootName                     string  `yaml:"rootName"`
+			ExtractAllTypes              *bool   `yaml:"extractAllTypes"`
 			ExtractCommonTypes           bool    `yaml:"extractCommonTypes"`
 			ExtractSimilarityThreshold   float64 `yaml:"extractSimilarityThreshold"`
 			ExtractMinSubsetSize         int     `yaml:"extractMinSubsetSize"`
@@ -145,12 +146,34 @@ func testFile(t *testing.T, name, inPath, outPath string) {
 				OptMakeMaps(tc.Options.MakeMaps, tc.Options.MakeMapsWhenMinAttributes),
 				OptTimeAsString(tc.Options.TimeAsStr),
 			}
-			if tc.Options.ExtractSimilarityThreshold > 0 {
+			// Only set extractAllTypes if explicitly provided in test
+			if tc.Options.ExtractAllTypes != nil {
+				parserOpts = append(parserOpts, OptExtractAllTypes(*tc.Options.ExtractAllTypes))
+			}
+			// Apply heuristics if ANY heuristic field is explicitly set
+			if tc.Options.ExtractSimilarityThreshold > 0 || tc.Options.ExtractMinSubsetSize > 0 ||
+				tc.Options.ExtractMinSubsetOccurrences > 0 || tc.Options.ExtractMinAddedFields > 0 {
+				similarity := tc.Options.ExtractSimilarityThreshold
+				if similarity == 0 {
+					similarity = DefaultSimilarityThreshold
+				}
+				minSize := tc.Options.ExtractMinSubsetSize
+				if minSize == 0 {
+					minSize = DefaultMinSubsetSize
+				}
+				minOccurrences := tc.Options.ExtractMinSubsetOccurrences
+				if minOccurrences == 0 {
+					minOccurrences = DefaultMinSubsetOccurrences
+				}
+				minAdded := tc.Options.ExtractMinAddedFields
+				if minAdded == 0 {
+					minAdded = DefaultMinAddedFields
+				}
 				parserOpts = append(parserOpts, OptExtractHeuristics(
-					tc.Options.ExtractSimilarityThreshold,
-					tc.Options.ExtractMinSubsetSize,
-					tc.Options.ExtractMinSubsetOccurrences,
-					tc.Options.ExtractMinAddedFields,
+					similarity,
+					minSize,
+					minOccurrences,
+					minAdded,
 				))
 			}
 			rootName := tc.Options.RootName

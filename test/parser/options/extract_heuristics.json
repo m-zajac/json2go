@@ -1,0 +1,28 @@
+[
+    {
+        "name": "water",
+        "boiling_point": {
+            "units": "C",
+            "value": 100
+        }
+    },
+    {
+        "name": "oxygen",
+        "density": {
+            "units": "g/L",
+            "value": 1.429
+        }
+    },
+    {
+        "name": "carbon monoxide",
+        "boiling_point": {
+            "units": "C",
+            "value": -191.5
+        },
+        "density": {
+            "units": "kg/m3",
+            "value": 789
+        }
+    }
+]
+
