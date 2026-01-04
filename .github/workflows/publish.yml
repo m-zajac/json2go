@@ -23,8 +23,7 @@ jobs:
     - name: Install TinyGo
       uses: acifani/setup-tinygo@v2
       with:
-        tinygo-version: '0.34.0'
-        install-binaryen: 'false'
+        tinygo-version: '0.40.1'
 
     - name: Install Task
       uses: arduino/setup-task@v2
