@@ -12,13 +12,18 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.24'
+        go-version: '1.25'
 
     - name: Check out code
       uses: actions/checkout@v4
       with:
         # preserve history to be able to see latest tag
         fetch-depth: 0
+
+    - name: Install TinyGo
+      uses: acifani/setup-tinygo@v2
+      with:
+        tinygo-version: '0.40.1'
 
     - name: Install Task
       uses: arduino/setup-task@v2
