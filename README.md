@@ -25,15 +25,17 @@ And correct output with some comments:
 
 ```go
 type Document []struct {
-        Arr  [][]*float64 `json:"arr,omitempty"` // Should be doubly nested array; should be a pointer type because there's null in values.
-        Bool *bool        `json:"bool,omitempty"` // Shouldn't be `bool` because when key is missing you'll get false information.
-        Date *time.Time   `json:"date,omitempty"` // Could be also `string` or `*string`.
-        Doc  *struct {
-                X *string `json:"x,omitempty"` // Should be pointer, because key is not present in all documents.
-                Y *int    `json:"y,omitempty"` // Should be pointer, because key is not present in all documents.
-        } `json:"doc,omitempty"` // Should be pointer, because key is not present in all documents in array.
-        Doc2 *bool   `json:"_doc,omitempty"` // Attribute for "_doc" key (other that for "doc"!). Type - the same as `Bool` attribute.
-        Text *string `json:"text,omitempty"` // Could be also `string`.
+	Arr  [][]*float64 `json:"arr,omitempty"` // Should be doubly nested array; should be a pointer type because there's null in values.
+	Bool *bool        `json:"bool,omitempty"` // Shouldn't be `bool` because when key is missing you'll get false information.
+	Date *time.Time   `json:"date,omitempty"` // Could be also `string` or `*string`.
+	Doc  *Doc         `json:"doc,omitempty"`  // Should be pointer, because key is not present in all documents in array.
+	Doc2 *bool        `json:"_doc,omitempty"` // Attribute for "_doc" key (other that for "doc"!). Type - the same as `Bool` attribute.
+	Text *string      `json:"text,omitempty"` // Could be also `string`.
+}
+
+type Doc struct {
+	X *string `json:"x,omitempty"` // Should be pointer, because key is not present in all documents.
+	Y *int    `json:"y,omitempty"` // Should be pointer, because key is not present in all documents.
 }
 ```
 
@@ -98,14 +100,17 @@ fmt.Println(res)
 ```
 ```go
 type Document struct {
-        Line struct {
-                Point1 Point `json:"point1"`
-                Point2 Point `json:"point2"`
-        } `json:"line"`
+	Line Line `json:"line"`
 }
+
 type Point struct {
-        X float64 `json:"x"`
-        Y int     `json:"y"`
+	X float64 `json:"x"`
+	Y int     `json:"y"`
+}
+
+type Line struct {
+	Point1 Point `json:"point1"`
+	Point2 Point `json:"point2"`
 }
 ```
 
@@ -146,15 +151,16 @@ type Point struct {
 ```
 ```go
 type Document []struct {
-        BoilingPoint *UnitsValue `json:"boiling_point,omitempty"`
-        Dangerous    *bool       `json:"dangerous,omitempty"`
-        Density      *UnitsValue `json:"density,omitempty"`
-        Name         string      `json:"name"`
-        Type         string      `json:"type"`
+	BoilingPoint *UnitsValue `json:"boiling_point,omitempty"`
+	Dangerous    *bool       `json:"dangerous,omitempty"`
+	Density      *UnitsValue `json:"density,omitempty"`
+	Name         string      `json:"name"`
+	Type         string      `json:"type"`
 }
+
 type UnitsValue struct {
-        Units string  `json:"units"`
-        Value float64 `json:"value"`
+	Units string  `json:"units"`
+	Value float64 `json:"value"`
 }
 ```
 
