@@ -1,8 +1,10 @@
 package json2go
 
 import (
-	"encoding/json"
+	"errors"
 	"go/ast"
+
+	"github.com/tidwall/gjson"
 )
 
 type options struct {
@@ -140,12 +142,12 @@ func defaultOptions() options {
 
 // FeedBytes consumes json input as bytes. If input is invalid, json unmarshalling error is returned
 func (p *JSONParser) FeedBytes(input []byte) error {
-	var v interface{}
-	if err := json.Unmarshal(input, &v); err != nil {
-		return err
+	valid := gjson.ValidBytes(input)
+	if !valid {
+		return errors.New("invalid json")
 	}
 
-	p.FeedValue(v)
+	p.FeedValue(gjson.ParseBytes(input).Value())
 
 	return nil
 }

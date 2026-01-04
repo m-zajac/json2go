@@ -4,11 +4,11 @@
 package main
 
 import (
-	"encoding/json"
 	"strconv"
 	"syscall/js"
 
 	"github.com/m-zajac/json2go"
+	"github.com/tidwall/gjson"
 )
 
 func main() {
@@ -17,6 +17,9 @@ func main() {
 			return ""
 		}
 		input := args[0].String()
+		if valid := gjson.ValidBytes([]byte(input)); !valid {
+			return ""
+		}
 
 		rootName := json2go.DefaultRootName
 		var parserOpts []json2go.JSONParserOpt
@@ -24,13 +27,9 @@ func main() {
 			parserOpts, rootName = parseOpts(args[1])
 		}
 
+		data := gjson.ParseBytes([]byte(input)).Value()
+
 		parser := json2go.NewJSONParser(rootName, parserOpts...)
-
-		var data interface{}
-		if err := json.Unmarshal([]byte(input), &data); err != nil {
-			return ""
-		}
-
 		parser.FeedValue(data)
 
 		return parser.String()

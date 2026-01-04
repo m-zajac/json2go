@@ -1,12 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
+	"io"
 	"log"
 	"os"
 
 	"github.com/m-zajac/json2go"
+	"github.com/tidwall/gjson"
 )
 
 func main() {
@@ -24,11 +25,12 @@ func main() {
 
 	flag.Parse()
 
-	var data interface{}
-
-	jd := json.NewDecoder(os.Stdin)
-	if err := jd.Decode(&data); err != nil {
-		log.Fatalf("json decoding error: %v", err)
+	b, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		log.Fatalf("reading stdin: %v", err)
+	}
+	if valid := gjson.ValidBytes(b); !valid {
+		log.Fatal("invalid json")
 	}
 
 	parser := json2go.NewJSONParser(
@@ -41,7 +43,7 @@ func main() {
 		json2go.OptTimeAsString(*timeAsStr),
 	)
 
-	parser.FeedValue(data)
+	parser.FeedValue(gjson.ParseBytes(b).Value())
 
 	repr := parser.String()
 
