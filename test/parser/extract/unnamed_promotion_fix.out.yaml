@@ -4,22 +4,24 @@
     type Document struct {
     	A []F1F2 `json:"a"`
     	B []F3F4 `json:"b"`
-    	C []struct {
-    		X []Extracted `json:"x"`
-    	} `json:"c"`
+    	C []C    `json:"c"`
     }
-
+    
     type F1F2 struct {
     	F1 int `json:"f1"`
     	F2 int `json:"f2"`
     }
-
+    
     type F3F4 struct {
     	F3 int `json:"f3"`
     	F4 int `json:"f4"`
     }
-
+    
     type Extracted struct {
     	F3F4
     	F1F2
+    }
+    
+    type C struct {
+    	X []Extracted `json:"x"`
     }

@@ -13,9 +13,11 @@
     	K []interface{} `json:"k"`
     	L []interface{} `json:"l"`
     	M []interface{} `json:"m"`
-    	N struct {
-    		Ok bool `json:"ok"`
-    	} `json:"n"`
-    	O []time.Time `json:"o"`
-    	P []string    `json:"p"`
+    	N N             `json:"n"`
+    	O []time.Time   `json:"o"`
+    	P []string      `json:"p"`
+    }
+    
+    type N struct {
+    	Ok bool `json:"ok"`
     }

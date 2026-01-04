@@ -2,76 +2,91 @@
     stringPointersWhenKeyMissing: false
   out: |
     type Document []struct {
-    	AlwaysPresentBool          []bool      `json:"alwaysPresentBool"`
-    	AlwaysPresentFloat         []float64   `json:"alwaysPresentFloat"`
-    	AlwaysPresentFloatWithNull []*float64  `json:"alwaysPresentFloatWithNull"`
-    	AlwaysPresentInt           []int       `json:"alwaysPresentInt"`
-    	AlwaysPresentMixed         interface{} `json:"alwaysPresentMixed"`
-    	AlwaysPresentObject        []struct {
-    		Ok bool `json:"ok"`
-    	} `json:"alwaysPresentObject"`
-    	AlwaysPresentStr []string    `json:"alwaysPresentStr"`
-    	NullableBool     []bool      `json:"nullableBool"`
-    	NullableFloat    []float64   `json:"nullableFloat"`
-    	NullableInt      []int       `json:"nullableInt"`
-    	NullableMixed    interface{} `json:"nullableMixed"`
-    	NullableObject   []struct {
-    		Ok bool `json:"ok"`
-    	} `json:"nullableObject"`
-    	NullableOrMissingBool   []bool      `json:"nullableOrMissingBool,omitempty"`
-    	NullableOrMissingFloat  []float64   `json:"nullableOrMissingFloat,omitempty"`
-    	NullableOrMissingInt    []int       `json:"nullableOrMissingInt,omitempty"`
-    	NullableOrMissingMixed  interface{} `json:"nullableOrMissingMixed,omitempty"`
-    	NullableOrMissingObject []struct {
-    		Ok bool `json:"ok"`
-    	} `json:"nullableOrMissingObject,omitempty"`
-    	NullableOrMissingStr   []string    `json:"nullableOrMissingStr,omitempty"`
-    	NullableStr            []string    `json:"nullableStr"`
-    	SometimesMissingBool   []bool      `json:"sometimesMissingBool,omitempty"`
-    	SometimesMissingFloat  []float64   `json:"sometimesMissingFloat,omitempty"`
-    	SometimesMissingInt    []int       `json:"sometimesMissingInt,omitempty"`
-    	SometimesMissingMixed  interface{} `json:"sometimesMissingMixed,omitempty"`
-    	SometimesMissingObject []struct {
-    		Ok bool `json:"ok"`
-    	} `json:"sometimesMissingObject,omitempty"`
-    	SometimesMissingStr []string `json:"sometimesMissingStr,omitempty"`
+    	AlwaysPresentBool          []bool                    `json:"alwaysPresentBool"`
+    	AlwaysPresentFloat         []float64                 `json:"alwaysPresentFloat"`
+    	AlwaysPresentFloatWithNull []*float64                `json:"alwaysPresentFloatWithNull"`
+    	AlwaysPresentInt           []int                     `json:"alwaysPresentInt"`
+    	AlwaysPresentMixed         interface{}               `json:"alwaysPresentMixed"`
+    	AlwaysPresentObject        []AlwaysPresentObject     `json:"alwaysPresentObject"`
+    	AlwaysPresentStr           []string                  `json:"alwaysPresentStr"`
+    	NullableBool               []bool                    `json:"nullableBool"`
+    	NullableFloat              []float64                 `json:"nullableFloat"`
+    	NullableInt                []int                     `json:"nullableInt"`
+    	NullableMixed              interface{}               `json:"nullableMixed"`
+    	NullableObject             []NullableObject          `json:"nullableObject"`
+    	NullableOrMissingBool      []bool                    `json:"nullableOrMissingBool,omitempty"`
+    	NullableOrMissingFloat     []float64                 `json:"nullableOrMissingFloat,omitempty"`
+    	NullableOrMissingInt       []int                     `json:"nullableOrMissingInt,omitempty"`
+    	NullableOrMissingMixed     interface{}               `json:"nullableOrMissingMixed,omitempty"`
+    	NullableOrMissingObject    []NullableOrMissingObject `json:"nullableOrMissingObject,omitempty"`
+    	NullableOrMissingStr       []string                  `json:"nullableOrMissingStr,omitempty"`
+    	NullableStr                []string                  `json:"nullableStr"`
+    	SometimesMissingBool       []bool                    `json:"sometimesMissingBool,omitempty"`
+    	SometimesMissingFloat      []float64                 `json:"sometimesMissingFloat,omitempty"`
+    	SometimesMissingInt        []int                     `json:"sometimesMissingInt,omitempty"`
+    	SometimesMissingMixed      interface{}               `json:"sometimesMissingMixed,omitempty"`
+    	SometimesMissingObject     []SometimesMissingObject  `json:"sometimesMissingObject,omitempty"`
+    	SometimesMissingStr        []string                  `json:"sometimesMissingStr,omitempty"`
     }
-
+    
+    type AlwaysPresentObject struct {
+    	Ok bool `json:"ok"`
+    }
+    
+    type NullableObject struct {
+    	Ok bool `json:"ok"`
+    }
+    
+    type NullableOrMissingObject struct {
+    	Ok bool `json:"ok"`
+    }
+    
+    type SometimesMissingObject struct {
+    	Ok bool `json:"ok"`
+    }
 - options:
     stringPointersWhenKeyMissing: true
   out: |
     type Document []struct {
-    	AlwaysPresentBool          []bool      `json:"alwaysPresentBool"`
-    	AlwaysPresentFloat         []float64   `json:"alwaysPresentFloat"`
-    	AlwaysPresentFloatWithNull []*float64  `json:"alwaysPresentFloatWithNull"`
-    	AlwaysPresentInt           []int       `json:"alwaysPresentInt"`
-    	AlwaysPresentMixed         interface{} `json:"alwaysPresentMixed"`
-    	AlwaysPresentObject        []struct {
-    		Ok bool `json:"ok"`
-    	} `json:"alwaysPresentObject"`
-    	AlwaysPresentStr []string    `json:"alwaysPresentStr"`
-    	NullableBool     []bool      `json:"nullableBool"`
-    	NullableFloat    []float64   `json:"nullableFloat"`
-    	NullableInt      []int       `json:"nullableInt"`
-    	NullableMixed    interface{} `json:"nullableMixed"`
-    	NullableObject   []struct {
-    		Ok bool `json:"ok"`
-    	} `json:"nullableObject"`
-    	NullableOrMissingBool   []bool      `json:"nullableOrMissingBool,omitempty"`
-    	NullableOrMissingFloat  []float64   `json:"nullableOrMissingFloat,omitempty"`
-    	NullableOrMissingInt    []int       `json:"nullableOrMissingInt,omitempty"`
-    	NullableOrMissingMixed  interface{} `json:"nullableOrMissingMixed,omitempty"`
-    	NullableOrMissingObject []struct {
-    		Ok bool `json:"ok"`
-    	} `json:"nullableOrMissingObject,omitempty"`
-    	NullableOrMissingStr   []string    `json:"nullableOrMissingStr,omitempty"`
-    	NullableStr            []string    `json:"nullableStr"`
-    	SometimesMissingBool   []bool      `json:"sometimesMissingBool,omitempty"`
-    	SometimesMissingFloat  []float64   `json:"sometimesMissingFloat,omitempty"`
-    	SometimesMissingInt    []int       `json:"sometimesMissingInt,omitempty"`
-    	SometimesMissingMixed  interface{} `json:"sometimesMissingMixed,omitempty"`
-    	SometimesMissingObject []struct {
-    		Ok bool `json:"ok"`
-    	} `json:"sometimesMissingObject,omitempty"`
-    	SometimesMissingStr []string `json:"sometimesMissingStr,omitempty"`
+    	AlwaysPresentBool          []bool                    `json:"alwaysPresentBool"`
+    	AlwaysPresentFloat         []float64                 `json:"alwaysPresentFloat"`
+    	AlwaysPresentFloatWithNull []*float64                `json:"alwaysPresentFloatWithNull"`
+    	AlwaysPresentInt           []int                     `json:"alwaysPresentInt"`
+    	AlwaysPresentMixed         interface{}               `json:"alwaysPresentMixed"`
+    	AlwaysPresentObject        []AlwaysPresentObject     `json:"alwaysPresentObject"`
+    	AlwaysPresentStr           []string                  `json:"alwaysPresentStr"`
+    	NullableBool               []bool                    `json:"nullableBool"`
+    	NullableFloat              []float64                 `json:"nullableFloat"`
+    	NullableInt                []int                     `json:"nullableInt"`
+    	NullableMixed              interface{}               `json:"nullableMixed"`
+    	NullableObject             []NullableObject          `json:"nullableObject"`
+    	NullableOrMissingBool      []bool                    `json:"nullableOrMissingBool,omitempty"`
+    	NullableOrMissingFloat     []float64                 `json:"nullableOrMissingFloat,omitempty"`
+    	NullableOrMissingInt       []int                     `json:"nullableOrMissingInt,omitempty"`
+    	NullableOrMissingMixed     interface{}               `json:"nullableOrMissingMixed,omitempty"`
+    	NullableOrMissingObject    []NullableOrMissingObject `json:"nullableOrMissingObject,omitempty"`
+    	NullableOrMissingStr       []string                  `json:"nullableOrMissingStr,omitempty"`
+    	NullableStr                []string                  `json:"nullableStr"`
+    	SometimesMissingBool       []bool                    `json:"sometimesMissingBool,omitempty"`
+    	SometimesMissingFloat      []float64                 `json:"sometimesMissingFloat,omitempty"`
+    	SometimesMissingInt        []int                     `json:"sometimesMissingInt,omitempty"`
+    	SometimesMissingMixed      interface{}               `json:"sometimesMissingMixed,omitempty"`
+    	SometimesMissingObject     []SometimesMissingObject  `json:"sometimesMissingObject,omitempty"`
+    	SometimesMissingStr        []string                  `json:"sometimesMissingStr,omitempty"`
+    }
+    
+    type AlwaysPresentObject struct {
+    	Ok bool `json:"ok"`
+    }
+    
+    type NullableObject struct {
+    	Ok bool `json:"ok"`
+    }
+    
+    type NullableOrMissingObject struct {
+    	Ok bool `json:"ok"`
+    }
+    
+    type SometimesMissingObject struct {
+    	Ok bool `json:"ok"`
     }

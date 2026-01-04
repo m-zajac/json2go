@@ -68,6 +68,85 @@ func extractCommonSubtrees(root *node, opts options) []*node {
 	return nodes
 }
 
+// extractRemainingNestedTypes extracts any nested object types that haven't been extracted yet.
+// This runs after extractCommonSubtrees to extract unique nested types that weren't merged.
+func extractRemainingNestedTypes(nodes []*node, opts options) []*node {
+	if len(nodes) == 0 {
+		return nodes
+	}
+
+	// Build rootNames map from existing nodes
+	rootNames := make(map[string]bool)
+	for _, n := range nodes {
+		rootNames[n.name] = true
+	}
+
+	// Collect all nested object nodes that haven't been extracted yet
+	var candidates []*node
+	for _, n := range nodes {
+		collectNestedObjects(n, &candidates)
+	}
+
+	// Extract each nested object to a separate type
+	for _, candidate := range candidates {
+		// Generate name from the field key (singularized for arrays/slices)
+		typeName := typeNameFromFieldName(candidate.key)
+		if typeName == "" {
+			typeName = "Nested"
+		}
+
+		// Handle name collisions
+		originalName := typeName
+		for rootNames[typeName] {
+			typeName = nextName(typeName)
+		}
+		rootNames[typeName] = true
+
+		// Create extracted type node
+		extractedNode := candidate.clone()
+		extractedNode.name = typeName
+		extractedNode.key = originalName
+		extractedNode.root = true
+		extractedNode.arrayLevel = 0
+
+		// Replace original node with reference
+		candidate.t = nodeTypeExtracted
+		candidate.extractedTypeName = typeName
+		candidate.children = nil
+
+		nodes = append(nodes, extractedNode)
+	}
+
+	return nodes
+}
+
+// collectNestedObjects finds all non-root object nodes that should be extracted
+func collectNestedObjects(n *node, candidates *[]*node) {
+	// Skip if this is the root node or already extracted
+	if n.root {
+		// Process children of root
+		for _, child := range n.children {
+			collectNestedObjects(child, candidates)
+		}
+		return
+	}
+
+	// If this is an object node, it's a candidate for extraction
+	if n.t.id() == nodeTypeObject.id() && n.extractedTypeName == "" {
+		*candidates = append(*candidates, n)
+		// Continue recursing into children to find nested objects within this object
+		for _, child := range n.children {
+			collectNestedObjects(child, candidates)
+		}
+		return
+	}
+
+	// For other node types (arrays, primitives, etc.), recurse into children
+	for _, child := range n.children {
+		collectNestedObjects(child, candidates)
+	}
+}
+
 func collectAnonymousEmbeddedNodes(n *node, candidates *[]*node) {
 	if n.t.id() == nodeTypeObject.id() && !n.root && n.extractedTypeName == "" {
 		hasEmbedding := false
@@ -353,7 +432,7 @@ func tryExtractSubset(candidates []*node, allRoots []*node, rootNames map[string
 		extractedKey, extractedName := makeNameFromNodes(nil, allParentKeys)
 		if extractedName == "" || len(extractedName) <= 2 {
 			extractedKey = nameFromNamesCapped(actualKeys...)
-			extractedName = attrName(extractedKey)
+			extractedName = typeNameFromFieldName(extractedKey)
 		}
 
 		if extractedName == "" {
@@ -504,7 +583,7 @@ func makeNameFromNodes(nodes []*node, parentKeys []string) (key, name string) {
 	// Try to find a common name from parent keys first.
 	if len(parentKeys) > 0 {
 		key = extractCommonName(parentKeys...)
-		name = attrName(key)
+		name = typeNameFromFieldName(key)
 		if name != "" && len(name) > 2 {
 			return key, name
 		}
@@ -522,7 +601,7 @@ func makeNameFromNodes(nodes []*node, parentKeys []string) (key, name string) {
 		}
 	}
 	key = extractCommonName(keys...)
-	name = attrName(key)
+	name = typeNameFromFieldName(key)
 
 	// If successful and name is descriptive enough, return it.
 	if name != "" && len(name) > 2 {
@@ -548,7 +627,7 @@ func makeNameFromNodes(nodes []*node, parentKeys []string) (key, name string) {
 			}
 		}
 		key = nameFromNamesCapped(keys...)
-		name = attrName(key)
+		name = typeNameFromFieldName(key)
 	}
 
 	if name == "" {

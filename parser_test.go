@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"testing"
 	"text/template"
@@ -39,16 +38,18 @@ func ExampleNewJSONParser() {
 
 	// Output:
 	// type Document struct {
-	// 	Line *struct {
-	// 		End   XY `json:"end"`
-	// 		Start XY `json:"start"`
-	// 	} `json:"line,omitempty"`
-	// 	Triangle []XY `json:"triangle,omitempty"`
+	// 	Line     *Line `json:"line,omitempty"`
+	// 	Triangle []XY  `json:"triangle,omitempty"`
 	// }
 	//
 	// type XY struct {
 	// 	X float64 `json:"x"`
 	// 	Y float64 `json:"y"`
+	// }
+	//
+	// type Line struct {
+	// 	End   XY `json:"end"`
+	// 	Start XY `json:"start"`
 	// }
 
 }
@@ -64,15 +65,17 @@ func ExampleJSONParser_FeedValue() {
 
 	// Output:
 	// type Document struct {
-	// 	Line struct {
-	// 		End   XY `json:"end"`
-	// 		Start XY `json:"start"`
-	// 	} `json:"line"`
+	// 	Line Line `json:"line"`
 	// }
 	//
 	// type XY struct {
 	// 	X float64 `json:"x"`
 	// 	Y float64 `json:"y"`
+	// }
+	//
+	// type Line struct {
+	// 	End   XY `json:"end"`
+	// 	Start XY `json:"start"`
 	// }
 }
 
@@ -239,15 +242,6 @@ func main() {
 	require.NoError(t, err, "executing test template: %v", err)
 
 	return filename
-}
-
-// normalizeStr trims string, replaces all tabs and space groups with single space, collapses multiple new lines into one.
-func normalizeStr(v string) string {
-	v = strings.TrimSpace(v)
-	v = regexp.MustCompile(`[^\S\r\n]+`).ReplaceAllString(v, " ")
-	v = regexp.MustCompile(`[\r\n]+`).ReplaceAllString(v, "\n")
-
-	return v
 }
 
 func compareIgnoringNilKeys(t *testing.T, a, b interface{}) bool {

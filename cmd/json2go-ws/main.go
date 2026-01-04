@@ -96,6 +96,9 @@ func parseOpts(jsVal js.Value) (opts []json2go.JSONParserOpt, rootName string) {
 
 	opts = append(
 		opts,
+		json2go.OptExtractAllTypes(
+			jsVal.Get("extractAllTypes").Truthy(),
+		),
 		json2go.OptExtractCommonTypes(
 			jsVal.Get("extractCommonTypes").Truthy(),
 		),

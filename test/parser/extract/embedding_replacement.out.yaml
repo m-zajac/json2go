@@ -5,12 +5,12 @@
     	Person *AgeName `json:"person,omitempty"`
     	Worker *Worker  `json:"worker,omitempty"`
     }
-
+    
     type AgeName struct {
     	Age  int    `json:"age"`
     	Name string `json:"name"`
     }
-
+    
     type Worker struct {
     	AgeName
     	Salary int `json:"salary"`

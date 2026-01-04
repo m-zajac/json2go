@@ -117,6 +117,7 @@ export function App() {
   // Options state
   const [options, setOptions] = useState({
     rootName: 'Document',
+    extractAllTypes: true,
     extractCommonTypes: true,
     stringPointersWhenKeyMissing: true,
     skipEmptyKeys: true,
@@ -396,6 +397,21 @@ export function App() {
             >
               <div className="config-content options-columns">
                 <div className="options-group">
+                  <div className="option-row">
+                    <label>
+                      All types
+                      <HelpIcon text="Extracts all nested structs as separate named types, even if used only once." />
+                    </label>
+                    <label className="checkbox-label">
+                      <input 
+                        type="checkbox"
+                        checked={options.extractAllTypes}
+                        onChange={(e) => updateOption('extractAllTypes', e.target.checked)}
+                      />
+                      Extract all nested types
+                    </label>
+                  </div>
+
                   <div className="option-row">
                     <label>
                       Common types

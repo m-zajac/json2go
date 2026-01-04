@@ -5,7 +5,9 @@
     	B [][]float64         `json:"b"`
     	C [][][]float64       `json:"c"`
     	D [][][][]interface{} `json:"d"`
-    	E [][][][][]struct {
-    		Ok bool `json:"ok"`
-    	} `json:"e"`
+    	E [][][][][]E         `json:"e"`
+    }
+    
+    type E struct {
+    	Ok bool `json:"ok"`
     }

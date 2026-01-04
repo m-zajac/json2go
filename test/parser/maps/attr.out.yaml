@@ -2,57 +2,67 @@
     makeMaps: false
   out: |
     type Document struct {
-    	K1 struct {
-    		A1 string `json:"a1"`
-    		A2 string `json:"a2"`
-    		A3 string `json:"a3"`
-    		A4 string `json:"a4"`
-    		A5 string `json:"a5"`
-    	} `json:"k1"`
-    	K2 struct {
-    		A1 string `json:"a1"`
-    		A2 string `json:"a2"`
-    		A3 string `json:"a3"`
-    		A4 string `json:"a4"`
-    		A5 string `json:"a5"`
-    	} `json:"k2"`
-    	K3 struct {
-    		A1 string `json:"a1"`
-    		A2 string `json:"a2"`
-    		A3 string `json:"a3"`
-    		A4 string `json:"a4"`
-    		A5 string `json:"a5"`
-    	} `json:"k3"`
+    	K1 K1 `json:"k1"`
+    	K2 K2 `json:"k2"`
+    	K3 K3 `json:"k3"`
     }
-
+    
+    type K1 struct {
+    	A1 string `json:"a1"`
+    	A2 string `json:"a2"`
+    	A3 string `json:"a3"`
+    	A4 string `json:"a4"`
+    	A5 string `json:"a5"`
+    }
+    
+    type K2 struct {
+    	A1 string `json:"a1"`
+    	A2 string `json:"a2"`
+    	A3 string `json:"a3"`
+    	A4 string `json:"a4"`
+    	A5 string `json:"a5"`
+    }
+    
+    type K3 struct {
+    	A1 string `json:"a1"`
+    	A2 string `json:"a2"`
+    	A3 string `json:"a3"`
+    	A4 string `json:"a4"`
+    	A5 string `json:"a5"`
+    }
 - options:
     makeMaps: true
     makeMapsWhenMinAttributes: 6
   out: |
     type Document struct {
-    	K1 struct {
-    		A1 string `json:"a1"`
-    		A2 string `json:"a2"`
-    		A3 string `json:"a3"`
-    		A4 string `json:"a4"`
-    		A5 string `json:"a5"`
-    	} `json:"k1"`
-    	K2 struct {
-    		A1 string `json:"a1"`
-    		A2 string `json:"a2"`
-    		A3 string `json:"a3"`
-    		A4 string `json:"a4"`
-    		A5 string `json:"a5"`
-    	} `json:"k2"`
-    	K3 struct {
-    		A1 string `json:"a1"`
-    		A2 string `json:"a2"`
-    		A3 string `json:"a3"`
-    		A4 string `json:"a4"`
-    		A5 string `json:"a5"`
-    	} `json:"k3"`
+    	K1 K1 `json:"k1"`
+    	K2 K2 `json:"k2"`
+    	K3 K3 `json:"k3"`
     }
-
+    
+    type K1 struct {
+    	A1 string `json:"a1"`
+    	A2 string `json:"a2"`
+    	A3 string `json:"a3"`
+    	A4 string `json:"a4"`
+    	A5 string `json:"a5"`
+    }
+    
+    type K2 struct {
+    	A1 string `json:"a1"`
+    	A2 string `json:"a2"`
+    	A3 string `json:"a3"`
+    	A4 string `json:"a4"`
+    	A5 string `json:"a5"`
+    }
+    
+    type K3 struct {
+    	A1 string `json:"a1"`
+    	A2 string `json:"a2"`
+    	A3 string `json:"a3"`
+    	A4 string `json:"a4"`
+    	A5 string `json:"a5"`
+    }
 - options:
     makeMaps: true
     makeMapsWhenMinAttributes: 5

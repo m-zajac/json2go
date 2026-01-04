@@ -221,6 +221,174 @@ func nextName(name string) string {
 	return re.ReplaceAllString(name, strconv.Itoa(num+1))
 }
 
+// typeNameFromFieldName converts a field name to a type name, applying singularization
+// for array/slice fields. For example, "details" becomes "Detail",
+//
+//	"children" becomes "Child".
+func typeNameFromFieldName(fieldName string) string {
+	name := attrName(fieldName)
+	return singularize(name)
+}
+
+// singularize converts a plural name to singular form for type naming.
+// It handles both regular plurals (3+ letters ending in 's') and irregular plurals.
+func singularize(name string) string {
+	if name == "" {
+		return name
+	}
+
+	// Check irregular plurals first (case-insensitive lookup, but preserve original casing)
+	lowerName := strings.ToLower(name)
+	if singular, ok := irregularPlurals[lowerName]; ok {
+		// Preserve the casing pattern of the original name
+		if len(name) > 0 && unicode.IsUpper(rune(name[0])) {
+			return strings.ToUpper(string(singular[0])) + singular[1:]
+		}
+		return singular
+	}
+
+	// Handle common plural patterns
+	// -ies -> -y (categories -> category)
+	if len(name) >= 4 && strings.HasSuffix(name, "ies") {
+		return name[:len(name)-3] + "y"
+	}
+
+	// -sses -> -ss (addresses -> address)
+	if len(name) >= 5 && strings.HasSuffix(name, "sses") {
+		return name[:len(name)-2]
+	}
+
+	// -xes -> -x (boxes -> box)
+	if len(name) >= 4 && strings.HasSuffix(name, "xes") {
+		return name[:len(name)-2]
+	}
+
+	// -zes -> -z (quizzes -> quiz, but only if double z)
+	if len(name) >= 5 && strings.HasSuffix(name, "zzes") {
+		return name[:len(name)-3]
+	}
+
+	// -ches -> -ch (matches -> match)
+	if len(name) >= 5 && strings.HasSuffix(name, "ches") {
+		return name[:len(name)-2]
+	}
+
+	// -shes -> -sh (wishes -> wish)
+	if len(name) >= 5 && strings.HasSuffix(name, "shes") {
+		return name[:len(name)-2]
+	}
+
+	// Regular plural: 3+ letters ending in 's'
+	if len(name) >= 3 && strings.HasSuffix(name, "s") {
+		return name[:len(name)-1]
+	}
+
+	return name
+}
+
+// irregularPlurals maps irregular plural forms to their singular forms.
+// Keys should be lowercase for case-insensitive matching.
+var irregularPlurals = map[string]string{
+	"addenda":     "addendum",
+	"aircraft":    "aircraft",
+	"alumnae":     "alumna",
+	"alumni":      "alumnus",
+	"analyses":    "analysis",
+	"antennae":    "antenna",
+	"antitheses":  "antithesis",
+	"apices":      "apex",
+	"appendices":  "appendix",
+	"axes":        "axis",
+	"bacilli":     "bacillus",
+	"bacteria":    "bacterium",
+	"bases":       "basis",
+	"beaux":       "beau",
+	"bison":       "bison",
+	"bureaux":     "bureau",
+	"cacti":       "cactus",
+	"children":    "child",
+	"codices":     "codex",
+	"concerti":    "concerto",
+	"corpora":     "corpus",
+	"crises":      "crisis",
+	"criteria":    "criterion",
+	"curricula":   "curriculum",
+	"deer":        "deer",
+	"diagnoses":   "diagnosis",
+	"dice":        "die",
+	"dwarves":     "dwarf",
+	"ellipses":    "ellipsis",
+	"errata":      "erratum",
+	"faux pas":    "faux pas",
+	"feet":        "foot",
+	"fezzes":      "fez",
+	"fish":        "fish",
+	"foci":        "focus",
+	"formulae":    "formula",
+	"fungi":       "fungus",
+	"geese":       "goose",
+	"genera":      "genus",
+	"graffiti":    "graffito",
+	"grouse":      "grouse",
+	"halves":      "half",
+	"hooves":      "hoof",
+	"hypotheses":  "hypothesis",
+	"indices":     "index",
+	"larvae":      "larva",
+	"libretti":    "libretto",
+	"lice":        "louse",
+	"loaves":      "loaf",
+	"loci":        "locus",
+	"matrices":    "matrix",
+	"media":       "medium",
+	"memoranda":   "memorandum",
+	"men":         "man",
+	"mice":        "mouse",
+	"minutiae":    "minutia",
+	"moose":       "moose",
+	"nebulae":     "nebula",
+	"nuclei":      "nucleus",
+	"oases":       "oasis",
+	"offspring":   "offspring",
+	"opera":       "opus",
+	"ova":         "ovum",
+	"oxen":        "ox",
+	"parentheses": "parenthesis",
+	"people":      "person",
+	"phenomena":   "phenomenon",
+	"phyla":       "phylum",
+	"quizzes":     "quiz",
+	"radii":       "radius",
+	"referenda":   "referendum",
+	"salmon":      "salmon",
+	"scarves":     "scarf",
+	"selves":      "self",
+	"series":      "series",
+	"sheep":       "sheep",
+	"shrimp":      "shrimp",
+	"species":     "species",
+	"stimuli":     "stimulus",
+	"strata":      "stratum",
+	"swine":       "swine",
+	"syllabi":     "syllabus",
+	"symposia":    "symposium",
+	"synopses":    "synopsis",
+	"tableaux":    "tableau",
+	"teeth":       "tooth",
+	"theses":      "thesis",
+	"thieves":     "thief",
+	"trout":       "trout",
+	"tuna":        "tuna",
+	"vertebrae":   "vertebra",
+	"vertices":    "vertex",
+	"vitae":       "vita",
+	"vortices":    "vortex",
+	"wharves":     "wharf",
+	"wives":       "wife",
+	"wolves":      "wolf",
+	"women":       "woman",
+}
+
 // commonInitialisms is a set of common initialisms.
 //
 // source: https://github.com/golang/lint/blob/master/lint.go

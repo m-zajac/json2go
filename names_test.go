@@ -245,3 +245,194 @@ func TestNameFromNamesCapped(t *testing.T) {
 		})
 	}
 }
+
+func TestSingularize(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "empty",
+			input:    "",
+			expected: "",
+		},
+		{
+			name:     "regular plural - details",
+			input:    "Details",
+			expected: "Detail",
+		},
+		{
+			name:     "regular plural - items",
+			input:    "Items",
+			expected: "Item",
+		},
+		{
+			name:     "regular plural - users",
+			input:    "Users",
+			expected: "User",
+		},
+		{
+			name:     "regular plural - products",
+			input:    "Products",
+			expected: "Product",
+		},
+		{
+			name:     "plural -ies - categories",
+			input:    "Categories",
+			expected: "Category",
+		},
+		{
+			name:     "plural -ies - entries",
+			input:    "Entries",
+			expected: "Entry",
+		},
+		{
+			name:     "plural -sses - addresses",
+			input:    "Addresses",
+			expected: "Address",
+		},
+		{
+			name:     "plural -xes - boxes",
+			input:    "Boxes",
+			expected: "Box",
+		},
+		{
+			name:     "plural -ches - matches",
+			input:    "Matches",
+			expected: "Match",
+		},
+		{
+			name:     "plural -shes - wishes",
+			input:    "Wishes",
+			expected: "Wish",
+		},
+		{
+			name:     "too short - as",
+			input:    "As",
+			expected: "As",
+		},
+		{
+			name:     "too short - is",
+			input:    "Is",
+			expected: "Is",
+		},
+		{
+			name:     "not plural - item",
+			input:    "Item",
+			expected: "Item",
+		},
+		{
+			name:     "irregular - children",
+			input:    "Children",
+			expected: "Child",
+		},
+		{
+			name:     "irregular - people",
+			input:    "People",
+			expected: "Person",
+		},
+		{
+			name:     "irregular - men",
+			input:    "Men",
+			expected: "Man",
+		},
+		{
+			name:     "irregular - women",
+			input:    "Women",
+			expected: "Woman",
+		},
+		{
+			name:     "irregular - teeth",
+			input:    "Teeth",
+			expected: "Tooth",
+		},
+		{
+			name:     "irregular - mice",
+			input:    "Mice",
+			expected: "Mouse",
+		},
+		{
+			name:     "irregular - indices",
+			input:    "Indices",
+			expected: "Index",
+		},
+		{
+			name:     "uncountable - sheep",
+			input:    "Sheep",
+			expected: "Sheep",
+		},
+		{
+			name:     "uncountable - deer",
+			input:    "Deer",
+			expected: "Deer",
+		},
+		{
+			name:     "uncountable - fish",
+			input:    "Fish",
+			expected: "Fish",
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, singularize(tc.input))
+		})
+	}
+}
+
+func TestTypeNameFromFieldName(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name      string
+		fieldName string
+		expected  string
+	}{
+		{
+			name:      "singular field",
+			fieldName: "user",
+			expected:  "User",
+		},
+		{
+			name:      "plural field - details",
+			fieldName: "details",
+			expected:  "Detail",
+		},
+		{
+			name:      "plural field - items",
+			fieldName: "items",
+			expected:  "Item",
+		},
+		{
+			name:      "snake case plural - user_details",
+			fieldName: "user_details",
+			expected:  "UserDetail",
+		},
+		{
+			name:      "irregular plural - children",
+			fieldName: "children",
+			expected:  "Child",
+		},
+		{
+			name:      "irregular plural - people",
+			fieldName: "people",
+			expected:  "Person",
+		},
+		{
+			name:      "camel case plural",
+			fieldName: "userItems",
+			expected:  "UserItem",
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, typeNameFromFieldName(tc.fieldName))
+		})
+	}
+}

@@ -2,59 +2,80 @@
     makeMaps: false
   out: |
     type Document []struct {
-    	A1 struct {
-    		Ok bool `json:"ok"`
-    	} `json:"a1"`
-    	A2 struct {
-    		Ok bool `json:"ok"`
-    	} `json:"a2"`
-    	A3 struct {
-    		Ok bool `json:"ok"`
-    	} `json:"a3"`
-    	A4 struct {
-    		Ok bool `json:"ok"`
-    	} `json:"a4"`
-    	A5 *struct {
-    		Ok bool `json:"ok"`
-    	} `json:"a5,omitempty"`
+    	A1 A1  `json:"a1"`
+    	A2 A2  `json:"a2"`
+    	A3 A3  `json:"a3"`
+    	A4 A4  `json:"a4"`
+    	A5 *A5 `json:"a5,omitempty"`
     }
-
+    
+    type A1 struct {
+    	Ok bool `json:"ok"`
+    }
+    
+    type A2 struct {
+    	Ok bool `json:"ok"`
+    }
+    
+    type A3 struct {
+    	Ok bool `json:"ok"`
+    }
+    
+    type A4 struct {
+    	Ok bool `json:"ok"`
+    }
+    
+    type A5 struct {
+    	Ok bool `json:"ok"`
+    }
 - options:
     makeMaps: true
     makeMapsWhenMinAttributes: 6
   out: |
     type Document []struct {
-    	A1 struct {
-    		Ok bool `json:"ok"`
-    	} `json:"a1"`
-    	A2 struct {
-    		Ok bool `json:"ok"`
-    	} `json:"a2"`
-    	A3 struct {
-    		Ok bool `json:"ok"`
-    	} `json:"a3"`
-    	A4 struct {
-    		Ok bool `json:"ok"`
-    	} `json:"a4"`
-    	A5 *struct {
-    		Ok bool `json:"ok"`
-    	} `json:"a5,omitempty"`
+    	A1 A1  `json:"a1"`
+    	A2 A2  `json:"a2"`
+    	A3 A3  `json:"a3"`
+    	A4 A4  `json:"a4"`
+    	A5 *A5 `json:"a5,omitempty"`
     }
-
+    
+    type A1 struct {
+    	Ok bool `json:"ok"`
+    }
+    
+    type A2 struct {
+    	Ok bool `json:"ok"`
+    }
+    
+    type A3 struct {
+    	Ok bool `json:"ok"`
+    }
+    
+    type A4 struct {
+    	Ok bool `json:"ok"`
+    }
+    
+    type A5 struct {
+    	Ok bool `json:"ok"`
+    }
 - options:
     makeMaps: true
     makeMapsWhenMinAttributes: 5
     extractCommonTypes: false
   out: |
-    type Document []map[string]struct {
+    type Document []map[string]Nested
+    
+    type Nested struct {
     	Ok bool `json:"ok"`
     }
-
 - options:
     makeMaps: true
     makeMapsWhenMinAttributes: 5
     extractCommonTypes: true
   out: |
-    type Document []map[string]struct {
+    type Document []map[string]Nested
+    
+    type Nested struct {
     	Ok bool `json:"ok"`
     }

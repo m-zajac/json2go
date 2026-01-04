@@ -15,6 +15,7 @@ const (
 	DefaultMakeMapsWhenMinAttributes = 5
 
 	// Feature toggles
+	DefaultExtractAllTypes              = true
 	DefaultExtractCommonTypes           = true
 	DefaultStringPointersWhenKeyMissing = true
 	DefaultSkipEmptyKeys                = true

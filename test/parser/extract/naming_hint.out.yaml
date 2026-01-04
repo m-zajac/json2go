@@ -2,11 +2,11 @@
     extractCommonTypes: true
   out: |
     type Document struct {
-    	BillingAddress  Address `json:"billing_address"`
-    	ShippingAddress Address `json:"shipping_address"`
+    	BillingAddress  Addres `json:"billing_address"`
+    	ShippingAddress Addres `json:"shipping_address"`
     }
-
-    type Address struct {
+    
+    type Addres struct {
     	City   string `json:"city"`
     	Street string `json:"street"`
     }

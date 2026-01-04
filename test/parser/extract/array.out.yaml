@@ -2,18 +2,21 @@
     extractCommonTypes: false
   out: |
     type Document []struct {
-    	Details []struct {
-    		Duration int    `json:"duration"`
-    		State    string `json:"state"`
-    	} `json:"details,omitempty"`
-      Endtime   time.Time `json:"endtime"`
-    	Starttime time.Time `json:"starttime"`
-    	Totalwork *struct {
-    		Duration int    `json:"duration"`
-    		State    string `json:"state"`
-    	} `json:"totalwork,omitempty"`
+    	Details   []Detail   `json:"details,omitempty"`
+    	Endtime   time.Time  `json:"endtime"`
+    	Starttime time.Time  `json:"starttime"`
+    	Totalwork *Totalwork `json:"totalwork,omitempty"`
     }
-
+    
+    type Detail struct {
+    	Duration int    `json:"duration"`
+    	State    string `json:"state"`
+    }
+    
+    type Totalwork struct {
+    	Duration int    `json:"duration"`
+    	State    string `json:"state"`
+    }
 - options:
     extractCommonTypes: true
   out: |
@@ -23,7 +26,7 @@
     	Starttime time.Time       `json:"starttime"`
     	Totalwork *DurationState  `json:"totalwork,omitempty"`
     }
-
+    
     type DurationState struct {
     	Duration int    `json:"duration"`
     	State    string `json:"state"`

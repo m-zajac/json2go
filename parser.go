@@ -6,6 +6,8 @@ import (
 )
 
 type options struct {
+	// extractAllTypes toggles extracting all nested object types as separate types.
+	extractAllTypes bool
 	// extractCommonTypes toggles extracting common JSON nodes as separate types.
 	extractCommonTypes bool
 	// extractSimilarityThreshold is the minimum similarity score (0.0 to 1.0) required
@@ -37,6 +39,13 @@ type options struct {
 
 // JSONParserOpt is a type for setting parser options.
 type JSONParserOpt func(*options)
+
+// OptExtractAllTypes toggles extracting all nested object types as separate types.
+func OptExtractAllTypes(v bool) JSONParserOpt {
+	return func(o *options) {
+		o.extractAllTypes = v
+	}
+}
 
 // OptExtractCommonTypes toggles extracting common JSON nodes as separate types.
 func OptExtractCommonTypes(v bool) JSONParserOpt {
@@ -115,6 +124,7 @@ func NewJSONParser(rootTypeName string, opts ...JSONParserOpt) *JSONParser {
 
 func defaultOptions() options {
 	return options{
+		extractAllTypes:              DefaultExtractAllTypes,
 		extractCommonTypes:           DefaultExtractCommonTypes,
 		extractSimilarityThreshold:   DefaultSimilarityThreshold,
 		extractMinSubsetSize:         DefaultMinSubsetSize,
@@ -167,6 +177,10 @@ func (p *JSONParser) String() string {
 	nodes := []*node{root}
 	if p.opts.extractCommonTypes {
 		nodes = extractCommonSubtrees(root, p.opts)
+	}
+	if p.opts.extractAllTypes {
+		// Extract any remaining inline types that weren't extracted by extractCommonTypes
+		nodes = extractRemainingNestedTypes(nodes, p.opts)
 	}
 
 	return astPrintDecls(

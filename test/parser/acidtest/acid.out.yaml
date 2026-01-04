@@ -3,10 +3,12 @@
     	Arr  [][]*float64 `json:"arr,omitempty"`
     	Bool *bool        `json:"bool,omitempty"`
     	Date *time.Time   `json:"date,omitempty"`
-    	Doc  *struct {
-    		X string `json:"x,omitempty"`
-    		Y *int   `json:"y,omitempty"`
-    	} `json:"doc,omitempty"`
-    	Doc2 *bool  `json:"_doc,omitempty"`
-    	Text string `json:"text,omitempty"`
+    	Doc  *Doc         `json:"doc,omitempty"`
+    	Doc2 *bool        `json:"_doc,omitempty"`
+    	Text string       `json:"text,omitempty"`
+    }
+    
+    type Doc struct {
+    	X string `json:"x,omitempty"`
+    	Y *int   `json:"y,omitempty"`
     }
