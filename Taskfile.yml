@@ -27,10 +27,6 @@ tasks:
 
   test:
     desc: Run tests with race detection
-    sources:
-      - "**/*.go"
-      - "go.mod"
-      - "go.sum"
     cmds:
       - go test -race ./...
 

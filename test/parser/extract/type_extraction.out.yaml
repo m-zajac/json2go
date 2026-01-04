@@ -1,0 +1,16 @@
+- out: |
+    type Document []struct {
+    	ID    int    `json:"id"`
+    	Items []Item `json:"items"`
+    }
+    
+    type Item struct {
+    	Details []Detail `json:"details"`
+    	Name    string   `json:"name"`
+    }
+    
+    type Detail struct {
+    	Key   string `json:"key"`
+    	Value int    `json:"value"`
+    }
+

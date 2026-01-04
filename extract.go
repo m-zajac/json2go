@@ -88,6 +88,9 @@ func extractRemainingNestedTypes(nodes []*node, opts options) []*node {
 	}
 
 	// Extract each nested object to a separate type
+	// Process in forward order (innermost first) so that when we clone a parent,
+	// its children have already been converted to references
+	var extractedNodes []*node
 	for _, candidate := range candidates {
 		// Generate name from the field key (singularized for arrays/slices)
 		typeName := typeNameFromFieldName(candidate.key)
@@ -114,13 +117,78 @@ func extractRemainingNestedTypes(nodes []*node, opts options) []*node {
 		candidate.extractedTypeName = typeName
 		candidate.children = nil
 
-		nodes = append(nodes, extractedNode)
+		extractedNodes = append(extractedNodes, extractedNode)
 	}
 
+	// Sort extracted nodes: nodes that use extracted types should come before those types
+	sortExtractedNodesByDependency(extractedNodes)
+
+	nodes = append(nodes, extractedNodes...)
 	return nodes
 }
 
+// sortExtractedNodesByDependency sorts nodes so that types that reference other extracted types
+// come before the types they reference, while preserving the original order for independent types
+func sortExtractedNodesByDependency(nodes []*node) {
+	// Build a map of type names for quick lookup
+	typeNames := make(map[string]int)
+	for i, n := range nodes {
+		typeNames[n.name] = i
+	}
+
+	// Calculate depth (max dependency chain length) for each node
+	depths := make([]int, len(nodes))
+	for i := range nodes {
+		depths[i] = calculateDependencyDepth(nodes[i], typeNames, nodes, make(map[string]bool))
+	}
+
+	// Sort by depth (descending - nodes with more dependencies first),
+	// then by original index to maintain stability for nodes at the same depth
+	sort.SliceStable(nodes, func(i, j int) bool {
+		if depths[i] != depths[j] {
+			return depths[i] > depths[j] // Higher depth first
+		}
+		return i < j // Maintain original order for same depth
+	})
+}
+
+// calculateDependencyDepth returns the maximum dependency chain length for a node
+// A node with no dependencies has depth 0
+// A node that references nodes with depths d1, d2, ... has depth 1 + max(d1, d2, ...)
+func calculateDependencyDepth(n *node, typeNames map[string]int, allNodes []*node, visited map[string]bool) int {
+	if visited[n.name] {
+		return 0 // Avoid infinite recursion
+	}
+	visited[n.name] = true
+
+	maxDepth := 0
+	// Check all children to see if any reference extracted types
+	var checkChildren func(*node)
+	checkChildren = func(node *node) {
+		if node.t.id() == nodeTypeExtracted.id() {
+			// This references an extracted type
+			if idx, ok := typeNames[node.extractedTypeName]; ok {
+				childDepth := calculateDependencyDepth(allNodes[idx], typeNames, allNodes, visited)
+				if childDepth+1 > maxDepth {
+					maxDepth = childDepth + 1
+				}
+			}
+		}
+		for _, child := range node.children {
+			checkChildren(child)
+		}
+	}
+	for _, child := range n.children {
+		checkChildren(child)
+	}
+
+	return maxDepth
+}
+
 // collectNestedObjects finds all non-root object nodes that should be extracted
+// Collects them in depth-first post-order so that innermost objects are extracted first.
+// This ensures that when we clone a parent node, its children have already been modified
+// to reference extracted types.
 func collectNestedObjects(n *node, candidates *[]*node) {
 	// Skip if this is the root node or already extracted
 	if n.root {
@@ -131,19 +199,14 @@ func collectNestedObjects(n *node, candidates *[]*node) {
 		return
 	}
 
-	// If this is an object node, it's a candidate for extraction
-	if n.t.id() == nodeTypeObject.id() && n.extractedTypeName == "" {
-		*candidates = append(*candidates, n)
-		// Continue recursing into children to find nested objects within this object
-		for _, child := range n.children {
-			collectNestedObjects(child, candidates)
-		}
-		return
-	}
-
-	// For other node types (arrays, primitives, etc.), recurse into children
+	// Recurse into children FIRST (depth-first, post-order traversal)
 	for _, child := range n.children {
 		collectNestedObjects(child, candidates)
+	}
+
+	// Then add this node if it's an object candidate
+	if n.t.id() == nodeTypeObject.id() && n.extractedTypeName == "" {
+		*candidates = append(*candidates, n)
 	}
 }
 
