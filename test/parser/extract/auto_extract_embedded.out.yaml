@@ -6,11 +6,6 @@
     	Releases   []Release   `json:"releases"`
     }
     
-    type IDTitle struct {
-    	ID    string `json:"id"`
-    	Title string `json:"title"`
-    }
-    
     type Recording struct {
     	IDTitle
     	Length int `json:"length"`
@@ -19,4 +14,9 @@
     type Release struct {
     	IDTitle
     	Date string `json:"date"`
+    }
+    
+    type IDTitle struct {
+    	ID    string `json:"id"`
+    	Title string `json:"title"`
     }

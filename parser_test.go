@@ -42,14 +42,14 @@ func ExampleNewJSONParser() {
 	// 	Triangle []XY  `json:"triangle,omitempty"`
 	// }
 	//
-	// type XY struct {
-	// 	X float64 `json:"x"`
-	// 	Y float64 `json:"y"`
-	// }
-	//
 	// type Line struct {
 	// 	End   XY `json:"end"`
 	// 	Start XY `json:"start"`
+	// }
+	//
+	// type XY struct {
+	// 	X float64 `json:"x"`
+	// 	Y float64 `json:"y"`
 	// }
 
 }
@@ -68,14 +68,14 @@ func ExampleJSONParser_FeedValue() {
 	// 	Line Line `json:"line"`
 	// }
 	//
-	// type XY struct {
-	// 	X float64 `json:"x"`
-	// 	Y float64 `json:"y"`
-	// }
-	//
 	// type Line struct {
 	// 	End   XY `json:"end"`
 	// 	Start XY `json:"start"`
+	// }
+	//
+	// type XY struct {
+	// 	X float64 `json:"x"`
+	// 	Y float64 `json:"y"`
 	// }
 }
 

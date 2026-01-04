@@ -17,11 +17,11 @@
     	F4 int `json:"f4"`
     }
     
+    type C struct {
+    	X []Extracted `json:"x"`
+    }
+    
     type Extracted struct {
     	F3F4
     	F1F2
-    }
-    
-    type C struct {
-    	X []Extracted `json:"x"`
     }

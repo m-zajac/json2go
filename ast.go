@@ -85,7 +85,7 @@ func astTypeFromNode(n *node, opts options, rootNodeName string) ast.Expr {
 	case nodeExtractedType:
 		resultType = astTypeFromExtractedNode(n)
 	case nodeInterfaceType, nodeInitType:
-		resultType = newEmptyInterfaceExpr()
+		resultType = newAnyExpr()
 	case nodeMapType:
 		resultType = astTypeFromMapNode(n, opts, rootNodeName)
 	default:
@@ -123,7 +123,7 @@ func astTypeFromTimeNode(n *node, opts options) ast.Expr {
 func astTypeFromMapNode(n *node, opts options, rootNodeName string) ast.Expr {
 	var ve ast.Expr
 	if len(n.children) == 0 {
-		ve = newEmptyInterfaceExpr()
+		ve = newAnyExpr()
 	} else {
 		ve = astTypeFromNode(n.children[0], opts, rootNodeName)
 	}
@@ -194,34 +194,35 @@ func astJSONTag(key string, omitempty bool) *ast.BasicLit {
 }
 
 func astTypeShouldBeAPointer(resultType ast.Expr, n *node, rootNodeName string, notRequiredAsPointer bool) bool {
-	switch resultType.(type) {
+	switch t := resultType.(type) {
 	case *ast.StarExpr:
 		// Already a pointer.
 		return false
 	case *ast.InterfaceType:
 		// An empty interface will never be a pointer.
 		return false
+	case *ast.Ident:
+		// An "any" type will never be a pointer.
+		if t.Name == "any" {
+			return false
+		}
 	case *ast.MapType:
 		// Maps will never be a pointer.
 		return false
-	default:
-		if n.arrayLevel == 0 {
-			if _, ok := n.t.(nodeExtractedType); ok && (n.extractedTypeName == rootNodeName || (n.extractedTypeName == "" && n.name == rootNodeName)) {
-				return true // Recursive reference
-			}
-			return !n.root && (n.nullable || (!n.required && notRequiredAsPointer))
-		}
-
-		return n.arrayWithNulls
 	}
 
+	if n.arrayLevel == 0 {
+		if _, ok := n.t.(nodeExtractedType); ok && (n.extractedTypeName == rootNodeName || (n.extractedTypeName == "" && n.name == rootNodeName)) {
+			return true // Recursive reference
+		}
+		return !n.root && (n.nullable || (!n.required && notRequiredAsPointer))
+	}
+
+	return n.arrayWithNulls
 }
 
-func newEmptyInterfaceExpr() ast.Expr {
-	return &ast.InterfaceType{
-		Methods: &ast.FieldList{
-			Opening: token.Pos(1),
-			Closing: token.Pos(2),
-		},
+func newAnyExpr() ast.Expr {
+	return &ast.Ident{
+		Name: "any",
 	}
 }

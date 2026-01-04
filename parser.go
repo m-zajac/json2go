@@ -183,6 +183,9 @@ func (p *JSONParser) String() string {
 		nodes = extractRemainingNestedTypes(nodes, p.opts)
 	}
 
+	// Sort nodes in topological order
+	nodes = sortNodesBFS(root, nodes)
+
 	return astPrintDecls(
 		astMakeDecls(nodes, p.opts),
 	)
@@ -210,4 +213,124 @@ func (p *JSONParser) stripEmptyKeys(n *node) {
 		}
 	}
 	n.children = newChildren
+}
+
+// sortNodesBFS performs breadth-first topological sort on nodes,
+// ordering them by dependency level with ordering by appearance at each level.
+// The root node comes first, followed by its direct dependencies (in order of appearance),
+// then their dependencies, and so on.
+func sortNodesBFS(root *node, nodes []*node) []*node {
+	if len(nodes) <= 1 {
+		return nodes
+	}
+
+	// Build a map of node name -> node for quick lookup
+	nodeMap := make(map[string]*node)
+	for _, n := range nodes {
+		nodeMap[n.name] = n
+	}
+
+	// Track visited nodes and result order
+	visited := make(map[string]bool)
+	var result []*node
+
+	// BFS queue - we'll process level by level
+	var queue []*node
+	queue = append(queue, root)
+	visited[root.name] = true
+
+	for len(queue) > 0 {
+		// Process current level
+		levelSize := len(queue)
+		var currentLevel []*node
+
+		// Collect all dependencies from current level in order of appearance
+		var deps []string
+		seenDeps := make(map[string]bool)
+		for i := range levelSize {
+			node := queue[i]
+			currentLevel = append(currentLevel, node)
+
+			// Collect all dependencies of this node in order
+			nodeDeps := collectDependenciesOrdered(node)
+			for _, depName := range nodeDeps {
+				if !visited[depName] && !seenDeps[depName] {
+					if _, exists := nodeMap[depName]; exists {
+						deps = append(deps, depName)
+						seenDeps[depName] = true
+					}
+				}
+			}
+		}
+
+		// Remove current level from queue
+		queue = queue[levelSize:]
+
+		// Add current level to result
+		result = append(result, currentLevel...)
+
+		// Add dependencies to queue in order of appearance
+		for _, depName := range deps {
+			if !visited[depName] {
+				visited[depName] = true
+				queue = append(queue, nodeMap[depName])
+			}
+		}
+	}
+
+	// Handle any orphan nodes (not referenced by anyone)
+	var orphans []*node
+	for _, n := range nodes {
+		if !visited[n.name] {
+			orphans = append(orphans, n)
+		}
+	}
+
+	// Sort orphans alphabetically by name
+	sortNodesByName(orphans)
+	result = append(result, orphans...)
+
+	return result
+}
+
+// collectDependenciesOrdered recursively finds all extracted type names referenced by a node,
+// preserving the order of appearance in the node's children.
+func collectDependenciesOrdered(n *node) []string {
+	if n == nil {
+		return nil
+	}
+
+	var deps []string
+	seen := make(map[string]bool)
+
+	var collect func(*node)
+	collect = func(node *node) {
+		if node == nil {
+			return
+		}
+		for _, child := range node.children {
+			if child.t.id() == nodeTypeExtracted.id() && child.extractedTypeName != "" {
+				if !seen[child.extractedTypeName] {
+					deps = append(deps, child.extractedTypeName)
+					seen[child.extractedTypeName] = true
+				}
+			}
+			// Recursively check nested children
+			collect(child)
+		}
+	}
+
+	collect(n)
+	return deps
+}
+
+// sortNodesByName sorts nodes by their name field alphabetically
+func sortNodesByName(nodes []*node) {
+	for i := 0; i < len(nodes); i++ {
+		for j := i + 1; j < len(nodes); j++ {
+			if nodes[i].name > nodes[j].name {
+				nodes[i], nodes[j] = nodes[j], nodes[i]
+			}
+		}
+	}
 }

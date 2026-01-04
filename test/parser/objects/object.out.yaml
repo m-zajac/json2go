@@ -1,21 +1,21 @@
 - options: {}
   out: |
     type Document struct {
-    	A bool          `json:"a"`
-    	B string        `json:"b"`
-    	C int           `json:"c"`
-    	D float64       `json:"d"`
-    	E interface{}   `json:"e"`
-    	F []bool        `json:"f"`
-    	G []string      `json:"g"`
-    	H []int         `json:"h"`
-    	J []float64     `json:"j"`
-    	K []interface{} `json:"k"`
-    	L []interface{} `json:"l"`
-    	M []interface{} `json:"m"`
-    	N N             `json:"n"`
-    	O []time.Time   `json:"o"`
-    	P []string      `json:"p"`
+    	A bool        `json:"a"`
+    	B string      `json:"b"`
+    	C int         `json:"c"`
+    	D float64     `json:"d"`
+    	E any         `json:"e"`
+    	F []bool      `json:"f"`
+    	G []string    `json:"g"`
+    	H []int       `json:"h"`
+    	J []float64   `json:"j"`
+    	K []any       `json:"k"`
+    	L []any       `json:"l"`
+    	M []any       `json:"m"`
+    	N N           `json:"n"`
+    	O []time.Time `json:"o"`
+    	P []string    `json:"p"`
     }
     
     type N struct {
