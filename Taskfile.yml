@@ -109,9 +109,10 @@ tasks:
       - rm build/{{.BINARY}}
 
   web:
-    desc: Build for Web (WASM)
+    desc: Build for Web (WASM) using TinyGo
     vars:
-      WASM_EXEC: "{{.GOROOT}}/lib/wasm/wasm_exec.js"
+      WASM_EXEC:
+        sh: tinygo env TINYGOROOT | xargs -I {} echo {}/targets/wasm_exec.js
     sources:
       - "cmd/json2go-ws/**/*.go"
       - "**/*.go"
@@ -121,7 +122,7 @@ tasks:
     cmds:
       - mkdir -p build/web
       - cp "{{.WASM_EXEC}}" build/web/
-      - GOOS=js GOARCH=wasm go build -o build/web/json2go.wasm ./cmd/json2go-ws/*.go
+      - tinygo build -o build/web/json2go.wasm -target=wasm --no-debug -opt=z ./cmd/json2go-ws/
 
   serve-web:
     desc: Serve the web application locally (old static version)

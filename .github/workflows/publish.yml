@@ -20,6 +20,12 @@ jobs:
         # preserve history to be able to see latest tag
         fetch-depth: 0
 
+    - name: Install TinyGo
+      uses: acifani/setup-tinygo@v2
+      with:
+        tinygo-version: '0.34.0'
+        install-binaryen: 'false'
+
     - name: Install Task
       uses: arduino/setup-task@v2
       with:
