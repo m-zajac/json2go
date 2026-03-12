@@ -15,7 +15,7 @@
     "@webtui/theme-catppuccin": "^0.0.3",
     "codemirror": "^6.0.2",
     "lucide-preact": "^0.562.0",
-    "preact": "^10.27.2"
+    "preact": "^10.28.2"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.2",
